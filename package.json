@@ -3,11 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "description": "Staff app (PWA) for SMS Barmer schools: attendance, homework, marks, my info.",
-  "scripts": { "dev": "next dev -p 3300", "build": "next build", "typecheck": "tsc --noEmit" },
-  "engines": { "node": ">=20" },
+  "scripts": {
+    "dev": "next dev -p 3300",
+    "build": "next build",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@fontsource-variable/noto-sans-devanagari": "^5.3.0",
-    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "@fontsource/figtree": "^5.3.0",
+    "@fontsource/hind": "^5.3.0",
     "clsx": "^2.1.1",
     "lucide-react": "^0.453.0",
     "next": "^14.2.15",

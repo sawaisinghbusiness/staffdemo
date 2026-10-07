@@ -1,91 +1,101 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Same colours as the ERP (SMS BARMER/tailwind.config.ts), so the school sees one product.
- * Colour carries meaning only: jade = present / paid, red = absent / due, marigold = needs attention.
+ * Our own violet (deeper than the kit's lavender) on white. Colour carries meaning only:
+ * jade = present / paid, red = absent / unpaid, marigold = waiting / leave, violet = the app and holidays.
  */
+// Grey with a slight violet bias, so it sits with the brand instead of reading as a default.
 const ink = {
-  50: "#F7F8FB",
-  100: "#EFF1F6",
-  200: "#E2E6EF",
-  300: "#CBD2DF",
-  400: "#97A1B6",
-  500: "#687389",
-  600: "#4C566B",
-  700: "#394153",
-  800: "#252C3B",
-  900: "#161B27",
-  950: "#0C1019",
+  50: "#F7F6FA",
+  100: "#ECEAF2",
+  200: "#DDD9E8",
+  300: "#C9C4D8",
+  400: "#8E8AA3",
+  500: "#625D77",
+  600: "#4E4963",
+  700: "#3B3650",
+  800: "#2A2540",
+  900: "#1F1B2E",
+  950: "#16131F",
 };
 
+// Present / paid.
 const jade = {
-  50: "#ECFDF7",
-  100: "#D1FAEC",
-  200: "#A6F2DA",
-  500: "#12B28C",
-  600: "#089173",
-  700: "#07745E",
-  800: "#0A5C4C",
+  50: "#EAF7EE",
+  100: "#D3F0DC",
+  200: "#A9E0BA",
+  500: "#1DAF55",
+  600: "#16A34A",
+  700: "#128A3E",
+  800: "#0F6E33",
 };
 
+// Waiting / leave / half day.
 const marigold = {
-  50: "#FFF9EB",
-  100: "#FEEFC7",
-  300: "#FCC74D",
-  400: "#FAB124",
-  500: "#F2A516",
-  600: "#D67C07",
-  700: "#B1580A",
+  50: "#FEF6E7",
+  100: "#FCEBC8",
+  300: "#F2C46D",
+  400: "#E9A23B",
+  500: "#D97706",
+  600: "#B86405",
+  700: "#924F04",
 };
 
-const indigo = {
-  50: "#EEF0FF",
-  100: "#E0E4FF",
-  200: "#C7CDFE",
-  500: "#5A66E8",
-  600: "#3446D1",
-  700: "#2B38AE",
-  800: "#252F8C",
+// The app's own violet.
+const brand = {
+  50: "#F3F0FE",
+  100: "#E7E1FD",
+  200: "#CFC6F8",
+  300: "#B9AAF5",
+  400: "#9580EC",
+  500: "#7C62E8",
+  600: "#6C4FE0",
+  700: "#5A3CC9",
+  800: "#3F2A94",
+  900: "#2C1E68",
 };
 
 const night = {
-  300: "#A9ADBA",
-  400: "#858A99",
-  500: "#62677A",
-  600: "#454957",
-  700: "#2E313B",
-  800: "#22242C",
-  850: "#1B1D23",
-  900: "#141519",
-  950: "#0D0E11",
+  300: "#A9A4BA",
+  400: "#858099",
+  500: "#625D77",
+  600: "#45405A",
+  700: "#2E2A3D",
+  800: "#221F2E",
+  850: "#1B1824",
+  900: "#16131F",
+  950: "#0E0C14",
 };
 
+// Absent / unpaid.
 const rose = {
-  50: "#FFF1F1",
-  100: "#FFE1E1",
-  500: "#E5484D",
-  600: "#CE2C31",
-  700: "#AA2429",
+  50: "#FDECEC",
+  100: "#FAD7D7",
+  500: "#E23B3B",
+  600: "#DC2626",
+  700: "#B91C1C",
 };
 
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      colors: { slate: ink, ink, jade, emerald: jade, marigold, brand: indigo, night, rose, red: rose, canvas: "#ECEEF3" },
+      colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF" },
       fontFamily: {
-        sans: ["'Plus Jakarta Sans Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "Roboto", "sans-serif"],
+        // Figtree for Latin and numbers; Hind fills in Devanagari.
+        sans: ["Figtree", "Hind", "'Noto Sans Devanagari'", "system-ui", "sans-serif"],
       },
       fontSize: {
-        // Parents read on small phones, often outdoors: the floor is 14px, body is 17px.
-        xs: ["0.875rem", { lineHeight: "1.25rem" }],
-        sm: ["0.9375rem", { lineHeight: "1.375rem" }],
-        base: ["1.0625rem", { lineHeight: "1.625rem" }],
+        // Parents read on small phones, often outdoors: the floor is 13px, body is 16px.
+        xs: ["0.8125rem", { lineHeight: "1.2rem" }],
+        sm: ["0.875rem", { lineHeight: "1.3rem" }],
+        base: ["1rem", { lineHeight: "1.5rem" }],
       },
-      borderRadius: { xl: "0.75rem", "2xl": "1rem" },
+      // Kit corners: fields and buttons 12px, row cards 14px, banners 16px.
+      borderRadius: { xl: "0.75rem", "2xl": "0.875rem", "3xl": "1rem" },
       boxShadow: {
-        card: "0 1px 2px rgb(21 24 58 / 0.05), 0 10px 26px -16px rgb(21 24 58 / 0.18)",
-        bar: "0 -1px 0 rgb(21 24 58 / 0.06), 0 -8px 24px -12px rgb(21 24 58 / 0.12)",
+        card: "0 1px 2px rgb(31 27 46 / 0.05), 0 10px 26px -16px rgb(31 27 46 / 0.18)",
+        bar: "0 -1px 0 rgb(31 27 46 / 0.06)",
       },
       keyframes: {
         fadeIn: { from: { opacity: "0" }, to: { opacity: "1" } },

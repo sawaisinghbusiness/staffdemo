@@ -7,9 +7,11 @@ import { api, ApiError, clearCache } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { phoneText } from "@/lib/format";
 import { DEMO, DEMO_CODE } from "@/lib/demo";
+import { SchoolMark } from "@/components/ui";
 
 interface PublicSchool {
   name: string;
+  address?: string;
   logoUrl: string | null;
   officePhone: string;
 }
@@ -97,44 +99,43 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="pt-safe mx-auto flex min-h-[100dvh] max-w-[440px] flex-col px-4 pb-6">
+    <main className="pt-safe mx-auto flex min-h-[100dvh] max-w-[440px] flex-col bg-white px-5 pb-6">
       <div className="flex justify-end pt-3">
-        <button onClick={() => setLang(lang === "hi" ? "en" : "hi")} className="min-h-[44px] rounded-lg px-3 text-sm font-semibold text-brand-700">
+        <button onClick={() => setLang(lang === "hi" ? "en" : "hi")} className="min-h-[44px] rounded-lg px-3 text-[14px] font-semibold text-brand-600">
           {lang === "hi" ? "English" : "हिंदी"}
         </button>
       </div>
 
-      <div className="flex flex-col items-center pb-6 pt-6 text-center">
-        {school?.logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={school.logoUrl} alt="" className="h-20 w-20 rounded-2xl border border-ink-200 bg-white object-contain p-1.5 shadow-card" />
-        ) : (
-          <div className="h-20 w-20 rounded-2xl bg-night-900" aria-hidden />
-        )}
-        <p className="mt-4 text-xl font-bold text-ink-900">{school?.name || " "}</p>
-        <p className="mt-0.5 text-ink-500">{L({ hi: "स्टाफ़ लॉगिन", en: "Staff sign-in" })}</p>
+      <div className="flex flex-col items-center pt-4 text-center">
+        {school ? <SchoolMark name={school.name} url={school.logoUrl} size={66} /> : <div className="h-[66px] w-[66px] rounded-[18px] bg-ink-100" aria-hidden />}
+        <p className="mt-3 text-[16px] font-bold">{school?.name || " "}</p>
+        <p className="text-[13px] text-ink-500">{school?.address || L({ hi: "स्टाफ़ ऐप", en: "Staff app" })}</p>
       </div>
 
-      <div key={shake} className={clsx("card p-5", shake > 0 && "animate-shake")}>
+      <div className="pb-4 pt-8">
+        <h1 className="text-[24px] font-extrabold">{L({ hi: "स्टाफ़ लॉगिन", en: "Staff sign in" })}</h1>
+        <p className="mt-1 text-[14px] text-ink-500">{L({ hi: "वही नंबर डालें जो स्कूल में आपके रिकॉर्ड में दर्ज है।", en: "Use the number the school has on your record." })}</p>
+      </div>
+
+      <div key={shake} className={clsx(shake > 0 && "animate-shake")}>
         {step === "mobile" ? (
           <form onSubmit={sendCode} noValidate>
             {DEMO && (
-              <fieldset className="mb-4">
-                <legend className="mb-2 font-semibold text-ink-800">{L({ hi: "डेमो: आप कौन हैं?", en: "Demo: who are you?" })}</legend>
-                <div className="grid grid-cols-3 gap-2" role="radiogroup">
+              <fieldset className="mb-3">
+                <legend className="mb-1 text-[13px] font-medium text-ink-500">{L({ hi: "डेमो: आप कौन हैं?", en: "Demo: who are you?" })}</legend>
+                <div className="flex flex-wrap gap-x-5" role="radiogroup">
                   {ROLES.map((r) => (
-                    <button key={r.key} type="button" role="radio" aria-checked={role === r.key} onClick={() => setRole(r.key)} className={clsx("btn min-h-[48px] border px-2 text-[15px]", role === r.key ? "border-brand-600 bg-brand-50 text-brand-800" : "border-ink-200 bg-white text-ink-700")}>
+                    <label key={r.key} className="radio">
+                      <input type="radio" name="role" checked={role === r.key} onChange={() => setRole(r.key)} />
                       {L(r.text)}
-                    </button>
+                    </label>
                   ))}
                 </div>
               </fieldset>
             )}
-            <label htmlFor="mobile" className="mb-2 block font-semibold text-ink-800">
-              {L({ hi: "मोबाइल नंबर", en: "Mobile number" })}
-            </label>
-            <div className="flex items-stretch overflow-hidden rounded-xl border border-ink-300 bg-white focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-100">
-              <span className="flex items-center border-r border-ink-200 bg-ink-50 px-3 font-semibold text-ink-600">+91</span>
+            <label className="field-box">
+              <small>{L({ hi: "मोबाइल नंबर", en: "Mobile number" })}</small>
+              <span className="pt-4 font-medium text-ink-500">+91</span>
               <input
                 id="mobile"
                 type="tel"
@@ -143,12 +144,12 @@ export default function LoginPage() {
                 maxLength={14}
                 value={mobile}
                 onChange={(e) => setMobile(e.target.value.replace(/[^\d ]/g, ""))}
-                className="tnum min-h-[54px] w-full px-3 text-lg font-semibold tracking-wide text-ink-900 outline-none placeholder:font-normal placeholder:text-ink-400"
+                className="tnum text-[17px] font-semibold tracking-wide placeholder:font-normal"
                 placeholder="98765 43210"
                 autoFocus={!DEMO}
               />
-            </div>
-            <p className="mt-2 text-sm text-ink-500">{DEMO ? L({ hi: "डेमो: कोई भी 10 अंकों का मोबाइल नंबर डालें।", en: "Demo: enter any 10-digit mobile number." }) : L({ hi: "वही नंबर डालें जो स्कूल में आपके रिकॉर्ड में दर्ज है।", en: "Use the number the school has on your record." })}</p>
+            </label>
+            {DEMO && <p className="mt-2 text-[13px] text-ink-500">{L({ hi: "डेमो: कोई भी 10 अंकों का मोबाइल नंबर डालें।", en: "Demo: enter any 10-digit mobile number." })}</p>}
             {error && (
               <p className="mt-3 font-medium text-rose-700" role="alert">
                 {error}
@@ -157,6 +158,7 @@ export default function LoginPage() {
             <button type="submit" disabled={busy} className="btn-primary mt-5 w-full">
               {busy ? "…" : L({ hi: "WhatsApp पर कोड भेजें", en: "Send code on WhatsApp" })}
             </button>
+            <p className="mt-3 text-center text-[13px] text-ink-500">{L({ hi: "6 अंकों का कोड कुछ ही सेकंड में आएगा।", en: "The 6-digit code arrives in a few seconds." })}</p>
           </form>
         ) : (
           <form
@@ -172,13 +174,12 @@ export default function LoginPage() {
                 setStep("mobile");
                 setError("");
               }}
-              className="-ml-1 mb-2 flex min-h-[44px] items-center gap-1 text-sm font-semibold text-brand-700"
+              className="-ml-1 mb-2 flex min-h-[44px] items-center gap-1 text-[14px] font-semibold text-brand-600"
             >
               <ArrowLeft className="h-4 w-4" aria-hidden /> {L({ hi: "नंबर बदलें", en: "Change number" })}
             </button>
             {DEMO ? (
-              <p className="flex items-center gap-2 rounded-xl border border-marigold-300/70 bg-marigold-50 px-3 py-2.5 text-ink-800">
-                <span className="dot bg-marigold-500" aria-hidden />
+              <p className="flex items-center gap-2 rounded-xl bg-brand-50 px-3 py-2.5 text-ink-800">
                 {L({ hi: "डेमो कोड:", en: "Demo code:" })} <span className="tnum text-lg font-bold tracking-widest text-ink-900">{DEMO_CODE}</span>
               </p>
             ) : (

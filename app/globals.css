@@ -8,57 +8,188 @@
     -webkit-tap-highlight-color: transparent;
   }
   body {
-    @apply bg-canvas text-base text-ink-800 antialiased;
-    /* Plus Jakarta's space is narrow; a touch of word spacing keeps English words apart. */
-    word-spacing: 0.04em;
+    @apply bg-white text-base text-ink-900 antialiased;
     overscroll-behavior-y: none;
-  }
-  :lang(hi) body {
-    word-spacing: normal;
   }
   h1,
   h2,
   h3 {
     @apply text-ink-900;
   }
-  /* 16px+ inputs stop iPhones zooming in; the app's base is 17px. */
+  /* 16px inputs stop iPhones zooming in. */
   input,
   textarea,
   select {
-    font-size: 1.0625rem;
+    font-size: 1rem;
   }
   :focus-visible {
-    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-canvas;
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-white;
   }
 }
 
 @layer components {
-  /* White card on the tinted canvas: hairline border + soft low shadow. */
-  .card {
-    @apply rounded-2xl border border-ink-200/80 bg-white shadow-card;
+  /* ── Kit building blocks (same names in the parent and the staff app) ── */
+
+  /* Grey rounded row card: the kit's list item. */
+  .row-card {
+    @apply block rounded-2xl bg-ink-50 px-3.5 py-3;
   }
-  .card-title {
-    @apply text-sm font-semibold text-ink-500;
+  a.row-card,
+  button.row-card {
+    @apply w-full text-left transition-colors active:bg-ink-100;
+  }
+  /* Small grey line of facts with icons: subject · date · time. */
+  .meta {
+    @apply flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-500;
+  }
+  .meta > span {
+    @apply inline-flex items-center gap-1;
+  }
+  .meta svg {
+    @apply h-[15px] w-[15px] shrink-0;
+  }
+  /* Grey label above a group: "October 2026", "This week". */
+  .mlabel {
+    @apply px-0.5 text-[13px] font-medium text-ink-400;
+  }
+  .sec-head {
+    @apply flex items-baseline justify-between;
+  }
+  .sec-head h2 {
+    @apply text-[17px] font-bold;
+  }
+  .sec-head a {
+    @apply -my-3 py-3 text-[13px] font-medium text-ink-500;
+  }
+
+  /* Two tabs with a 2px underline. */
+  .tabs-line {
+    @apply flex border-b border-ink-100;
+  }
+  .tabs-line > * {
+    @apply -mb-px min-h-[44px] flex-1 border-b-2 border-transparent text-center text-[15px] font-medium text-ink-400;
+  }
+  .tabs-line > [aria-selected="true"] {
+    @apply border-brand-600 font-semibold text-brand-600;
+  }
+
+  /* Thin outlined status: Pending / Approved. The colour is in the word and the line, never a fill. */
+  .status {
+    @apply inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-px text-[12px] font-semibold leading-5;
+  }
+  .status-ok {
+    @apply status text-jade-600;
+  }
+  .status-bad {
+    @apply status text-rose-600;
+  }
+  .status-wait {
+    @apply status text-marigold-500;
+  }
+  .status-mute {
+    @apply status text-ink-400;
+  }
+
+  /* Bordered field (dropdown, date, text) with an optional small label inside. */
+  .field-box {
+    @apply relative flex min-h-[54px] w-full items-center gap-2 rounded-xl border border-ink-200 bg-white px-3.5 focus-within:border-brand-500 focus-within:ring-4 focus-within:ring-brand-100;
+  }
+  .field-box > small {
+    @apply pointer-events-none absolute left-3.5 top-1.5 text-[11px] font-medium text-ink-400;
+  }
+  .field-box input,
+  .field-box select,
+  .field-box textarea {
+    @apply min-w-0 flex-1 appearance-none bg-transparent text-ink-900 outline-none placeholder:text-ink-400;
+  }
+  /* The box itself shows focus; no second ring on the input inside. */
+  .field-box :focus-visible {
+    @apply ring-0 ring-offset-0;
+  }
+  .field-box > small ~ input,
+  .field-box > small ~ select {
+    @apply pt-4;
+  }
+  /* The whole date box opens the picker; our calendar icon replaces the browser's. */
+  .field-box input[type="date"]::-webkit-calendar-picker-indicator {
+    @apply absolute inset-0 h-auto w-auto cursor-pointer opacity-0;
+  }
+  .field-box > svg {
+    @apply pointer-events-none h-[18px] w-[18px] shrink-0 text-ink-500;
+  }
+  .textarea-box {
+    @apply block min-h-[96px] w-full resize-none rounded-xl border border-ink-200 bg-white px-3.5 py-3 leading-relaxed text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-500 focus:ring-4 focus:ring-brand-100;
+  }
+
+  /* Pastel square with a line icon, plus its label: the home grid. */
+  .icon-tile {
+    @apply flex min-h-[76px] flex-col items-center gap-1.5 text-center text-[12.5px] font-medium leading-tight text-ink-900;
+  }
+  .icon-tile > span:first-child {
+    @apply grid h-[52px] w-[52px] place-items-center rounded-[15px] transition-transform;
+  }
+  .icon-tile:active > span:first-child {
+    @apply scale-95;
+  }
+
+  /* Soft violet banner with a drawing on the right. */
+  .banner {
+    @apply relative min-h-[124px] overflow-hidden rounded-3xl bg-brand-50 py-3.5 pl-4 pr-[132px];
+  }
+  .banner > svg,
+  .banner > .art {
+    @apply absolute bottom-0 right-[-6px] h-[116px] w-[136px];
+  }
+
+  /* Label left, value right, hairline between rows. */
+  /* :where keeps these weak, so a colour or size utility on one row still wins. */
+  .kv > :where(div) {
+    @apply flex items-baseline justify-between gap-4 border-b border-ink-100 py-2.5 text-[15px] last:border-b-0;
+  }
+  .kv :where(dt) {
+    @apply shrink-0 text-ink-500;
+  }
+  .kv :where(dd) {
+    @apply min-w-0 break-words text-right font-medium text-ink-900;
+  }
+
+  /* Month grid with a dot under each marked day. */
+  .cal {
+    @apply rounded-3xl bg-ink-50 px-2.5 pb-2 pt-1;
   }
 
   .btn {
-    @apply inline-flex min-h-[48px] select-none items-center justify-center gap-2 rounded-xl px-5 text-base font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+    @apply inline-flex min-h-[50px] select-none items-center justify-center gap-2 rounded-xl px-5 text-[15px] font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
   }
   .btn-primary {
-    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+    @apply btn bg-brand-600 text-white hover:bg-brand-700;
+  }
+  .btn-line {
+    @apply btn border border-brand-100 bg-white text-brand-600 hover:bg-brand-50;
   }
   .btn-quiet {
-    @apply btn border border-ink-200 bg-white text-ink-800 hover:bg-ink-50;
+    @apply btn-line;
+  }
+  /* Small dark button inside a banner. */
+  .btn-dark {
+    @apply inline-flex min-h-[40px] items-center rounded-[10px] bg-ink-900 px-4 text-[13.5px] font-semibold text-white active:scale-[0.98];
   }
   .link {
-    @apply inline-flex min-h-[44px] items-center gap-1 font-semibold text-brand-700;
+    @apply inline-flex min-h-[44px] items-center gap-1 font-semibold text-brand-600;
   }
 
   .field {
-    @apply block min-h-[52px] w-full rounded-xl border border-ink-300 bg-white px-4 text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
+    @apply block min-h-[52px] w-full rounded-xl border border-ink-200 bg-white px-4 text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
   }
 
-  /* Meaning without a coloured pill: a small dot and dark text (never same-hue bg + text). */
+  /* Radio as the kit draws it: a ring that fills violet. */
+  .radio {
+    @apply flex min-h-[44px] cursor-pointer items-center gap-2.5 text-[15px];
+  }
+  .radio input {
+    @apply h-[18px] w-[18px] shrink-0 appearance-none rounded-full border-[1.6px] border-ink-300 bg-white transition-all checked:border-[5px] checked:border-brand-600 disabled:opacity-40;
+  }
+
   .dot {
     @apply inline-block h-2.5 w-2.5 shrink-0 rounded-full;
   }
@@ -73,6 +204,12 @@
 
   .tnum {
     font-variant-numeric: tabular-nums;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
   }
 }
 
