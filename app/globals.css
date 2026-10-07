@@ -1,0 +1,85 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-canvas text-base text-ink-800 antialiased;
+    /* Plus Jakarta's space is narrow; a touch of word spacing keeps English words apart. */
+    word-spacing: 0.04em;
+    overscroll-behavior-y: none;
+  }
+  :lang(hi) body {
+    word-spacing: normal;
+  }
+  h1,
+  h2,
+  h3 {
+    @apply text-ink-900;
+  }
+  /* 16px+ inputs stop iPhones zooming in; the app's base is 17px. */
+  input,
+  textarea,
+  select {
+    font-size: 1.0625rem;
+  }
+  :focus-visible {
+    @apply outline-none ring-2 ring-brand-500 ring-offset-2 ring-offset-canvas;
+  }
+}
+
+@layer components {
+  /* White card on the tinted canvas: hairline border + soft low shadow. */
+  .card {
+    @apply rounded-2xl border border-ink-200/80 bg-white shadow-card;
+  }
+  .card-title {
+    @apply text-sm font-semibold text-ink-500;
+  }
+
+  .btn {
+    @apply inline-flex min-h-[48px] select-none items-center justify-center gap-2 rounded-xl px-5 text-base font-semibold transition active:scale-[0.98] disabled:pointer-events-none disabled:opacity-50;
+  }
+  .btn-primary {
+    @apply btn bg-brand-600 text-white shadow-sm hover:bg-brand-700;
+  }
+  .btn-quiet {
+    @apply btn border border-ink-200 bg-white text-ink-800 hover:bg-ink-50;
+  }
+  .link {
+    @apply inline-flex min-h-[44px] items-center gap-1 font-semibold text-brand-700;
+  }
+
+  .field {
+    @apply block min-h-[52px] w-full rounded-xl border border-ink-300 bg-white px-4 text-ink-900 placeholder:text-ink-400 focus:border-brand-500 focus:outline-none focus:ring-4 focus:ring-brand-100;
+  }
+
+  /* Meaning without a coloured pill: a small dot and dark text (never same-hue bg + text). */
+  .dot {
+    @apply inline-block h-2.5 w-2.5 shrink-0 rounded-full;
+  }
+
+  .skeleton {
+    @apply relative overflow-hidden rounded-lg bg-ink-100;
+  }
+  .skeleton::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full animate-shimmer bg-gradient-to-r from-transparent via-white/60 to-transparent;
+  }
+
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Space for the iPhone home bar / Android gesture bar. */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.pt-safe {
+  padding-top: env(safe-area-inset-top);
+}

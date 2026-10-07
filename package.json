@@ -1,0 +1,26 @@
+{
+  "name": "schooldesk-staff",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Staff app (PWA) for SMS Barmer schools: attendance, homework, marks, my info.",
+  "scripts": { "dev": "next dev -p 3300", "build": "next build", "typecheck": "tsc --noEmit" },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@fontsource-variable/noto-sans-devanagari": "^5.3.0",
+    "@fontsource-variable/plus-jakarta-sans": "^5.3.0",
+    "clsx": "^2.1.1",
+    "lucide-react": "^0.453.0",
+    "next": "^14.2.15",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "@types/react": "^18.3.31",
+    "@types/react-dom": "^18.3.7",
+    "autoprefixer": "^10.6.1",
+    "postcss": "^8.5.29",
+    "tailwindcss": "3.4",
+    "typescript": "^5.9.3"
+  }
+}

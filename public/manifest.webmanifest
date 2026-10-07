@@ -1,0 +1,17 @@
+{
+  "name": "School — Staff",
+  "short_name": "Staff",
+  "description": "Attendance, homework, marks and your own details.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#ECEEF3",
+  "theme_color": "#141519",
+  "lang": "hi",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
