@@ -63,6 +63,24 @@ function writeCache(path: string, v: unknown) {
     /* storage full or blocked: fine, we just won't have an offline copy */
   }
 }
+const SIGNED = "sa:signed-in";
+/** Remembered on this phone after a sign-in, so the app can go straight to sign-in when it's missing. */
+export function markSignedIn(on: boolean) {
+  try {
+    if (on) localStorage.setItem(SIGNED, "1");
+    else localStorage.removeItem(SIGNED);
+  } catch {
+    /* storage blocked: the server's 401 still sends them to sign-in */
+  }
+}
+export function hasSignInMark() {
+  try {
+    return localStorage.getItem(SIGNED) === "1";
+  } catch {
+    return false;
+  }
+}
+
 export function clearCache() {
   try {
     for (const k of Object.keys(localStorage)) if (k.startsWith(KEY)) localStorage.removeItem(k);
@@ -98,7 +116,10 @@ export function useApi<T>(path: string | null) {
       const err = e instanceof ApiError ? e : new ApiError(0, "offline");
       setError(err);
       setStale(true);
-      if (err.status === 401) window.location.replace("/login/");
+      if (err.status === 401) {
+        markSignedIn(false);
+        window.location.replace("/login/");
+      }
     } finally {
       if (live.current === path) setLoading(false);
     }

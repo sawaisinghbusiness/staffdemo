@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { Banknote, CalendarCheck, CalendarX2, ChevronRight, Languages, LogOut, Phone, type LucideIcon } from "lucide-react";
-import { api, clearCache } from "@/lib/api";
+import { api, markSignedIn, clearCache } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { phoneText } from "@/lib/format";
@@ -42,6 +42,7 @@ export default function ProfilePage() {
     setLeaving(true);
     await api("/logout", { method: "POST" }).catch(() => null);
     clearCache();
+    markSignedIn(false);
     window.location.replace("/login/");
   }
 

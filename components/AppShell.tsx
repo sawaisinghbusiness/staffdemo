@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { CalendarCheck, ChevronLeft, Home, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck, ChevronLeft, History, Home, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
 import { useStaff } from "@/lib/staff";
 import { useL, type Bi } from "@/lib/i18n";
 import { ErrorCard, OfflineNote } from "./ui";
@@ -41,7 +41,39 @@ const PAGES: Record<string, PageInfo> = {
   "/leave/": { title: { hi: "छुट्टी", en: "Leave" }, back: "/", action: { href: "/leave/apply/", text: { hi: "छुट्टी की अर्ज़ी", en: "Apply leave" } } },
   "/leave/apply/": { title: { hi: "छुट्टी की अर्ज़ी", en: "Apply Leave" }, back: "/leave/" },
   "/notice/": { title: { hi: "सूचनाएँ", en: "Notice" }, back: "/" },
+  "/trip/": { title: { hi: "ट्रिप", en: "Trip" }, back: "/" },
+  "/trip/history/": { title: { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, back: "/" },
 };
+
+/** Drivers get their own bar: a black pill with Record, Home (raised, yellow) and Profile. */
+function DriverNav({ path }: { path: string }) {
+  const L = useL();
+  const item = (href: string, text: Bi, Icon: LucideIcon, mid?: boolean) => {
+    const on = path === href || (href !== "/" && path.startsWith(href));
+    return (
+      <Link
+        href={href}
+        aria-label={L(text)}
+        aria-current={on ? "page" : undefined}
+        className={clsx(
+          "grid place-items-center rounded-full",
+          mid ? "-mt-[22px] h-[52px] w-[52px] bg-drv-yellow text-black shadow-[0_0_0_5px_#0A0A0A]" : clsx("h-11 w-11", on ? "text-drv-yellow" : "text-[#9A9A9A]")
+        )}
+      >
+        <Icon className="h-5 w-5" strokeWidth={on || mid ? 2.2 : 1.9} aria-hidden />
+      </Link>
+    );
+  };
+  return (
+    <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-[560px] justify-center" aria-label="Main">
+      <div className="mb-5 flex h-[52px] w-[184px] items-center justify-between rounded-full bg-drv-black px-4 shadow-[0_8px_20px_rgba(0,0,0,.18)]">
+        {item("/trip/history/", { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, History)}
+        {item("/", { hi: "होम", en: "Home" }, Home, true)}
+        {item("/profile/", { hi: "प्रोफ़ाइल", en: "Profile" }, UserRound)}
+      </div>
+    </nav>
+  );
+}
 
 const norm = (p: string) => (p.endsWith("/") ? p : p + "/");
 
@@ -56,6 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const page = PAGES[path];
   const isHome = path === "/";
   const teacher = !me || me.role === "teacher";
+  const driver = me?.role === "driver";
   const tabs = teacher ? TEACHER_TABS : OTHER_TABS;
   const blocked = !!me && me.role !== "teacher" && !!page?.teacher;
   const lit = isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
@@ -64,7 +97,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [blocked]);
 
   return (
-    <div className="mx-auto flex min-h-[100dvh] max-w-[560px] flex-col bg-white">
+    <div className={clsx("mx-auto flex min-h-[100dvh] max-w-[560px] flex-col bg-white", driver && "drv")}>
       {!isHome && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">
@@ -75,7 +108,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             ) : (
               <span />
             )}
-            <h1 className="truncate text-center text-[18px] font-bold">{page ? L(page.title) : ""}</h1>
+            <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold")}>{page ? L(page.title) : ""}</h1>
             <span className="flex justify-end">
               {page?.action && (
                 <Link href={page.action.href} className="grid h-11 w-11 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={L(page.action.text)}>
@@ -98,6 +131,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </main>
 
+      {driver ? (
+        <DriverNav path={path} />
+      ) : (
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white" aria-label="Main">
         <ul className={clsx("grid", tabs.length === 2 ? "grid-cols-2" : "grid-cols-4")}>
           {tabs.map(({ href, text, icon: Icon }) => {
@@ -113,6 +149,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </ul>
       </nav>
+      )}
     </div>
   );
 }

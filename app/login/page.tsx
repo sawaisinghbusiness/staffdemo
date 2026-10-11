@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { ArrowLeft, Phone } from "lucide-react";
-import { api, ApiError, clearCache } from "@/lib/api";
+import { api, ApiError, clearCache, markSignedIn } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { phoneText } from "@/lib/format";
 import { DEMO, DEMO_CODE } from "@/lib/demo";
@@ -90,6 +90,7 @@ export default function LoginPage() {
     try {
       await api("/verify", { body: { mobile, code: value, role } });
       clearCache();
+      markSignedIn(true);
       window.location.replace("/");
     } catch (err) {
       fail(err);

@@ -93,9 +93,10 @@ interface Store {
   decided: Record<string, "approved" | "rejected">;
   subs: Record<string, Record<string, boolean>>; // homework id -> studentId -> submitted
   notes: any[];
+  bus: { trip: any | null; saved: Record<string, { lat: number; lng: number }> };
 }
 function load(): Store {
-  const base: Store = { role: "teacher", att: {}, hw: [], marks: {}, leave: null, decided: {}, subs: {}, notes: [] };
+  const base: Store = { role: "teacher", att: {}, hw: [], marks: {}, leave: null, decided: {}, subs: {}, notes: [], bus: { trip: null, saved: {} } };
   try {
     return { ...base, ...JSON.parse(localStorage.getItem(STORE) || "{}") };
   } catch {
@@ -216,6 +217,79 @@ function salary(role: Role) {
   return { slips };
 }
 
+/* ───────────── school bus (driver) ───────────── */
+
+// Real Barmer places, in morning pickup order. Mahabar Road has no saved spot yet, so the driver
+// sees "save this stop" there.
+const BUS_STOPS: { name: string; time: string; at: [number, number] | null; kids: [string, string][] }[] = [
+  { name: "Gandhi Chowk", time: "06:55", at: [25.7466, 71.3912], kids: [["Aarav Choudhary", "6th - A"], ["Kavya Panwar", "5th - B"], ["Om Prakash", "5th - A"]] },
+  { name: "Station Road", time: "07:00", at: [25.7432, 71.3965], kids: [["Farhan Khan", "6th - A"], ["Ishita Jain", "5th - B"]] },
+  { name: "Sindhari Chauraha", time: "07:06", at: [25.7381, 71.4019], kids: [["Priya Garg", "5th - B"], ["Laxman Garg", "Nursery - A"], ["Rohit Saran", "8th - A"], ["Tanvi Purohit", "6th - A"]] },
+  { name: "Mahabar Road", time: "07:12", at: null, kids: [["Sahil Mali", "5th - A"], ["Ritu Parihar", "6th - A"]] },
+  { name: "Ambedkar Circle", time: "07:18", at: [25.7512, 71.4061], kids: [["Naman Joshi", "5th - B"], ["Mahi Garg", "6th - A"], ["Jayant Soni", "5th - A"]] },
+];
+const SCHOOL_AT = { name: SCHOOL.name, lat: 25.7563, lng: 71.4002 };
+
+// One child is absent today, so the driver doesn't wait and gets no alert for them.
+const ABSENT_TODAY = "Rohit Saran";
+
+/**
+ * The road line through the saved stops and the school, from the same free road service the
+ * backend uses (OSRM), kept in this browser. Straight lines if it can't be reached.
+ */
+async function demoPath(points: [number, number][]) {
+  const key = "sa:demo-path:" + points.map((p) => p.join(",")).join("|");
+  try {
+    const hit = localStorage.getItem(key);
+    if (hit) return JSON.parse(hit);
+  } catch {
+    /* ignore */
+  }
+  try {
+    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${points.map(([a, b]) => `${b},${a}`).join(";")}?overview=full&geometries=geojson`, { signal: AbortSignal.timeout(8000) });
+    const r = (await res.json())?.routes?.[0];
+    if (r?.geometry?.coordinates?.length) {
+      const path = { pts: r.geometry.coordinates.map(([lng, lat]: number[]) => [lat, lng]), m: Math.round(r.distance), s: Math.round(r.duration), road: true };
+      try {
+        localStorage.setItem(key, JSON.stringify(path));
+      } catch {
+        /* ignore */
+      }
+      return path;
+    }
+  } catch {
+    /* offline: straight lines */
+  }
+  let m = 0;
+  for (let i = 1; i < points.length; i++) m += Math.hypot((points[i][0] - points[i - 1][0]) * 111_000, (points[i][1] - points[i - 1][1]) * 100_000);
+  return { pts: points, m: Math.round(m * 1.3), s: Math.round((m * 1.3) / 5.5), road: false };
+}
+
+async function busRoute(s: Store) {
+  const stops = BUS_STOPS.map((st) => {
+    const saved = s.bus.saved[st.name];
+    const at = saved ? [saved.lat, saved.lng] : st.at;
+    return {
+      name: st.name,
+      time: st.time,
+      lat: at ? at[0] : null,
+      lng: at ? at[1] : null,
+      kids: st.kids.filter(([name]) => name !== ABSENT_TODAY).map(([name, classSec]) => ({ id: `kid-${hash(name)}`, name, classSec, photoUrl: null })),
+    };
+  });
+  const absent = BUS_STOPS.flatMap((st) => st.kids.filter(([name]) => name === ABSENT_TODAY).map(([name]) => ({ name, stop: st.name })));
+  const points = [...stops.filter((x) => x.lat !== null).map((x) => [x.lat!, x.lng!] as [number, number]), [SCHOOL_AT.lat, SCHOOL_AT.lng] as [number, number]];
+  return {
+    id: "route-3",
+    name: "Route 3 · Sindhari Road",
+    vehicleNo: "RJ04 CB 1959",
+    school: SCHOOL_AT,
+    stops,
+    absent,
+    path: await demoPath(points),
+  };
+}
+
 /* ───────────── router ───────────── */
 
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -251,6 +325,71 @@ export async function demoApi(path: string, method: string, body: any): Promise<
     const me = PEOPLE[s.role];
     const isTeacher = s.role === "teacher";
     if (p === "/me") return { role: s.role, name: me.name, roleLabel: me.roleLabel, empCode: me.empCode, phone: "9414000000", joined: me.joined, school: SCHOOL, sections: isTeacher ? SECTIONS : [] };
+
+    if (p.startsWith("/bus/")) {
+      if (s.role !== "driver") throw new DemoError(403, "Only the bus driver can open this.");
+      const trip = s.bus.trip && s.bus.trip.startedAt.slice(0, 10) === new Date().toISOString().slice(0, 10) ? s.bus.trip : null;
+      if (p === "/bus/route") return { route: await busRoute(s), trip };
+      if (p === "/bus/history") {
+        // Today's runs from this browser, and a made-up morning run on the other school days.
+        const date = /^\d{4}-\d{2}-\d{2}$/.test(q("date")) ? q("date") : t;
+        const day = new Date(date + "T00:00:00").getDay();
+        const past = date < t && day !== 0;
+        const trips = [
+          ...(past ? [{ id: `h-${date}-m`, kind: "morning", startedAt: `${date}T06:52:00+05:30`, endedAt: `${date}T07:41:00+05:30`, ticked: 13, stopsDone: 5, firstStop: "Gandhi Chowk", lastStop: "Ambedkar Circle", delay: null }] : []),
+          ...(past ? [{ id: `h-${date}-a`, kind: "afternoon", startedAt: `${date}T14:10:00+05:30`, endedAt: `${date}T14:58:00+05:30`, ticked: 13, stopsDone: 5, firstStop: "Ambedkar Circle", lastStop: "Gandhi Chowk", delay: day === 3 ? { reason: "traffic", minutes: 10, at: `${date}T14:30:00+05:30` } : null }] : []),
+          ...(date === t && trip ? [{ id: trip.id, kind: trip.kind, startedAt: trip.startedAt, endedAt: null, ticked: Object.keys(trip.marks).length, stopsDone: trip.done.length, firstStop: null, lastStop: null, delay: trip.delay || null }] : []),
+        ];
+        const days = Array.from({ length: 14 }, (_, i) => {
+          const d = new Date(date + "T00:00:00");
+          d.setDate(d.getDate() - i);
+          return d;
+        })
+          .filter((d) => d.getDay() !== 0)
+          .map((d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)
+          .filter((d) => d < t || (d === t && !!trip));
+        return { date, trips, days, km: 6.8 };
+      }
+      if (p === "/bus/trip" && method === "POST") {
+        s.bus.trip = { id: `trip-${Date.now()}`, kind: body?.kind === "afternoon" ? "afternoon" : "morning", startedAt: new Date().toISOString(), marks: {}, done: [], delay: null };
+        save(s);
+        return { trip: s.bus.trip };
+      }
+      if (!trip) throw new DemoError(409, "No trip is running. Start one from Home.");
+      if (p === "/bus/trip/end" && method === "POST") {
+        s.bus.trip = null;
+        save(s);
+        return { success: true };
+      }
+      if (p === "/bus/delay" && method === "POST") {
+        trip.delay = body?.reason === "clear" ? null : { reason: String(body?.reason || "traffic"), minutes: Number(body?.minutes) || 10, at: new Date().toISOString() };
+        save(s);
+        return { trip };
+      }
+      if (p === "/bus/mark" && method === "POST") {
+        const id = String(body?.kidId || "");
+        if (body?.on) trip.marks[id] = new Date().toISOString();
+        else delete trip.marks[id];
+        save(s);
+        return { trip };
+      }
+      if (p === "/bus/stop-done" && method === "POST") {
+        const name = String(body?.stop || "");
+        if (!trip.done.includes(name)) trip.done.push(name);
+        save(s);
+        return { trip };
+      }
+      if (p === "/bus/stop-location" && method === "POST") {
+        const lat = Number(body?.lat);
+        const lng = Number(body?.lng);
+        if (!BUS_STOPS.some((x) => x.name === body?.stop) || !Number.isFinite(lat) || !Number.isFinite(lng)) throw new DemoError(400, "Could not save this stop.");
+        s.bus.saved[body.stop] = { lat, lng };
+        save(s);
+        return { route: await busRoute(s) };
+      }
+      if (p === "/bus/school-location" && method === "POST") return { route: await busRoute(s), trip };
+      if (p === "/bus/position" && method === "POST") return { success: true };
+    }
 
     if (p === "/home") {
       const open = SECTIONS.filter((x) => x.classTeacher && !s.att[`${x.id}|${schoolDay(t)}`]);

@@ -8,6 +8,8 @@ import "@fontsource/hind/400.css";
 import "@fontsource/hind/500.css";
 import "@fontsource/hind/600.css";
 import "@fontsource/hind/700.css";
+import "@fontsource-variable/inter/wght.css";
+import "@fontsource-variable/noto-sans-devanagari/wght.css";
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
 

@@ -220,3 +220,174 @@
 .pt-safe {
   padding-top: env(safe-area-inset-top);
 }
+
+/* Bus map markers (Leaflet divIcons). Stops: hollow ring ahead, filled once passed, larger for the next one. */
+.map-stop {
+  display: block;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid #6c4fe0;
+  box-shadow: 0 1px 3px rgba(31, 27, 46, 0.35);
+}
+.map-stop-done {
+  background: #16a34a;
+  border-color: #fff;
+}
+.map-stop-later {
+  border-color: #8e8aa3;
+}
+.map-stop-next {
+  transform: scale(1.25);
+  border-width: 5px;
+}
+.map-stop-school {
+  border-radius: 5px;
+  background: #1f1b2e;
+  border-color: #fff;
+}
+.map-bus {
+  display: block;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #6c4fe0;
+  border: 4px solid #fff;
+  box-shadow: 0 0 0 7px rgba(108, 79, 224, 0.18), 0 2px 6px rgba(31, 27, 46, 0.35);
+}
+.leaflet-container {
+  font-family: inherit;
+}
+.leaflet-control-attribution {
+  font-size: 10px;
+}
+
+/* ───────── Driver screens: Inter, 4-pt spacing, green / yellow / black (see tailwind `drv`) ───────── */
+.drv {
+  font-family: "Inter Variable", "Noto Sans Devanagari Variable", system-ui, sans-serif;
+  font-feature-settings: "tnum" 1, "cv11" 1;
+  color: #111111;
+  -webkit-font-smoothing: antialiased;
+}
+.drv h1,
+.drv h2,
+.drv h3 {
+  color: #111111;
+}
+.drv :focus-visible {
+  --tw-ring-color: #12896c;
+}
+.d-card {
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+.d-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  border-radius: 12px;
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: transform 0.1s;
+}
+.d-btn:active {
+  transform: translateY(1px);
+}
+.d-btn:disabled {
+  opacity: 0.5;
+}
+.d-btn-y {
+  background: #ffcb00;
+  color: #000;
+  min-height: 52px;
+  font-size: 15px;
+}
+.d-btn-k {
+  background: #0a0a0a;
+  color: #fff;
+}
+.d-btn-line {
+  background: #fff;
+  color: #111;
+  box-shadow: inset 0 0 0 1px #e0e0dc;
+}
+.d-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 999px;
+  background: #f4f4f2;
+  padding: 3px 9px;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #111;
+  white-space: nowrap;
+}
+.d-live {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #4dcb7f;
+  flex: none;
+  animation: d-pulse 1.8s ease-out infinite;
+}
+@keyframes d-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(77, 203, 127, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 6px rgba(77, 203, 127, 0);
+  }
+}
+.d-ring {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 3.5px #4dcb7f;
+}
+.d-ripple::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 1.5px solid #4dcb7f;
+  animation: d-ripple 2.4s ease-out infinite;
+}
+@keyframes d-ripple {
+  0% {
+    transform: scale(0.85);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(1.2);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .d-live,
+  .d-ripple::before {
+    animation: none;
+  }
+}
+/* The driver's map: OpenStreetMap greyed down so the green / yellow route reads first. */
+.d-map .leaflet-tile-pane {
+  filter: grayscale(0.9) brightness(1.04) contrast(0.92);
+}
+/* Map pins (Leaflet divIcons) and the bus. */
+.d-pin {
+  display: block;
+  filter: drop-shadow(0 1px 1.5px rgba(0, 0, 0, 0.25));
+}
+.d-bus {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #ffcb00;
+  border: 3px solid #fff;
+  color: #000;
+  box-shadow: 0 0 0 6px rgba(77, 203, 127, 0.22), 0 2px 6px rgba(0, 0, 0, 0.3);
+}

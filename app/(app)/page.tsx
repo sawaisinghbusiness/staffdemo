@@ -10,6 +10,7 @@ import { useL, type Bi } from "@/lib/i18n";
 import { clock } from "@/lib/format";
 import { Art, type ArtName } from "@/components/art";
 import { Avatar, ErrorCard, OfflineNote, Skeleton, TINTS } from "@/components/ui";
+import { DriverHome } from "@/components/driver/DriverHome";
 
 interface Lesson {
   id: string;
@@ -75,6 +76,9 @@ export default function HomePage() {
   const first = me?.name.split(" ")[0] || "";
   const hour = +now.slice(0, 2);
   const greet = hour < 12 ? L({ hi: "सुप्रभात", en: "Good morning" }) : hour < 17 ? L({ hi: "नमस्ते", en: "Good afternoon" }) : L({ hi: "नमस्ते", en: "Good evening" });
+
+  // Drivers have their own Home: today's route and the trip.
+  if (me?.role === "driver") return <DriverHome />;
 
   let banner: { title: string; text: string; href: string; button: string; art: ArtName } | null = null;
   if (data && me) {

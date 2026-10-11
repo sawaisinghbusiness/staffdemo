@@ -76,14 +76,31 @@ const rose = {
   700: "#B91C1C",
 };
 
+// The driver's own look (green, yellow, black), used only on driver screens under `.drv`.
+const drv = {
+  green: "#12896C",
+  mint: "#4DCB7F",
+  yellow: "#FFCB00",
+  gold: "#A07800",
+  black: "#0A0A0A",
+  ink: "#111111",
+  mute: "#6B6B6B",
+  faint: "#9A9A9A",
+  soft: "#F4F4F2",
+  line: "#EBEBE8",
+  note: "#FFF9DB",
+};
+
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF" },
+      colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF", drv },
       fontFamily: {
         // Figtree for Latin and numbers; Hind fills in Devanagari.
         sans: ["Figtree", "Hind", "'Noto Sans Devanagari'", "system-ui", "sans-serif"],
+        // The driver's screens: Inter like ride apps, Noto Sans Devanagari for Hindi.
+        drv: ["'Inter Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
       },
       fontSize: {
         // Parents read on small phones, often outdoors: the floor is 13px, body is 16px.
