@@ -1,7 +1,7 @@
 "use client";
 
 import clsx from "clsx";
-import { Check, ChevronLeft, ChevronRight, MapPin } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useL } from "@/lib/i18n";
 import type { BusStop, Trip } from "@/lib/bus";
 import { Face, timeOf } from "./parts";
@@ -17,9 +17,7 @@ export function StopSheet({
   absent,
   busy,
   fail,
-  canSave,
   onTick,
-  onSave,
   onDone,
   onClose,
 }: {
@@ -29,10 +27,7 @@ export function StopSheet({
   absent: string[];
   busy: boolean;
   fail: string;
-  /** The stop's place isn't saved and the phone knows where it is. */
-  canSave: boolean | null;
   onTick: (kidId: string, on: boolean) => void;
-  onSave: () => void;
   onDone: () => void;
   onClose: () => void;
 }) {
@@ -65,17 +60,6 @@ export function StopSheet({
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto px-4 pb-4">
-        {canSave !== null && (
-          <div className="mt-2 rounded-[12px] bg-drv-note px-3 py-3">
-            <p className="text-[13px] font-semibold text-[#4A3F00]">{L({ hi: "इस स्टॉप की जगह अभी सेव नहीं है", en: "This stop's place isn't saved yet" })}</p>
-            <p className="mt-0.5 text-[12.5px] leading-snug text-[#5A5130]">{L({ hi: "बस स्टॉप पर खड़ी है तो सेव कर दें। अगली बार से अलर्ट अपने आप आएगा।", en: "If the bus is standing at the stop, save it. From next time the alert comes on its own." })}</p>
-            <button onClick={onSave} disabled={!canSave || busy} className="d-btn d-btn-k mt-2.5 w-full">
-              <MapPin className="h-4 w-4" aria-hidden />
-              {L({ hi: "बस यहीं है, जगह सेव करें", en: "The bus is here, save the place" })}
-            </button>
-          </div>
-        )}
-
         {absent.length > 0 && (
           <p className="mt-3 flex items-center gap-2 rounded-[10px] bg-drv-soft px-2.5 py-2 text-[12px] text-drv-mute">
             <span className="h-[7px] w-[7px] shrink-0 rounded-full bg-[#BDBDB8]" aria-hidden />

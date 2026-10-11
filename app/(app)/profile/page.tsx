@@ -3,7 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Banknote, CalendarCheck, CalendarX2, ChevronRight, Languages, LogOut, Phone, type LucideIcon } from "lucide-react";
+import { Banknote, BellRing, CalendarCheck, CalendarX2, ChevronRight, Languages, LogOut, Phone, type LucideIcon } from "lucide-react";
+import { useAlertClose } from "@/lib/driverPrefs";
 import { api, markSignedIn, clearCache } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
@@ -99,6 +100,7 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+        {me.role === "driver" && <AlertSetting />}
         {me.school.officePhone && <Row icon={Phone} text={L({ hi: "स्कूल ऑफ़िस को कॉल करें", en: "Call school office" })} value={me.school.officePhone} href={`tel:${me.school.officePhone.replace(/\s/g, "")}`} />}
         <button onClick={logout} disabled={leaving} className="flex min-h-[54px] w-full items-center gap-3 px-0.5 text-left font-semibold text-rose-600 active:bg-ink-50">
           <LogOut className="h-[21px] w-[21px] shrink-0" strokeWidth={1.8} aria-hidden />
@@ -107,6 +109,32 @@ export default function ProfilePage() {
       </div>
 
       <p className="text-center text-[12px] text-ink-400">{me.school.name}</p>
+    </div>
+  );
+}
+
+/** Drivers: whether the drop / pickup alert closes on its own after 3 seconds or waits for them. */
+function AlertSetting() {
+  const L = useL();
+  const [mode, setMode] = useAlertClose();
+  return (
+    <div className="border-b border-ink-100 px-0.5 py-3">
+      <div className="flex items-center gap-3">
+        <BellRing className="h-[21px] w-[21px] shrink-0 text-ink-700" strokeWidth={1.8} aria-hidden />
+        <span className="min-w-0 flex-1 text-[15.5px]">{L({ hi: "स्टॉप का अलर्ट", en: "Stop alert" })}</span>
+      </div>
+      <div className="mt-2.5 grid grid-cols-2 rounded-[10px] bg-ink-50 p-[3px]" role="radiogroup" aria-label={L({ hi: "स्टॉप का अलर्ट", en: "Stop alert" })}>
+        {(["auto", "manual"] as const).map((m) => (
+          <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={clsx("min-h-[38px] rounded-lg px-2 text-[13.5px]", mode === m ? "bg-white font-semibold text-ink-900 shadow-sm" : "font-medium text-ink-500")}>
+            {m === "auto" ? L({ hi: "3 सेकंड में अपने आप बंद", en: "Closes by itself in 3 s" }) : L({ hi: "मैं खुद बंद करूँगा", en: "I close it myself" })}
+          </button>
+        ))}
+      </div>
+      <p className="mt-1.5 text-[12.5px] leading-snug text-ink-500">
+        {mode === "auto"
+          ? L({ hi: "अलर्ट 3 सेकंड दिखकर अपने आप हट जाएगा।", en: "The alert shows for 3 seconds, then goes." })
+          : L({ hi: "आप बंद करें, या बस स्टॉप पर रुककर आगे चले तो अपने आप हट जाएगा।", en: "You close it, or it goes once the bus has stopped there and moved on." })}
+      </p>
     </div>
   );
 }

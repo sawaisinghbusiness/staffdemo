@@ -1,13 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type * as Leaflet from "leaflet";
-import "leaflet/dist/leaflet.css";
-import { Navigation } from "lucide-react";
+import type { Map as MLMap, Marker } from "maplibre-gl";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { LocateFixed, Map as MapIcon, Navigation } from "lucide-react";
 import { splitPath, type LatLng } from "@/lib/bus";
 
 /** Where the map starts before the route or the bus is known. */
-const BARMER: [number, number] = [25.7521, 71.3967];
+const BARMER: [number, number] = [71.3967, 25.7521];
+/** Free vector map (OpenFreeMap, OpenStreetMap data), light grey so the route stands out. No key. */
+const STYLE = "https://tiles.openfreemap.org/styles/positron";
 
 export interface MapStop {
   name: string;
@@ -20,76 +22,105 @@ export interface MapStop {
 const GREEN = "#4DCB7F";
 const YELLOW = "#FFCB00";
 
-/** A map pin, tip at the bottom centre. */
-function pinSvg(state: MapStop["state"]) {
+function pinEl(s: MapStop) {
   const [fill, stroke, dot] = {
     start: [GREEN, "#0F6E57", "#fff"],
     end: [YELLOW, "#A07800", "#fff"],
     done: ["#fff", "#12896C", GREEN],
     next: ["#0A0A0A", "#0A0A0A", YELLOW],
     later: ["#fff", "#1A1A1A", "#1A1A1A"],
-  }[state];
-  const big = state === "next" || state === "start" || state === "end";
-  const s = big ? 1 : 0.85;
-  return `<svg class="d-pin" width="${22 * s}" height="${28 * s}" viewBox="-11 -27 22 28"><path d="M0 0C-5-7-9-11-9-16a9 9 0 0 1 18 0C9-11 5-7 0 0Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/><circle cy="-16" r="3.4" fill="${dot}"/></svg>`;
+  }[s.state];
+  const k = s.state === "next" || s.state === "start" || s.state === "end" ? 1 : 0.85;
+  const el = document.createElement("div");
+  el.title = s.name;
+  el.innerHTML = `<svg class="d-pin" width="${24 * k}" height="${30 * k}" viewBox="-11 -27 22 28"><path d="M0 0C-5-7-9-11-9-16a9 9 0 0 1 18 0C9-11 5-7 0 0Z" fill="${fill}" stroke="${stroke}" stroke-width="2"/><circle cy="-16" r="3.4" fill="${dot}"/></svg>`;
+  return el;
 }
 
-const BUS_ICON =
-  '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6v6"/><path d="M15 6v6"/><path d="M2 12h19.6"/><path d="M18 18h3s.5-1.7.8-2.8c.1-.4.2-.8.2-1.2 0-.4-.1-.8-.2-1.2l-1.4-5C20.1 6.8 19.1 6 18 6H4a2 2 0 0 0-2 2v10h3"/><circle cx="7" cy="18" r="2"/><path d="M9 18h5"/><circle cx="16" cy="18" r="2"/></svg>';
+function busEl() {
+  const el = document.createElement("div");
+  // An arrow pointing the way the bus drives (the marker turns with the bus).
+  el.innerHTML =
+    '<span class="d-bus"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 20 21l-8-4.2L4 21z"/></svg></span>';
+  return el;
+}
+
+const line = (pts: [number, number][]) => ({
+  type: "Feature" as const,
+  properties: {},
+  geometry: { type: "LineString" as const, coordinates: pts.map(([lat, lng]) => [lng, lat]) },
+});
 
 /**
- * A quiet grey map (OpenStreetMap, desaturated) with the route along the roads: green where
- * the bus has been, yellow ahead. Follows the bus while it moves; once dragged it stays put until
- * the locate button is tapped. Leaflet loads in the browser only (it needs `window`).
+ * The map. "overview" shows the whole route from above (before the trip, and for office or
+ * parents). "nav" is the driver's view while driving, like a navigation app: close in, tilted,
+ * turned so the road ahead points up, following the bus. The route is green where the bus has
+ * been and yellow ahead. Dragging stops the following until the locate button is tapped.
  */
 export function BusMap({
   stops,
   path,
   bus,
+  heading = null,
+  mode = "overview",
   className,
   label,
-  locateClass,
+  bottomInset = 0,
 }: {
   stops: MapStop[];
   path: [number, number][];
   bus: LatLng | null;
+  /** Degrees from north the bus is driving. */
+  heading?: number | null;
+  mode?: "overview" | "nav";
   className?: string;
   label: string;
-  /** Where the "back to the bus" button sits (it must clear the sheets drawn over the map). */
-  locateClass?: string;
+  /** Height covered by a sheet at the bottom, so the bus and route stay above it. */
+  bottomInset?: number;
 }) {
   const box = useRef<HTMLDivElement>(null);
-  const L = useRef<typeof Leaflet | null>(null);
-  const map = useRef<Leaflet.Map | null>(null);
-  const layer = useRef<Leaflet.LayerGroup | null>(null);
-  const line = useRef<Leaflet.LayerGroup | null>(null);
-  const busMarker = useRef<Leaflet.Marker | null>(null);
+  const map = useRef<MLMap | null>(null);
+  const ml = useRef<typeof import("maplibre-gl") | null>(null);
+  const pins = useRef<Marker[]>([]);
+  const pinsKey = useRef("");
+  const busMarker = useRef<Marker | null>(null);
   const [ready, setReady] = useState(false);
+  const [broken, setBroken] = useState(false);
   const [follow, setFollow] = useState(true);
+  // The driver can flip to the whole route and back.
+  const [view, setView] = useState(mode);
+  useEffect(() => setView(mode), [mode]);
   const fitted = useRef(false);
 
   useEffect(() => {
     let gone = false;
-    import("leaflet").then((mod) => {
-      if (gone || !box.current || map.current) return;
-      L.current = mod;
-      const m = mod.map(box.current, { zoomControl: false, attributionControl: true });
-      // OpenStreetMap tiles, toned down to grey in CSS (`.d-map`) so the route stands out.
-      mod
-        .tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
-          maxZoom: 19,
-          attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        })
-        .addTo(m);
-      m.attributionControl.setPrefix(false);
-      // A view before anything is known, so Leaflet never draws without one.
-      m.setView(BARMER, 13);
-      m.on("dragstart", () => setFollow(false));
-      line.current = mod.layerGroup().addTo(m);
-      layer.current = mod.layerGroup().addTo(m);
-      map.current = m;
-      setReady(true);
-    });
+    import("maplibre-gl")
+      .then((raw) => {
+        if (gone || !box.current || map.current) return;
+        // The package is a UMD bundle: the API sits on `default` once bundled.
+        const mod = ((raw as any).default ?? raw) as typeof import("maplibre-gl");
+        ml.current = mod;
+        const m = new mod.Map({ container: box.current, style: STYLE, center: BARMER, zoom: 12.5, attributionControl: { compact: true } });
+        map.current = m;
+        // Only the person's own gestures stop the following, not our camera moves.
+        const stop = (e: any) => e?.originalEvent && setFollow(false);
+        m.on("dragstart", stop);
+        m.on("rotatestart", stop);
+        m.on("pitchstart", stop);
+        m.on("load", () => {
+          if (gone) return;
+          m.addSource("ahead", { type: "geojson", data: line([]) });
+          m.addSource("done", { type: "geojson", data: line([]) });
+          const lay = (id: string, src: string, color: string, width: number) =>
+            m.addLayer({ id, type: "line", source: src, layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": width } });
+          lay("ahead-case", "ahead", "#ffffff", 10);
+          lay("ahead-line", "ahead", YELLOW, 6);
+          lay("done-case", "done", "#ffffff", 10);
+          lay("done-line", "done", GREEN, 6);
+          setReady(true);
+        });
+      })
+      .catch(() => setBroken(true));
     return () => {
       gone = true;
       map.current?.remove();
@@ -97,82 +128,88 @@ export function BusMap({
     };
   }, []);
 
-  // Pins, and the first fit to the whole route.
+  // Pins, redrawn only when they change.
   useEffect(() => {
-    const mod = L.current;
     const m = map.current;
-    if (!ready || !mod || !m || !layer.current) return;
-    layer.current.clearLayers();
-    for (const s of stops) {
-      mod
-        .marker([s.lat, s.lng], {
-          icon: mod.divIcon({ className: "", html: pinSvg(s.state), iconSize: [22, 28], iconAnchor: [11, 27] }),
-          title: s.name,
-          keyboard: false,
-          zIndexOffset: s.state === "next" ? 500 : 0,
-        })
-        .bindTooltip(s.name, { direction: "top", offset: [0, -26] })
-        .addTo(layer.current);
-    }
-    const pts: [number, number][] = [...path, ...stops.map((s) => [s.lat, s.lng] as [number, number])];
-    if (!fitted.current && pts.length) {
-      m.fitBounds(mod.latLngBounds(bus ? [...pts, [bus.lat, bus.lng]] : pts), { padding: [48, 48], maxZoom: 16 });
-      fitted.current = true;
-    }
-  }, [ready, stops, path]); // eslint-disable-line react-hooks/exhaustive-deps
+    const mod = ml.current;
+    if (!ready || !m || !mod) return;
+    const key = JSON.stringify(stops);
+    if (key === pinsKey.current) return;
+    pinsKey.current = key;
+    pins.current.forEach((p) => p.remove());
+    pins.current = stops.map((s) => new mod.Marker({ element: pinEl(s), anchor: "bottom" }).setLngLat([s.lng, s.lat]).addTo(m));
+  }, [ready, stops]);
 
-  // The road line, cut at the bus.
+  // The route line, cut at the bus.
   useEffect(() => {
-    const mod = L.current;
-    if (!ready || !mod || !line.current) return;
-    line.current.clearLayers();
+    const m = map.current;
+    if (!ready || !m) return;
     const [done, ahead] = splitPath(path, bus);
-    const draw = (p: [number, number][], color: string) => {
-      if (p.length < 2) return;
-      mod.polyline(p, { color: "#fff", weight: 9, opacity: 1, lineJoin: "round", lineCap: "round" }).addTo(line.current!);
-      mod.polyline(p, { color, weight: 5, opacity: 1, lineJoin: "round", lineCap: "round" }).addTo(line.current!);
-    };
-    draw(ahead, bus ? YELLOW : GREEN);
-    draw(done, GREEN);
+    (m.getSource("ahead") as any)?.setData(line(ahead));
+    (m.getSource("done") as any)?.setData(line(done));
+    m.setPaintProperty("ahead-line", "line-color", bus ? YELLOW : GREEN);
   }, [ready, path, bus?.lat, bus?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // The bus.
+  // The whole route in view: first time, and whenever the driver switches to it.
   useEffect(() => {
-    const mod = L.current;
     const m = map.current;
-    if (!ready || !mod || !m) return;
+    const mod = ml.current;
+    if (!ready || !m || !mod || view !== "overview") return;
+    const pts: [number, number][] = [...path.map(([a, b]) => [b, a] as [number, number]), ...stops.map((s) => [s.lng, s.lat] as [number, number]), ...(bus ? [[bus.lng, bus.lat] as [number, number]] : [])];
+    if (!pts.length) return;
+    if (fitted.current && follow && mode === "overview") return;
+    const b = new mod.LngLatBounds(pts[0], pts[0]);
+    pts.forEach((p) => b.extend(p));
+    m.fitBounds(b, { padding: { top: 90, bottom: bottomInset + 40, left: 40, right: 40 }, maxZoom: 16, pitch: 0, bearing: 0, duration: fitted.current ? 700 : 0 });
+    fitted.current = true;
+  }, [ready, view, path, stops.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The bus, and the driver's camera.
+  useEffect(() => {
+    const m = map.current;
+    const mod = ml.current;
+    if (!ready || !m || !mod) return;
     if (!bus) {
       busMarker.current?.remove();
       busMarker.current = null;
       return;
     }
-    if (!busMarker.current) {
-      busMarker.current = mod
-        .marker([bus.lat, bus.lng], { icon: mod.divIcon({ className: "", html: `<span class="d-bus">${BUS_ICON}</span>`, iconSize: [34, 34], iconAnchor: [17, 17] }), zIndexOffset: 1000, keyboard: false })
-        .addTo(m);
-    } else busMarker.current.setLatLng([bus.lat, bus.lng]);
-    if (!fitted.current) {
-      // Nothing to frame yet: go straight to the bus.
-      m.setView([bus.lat, bus.lng], 16);
-      fitted.current = true;
-    } else if (follow) m.panTo([bus.lat, bus.lng], { animate: true, duration: 0.8 });
-  }, [ready, bus?.lat, bus?.lng, follow]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!busMarker.current) busMarker.current = new mod.Marker({ element: busEl(), rotationAlignment: "map", pitchAlignment: "viewport" }).setLngLat([bus.lng, bus.lat]).addTo(m);
+    else busMarker.current.setLngLat([bus.lng, bus.lat]);
+    if (heading !== null) busMarker.current.setRotation(heading);
+    if (!follow) return;
+    if (view === "nav") {
+      const h = m.getContainer().clientHeight;
+      m.easeTo({
+        center: [bus.lng, bus.lat],
+        zoom: 17,
+        pitch: 58,
+        bearing: heading ?? m.getBearing(),
+        // The bus sits low on the screen, so the road ahead fills the view.
+        padding: { top: Math.round(h * 0.38), bottom: bottomInset + 24, left: 0, right: 0 },
+        duration: 900,
+      });
+    } else if (fitted.current) m.easeTo({ center: [bus.lng, bus.lat], duration: 800 });
+  }, [ready, bus?.lat, bus?.lng, heading, follow, view, bottomInset]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const btn = "grid h-10 w-10 place-items-center rounded-[10px] bg-white text-drv-ink shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)] active:bg-drv-soft";
 
   return (
     // `className` sets the position too (the trip screen passes `absolute inset-0`).
     <div className={`isolate ${className || "relative"}`}>
-      <div ref={box} className="d-map h-full w-full bg-[#F2F2EF]" role="img" aria-label={label} />
-      {bus && !follow && (
-        <button
-          onClick={() => {
-            setFollow(true);
-            map.current?.setView([bus.lat, bus.lng], Math.max(map.current.getZoom(), 16));
-          }}
-          className={`absolute right-3 z-[500] grid h-10 w-10 place-items-center rounded-[10px] bg-white text-drv-ink shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)] active:bg-drv-soft ${locateClass || "bottom-3"}`}
-          aria-label="Back to the bus"
-        >
-          <Navigation className="h-[18px] w-[18px]" aria-hidden />
-        </button>
+      <div ref={box} className="h-full w-full bg-[#F2F2EF]" role="img" aria-label={label} />
+      {broken && <p className="absolute inset-x-4 top-1/3 text-center text-[13px] text-drv-mute">The map could not open on this phone.</p>}
+      {bus && mode === "nav" && (
+        <div className="absolute right-3 z-[5] flex flex-col gap-2 transition-[bottom] duration-300" style={{ bottom: bottomInset + 12 }}>
+          <button onClick={() => { setView(view === "nav" ? "overview" : "nav"); setFollow(true); }} className={btn} aria-label={view === "nav" ? "Whole route" : "Driving view"}>
+            {view === "nav" ? <MapIcon className="h-[18px] w-[18px]" aria-hidden /> : <Navigation className="h-[18px] w-[18px]" aria-hidden />}
+          </button>
+          {!follow && (
+            <button onClick={() => setFollow(true)} className={btn} aria-label="Back to the bus">
+              <LocateFixed className="h-[18px] w-[18px]" aria-hidden />
+            </button>
+          )}
+        </div>
       )}
     </div>
   );

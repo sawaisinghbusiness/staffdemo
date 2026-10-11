@@ -77,8 +77,17 @@ export default function HomePage() {
   const hour = +now.slice(0, 2);
   const greet = hour < 12 ? L({ hi: "सुप्रभात", en: "Good morning" }) : hour < 17 ? L({ hi: "नमस्ते", en: "Good afternoon" }) : L({ hi: "नमस्ते", en: "Good evening" });
 
-  // Drivers have their own Home: today's route and the trip.
+  // Drivers have their own Home: today's route and the trip. Until we know who it is, only a
+  // plain loading screen, so a driver never sees the teachers' Home flash first.
   if (me?.role === "driver") return <DriverHome />;
+  if (!me)
+    return (
+      <div className="space-y-4 px-4 pt-6" aria-busy="true">
+        <Skeleton className="h-10 w-48" />
+        <Skeleton className="h-36 w-full rounded-2xl" />
+        <Skeleton className="h-12 w-full rounded-xl" />
+      </div>
+    );
 
   let banner: { title: string; text: string; href: string; button: string; art: ArtName } | null = null;
   if (data && me) {

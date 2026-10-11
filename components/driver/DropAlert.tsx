@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+import { AUTO_CLOSE_MS } from "@/lib/driverPrefs";
 import { Check, MapPin, X } from "lucide-react";
 import { useL } from "@/lib/i18n";
 import { distText, type BusStop, type TripKind } from "@/lib/bus";
@@ -10,13 +11,26 @@ import { Face } from "./parts";
  * Full screen, like an incoming call, when the bus is about 100 m from a stop: the first child's
  * photo, who else gets off (or on) there, and one line telling the driver to stop carefully.
  */
-export function DropAlert({ stop, kind, dist, onClose, onOk }: { stop: BusStop; kind: TripKind; dist: number | null; onClose: () => void; onOk: () => void }) {
+export function DropAlert({ stop, kind, dist, auto, onClose, onOk }: { stop: BusStop; kind: TripKind; dist: number | null; auto: boolean; onClose: () => void; onOk: () => void }) {
   const L = useL();
   const morning = kind === "morning";
   const kid = stop.kids[0];
   const rest = stop.kids.slice(1);
   const okRef = useRef<HTMLButtonElement>(null);
   useEffect(() => okRef.current?.focus(), []);
+  // Auto mode (driver's setting): goes by itself after 3 seconds, counting down on the Close button.
+  const [left, setLeft] = useState(Math.round(AUTO_CLOSE_MS / 1000));
+  const close = useRef(onClose);
+  close.current = onClose;
+  useEffect(() => {
+    if (!auto) return;
+    const t = setInterval(() => setLeft((s) => s - 1), 1000);
+    const end = setTimeout(() => close.current(), AUTO_CLOSE_MS);
+    return () => {
+      clearInterval(t);
+      clearTimeout(end);
+    };
+  }, [auto]);
   if (!kid) return null;
 
   return (
@@ -59,6 +73,7 @@ export function DropAlert({ stop, kind, dist, onClose, onOk }: { stop: BusStop; 
             <X className="h-[22px] w-[22px]" aria-hidden />
           </button>
           {L({ hi: "बंद करें", en: "Close" })}
+          {auto && left > 0 ? ` (${left})` : ""}
         </span>
         <span className="flex flex-col items-center gap-2 text-[12.5px] font-medium text-drv-mute">
           <button ref={okRef} onClick={onOk} className="grid h-[68px] w-[68px] place-items-center rounded-full bg-drv-mint text-white shadow-[0_8px_20px_rgba(77,203,127,.35)] active:translate-y-px" aria-label="Got it">

@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Bus, ChevronLeft, ChevronRight, Info, MapPin, Play, RefreshCw, TriangleAlert } from "lucide-react";
+import { Bus, ChevronDown, ChevronLeft, ChevronRight, Info, MapPin, Play, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { api, useApi } from "@/lib/api";
 import { DEMO } from "@/lib/demo";
 import { useL } from "@/lib/i18n";
+import { readAlertClose } from "@/lib/driverPrefs";
 import {
+  AT_M,
   DELAY_REASONS,
   NEAR_M,
   along,
@@ -32,16 +34,26 @@ import { DelaySheet } from "@/components/driver/DelaySheet";
 import { Faces, ding, timeOf } from "@/components/driver/parts";
 
 const SEND_EVERY_MS = 10_000;
+/** In manual-close mode the alert still goes once the bus has stood at the stop and driven this far on. */
+const LEFT_STOP_M = 80;
 
 // Demo only: where the unsaved stop really is, so the pretend bus has somewhere to drive.
 const DEMO_UNSAVED: Record<string, LatLng> = { "Mahabar Road": { lat: 25.7446, lng: 71.4079 } };
 
+/** Degrees from north going from a to b. */
+function bearing(a: LatLng, b: LatLng) {
+  const r = Math.PI / 180;
+  const y = Math.sin((b.lng - a.lng) * r) * Math.cos(b.lat * r);
+  const x = Math.cos(a.lat * r) * Math.sin(b.lat * r) - Math.sin(a.lat * r) * Math.cos(b.lat * r) * Math.cos((b.lng - a.lng) * r);
+  return (Math.atan2(y, x) / r + 360) % 360;
+}
+
 /**
- * The driver's trip. Before it starts: the whole route along the roads and one Start button.
- * While it runs: the map, a card on top (bus, from → to, distance left, speed, children on board)
- * and a sheet below with the next stop. About 100 m before a stop a full screen alert shows the
- * child; "Got it" opens the stop's list to tick. The screen stays on and the phone's place goes to
- * the school every 10 seconds.
+ * The driver's trip. Before it starts: the whole route from above and one Start button.
+ * While it runs: a driving view of the map (close, tilted, turning with the bus), a small sheet
+ * below with the next stop, and the trip card behind a button on the top left. About 100 m before
+ * a stop a full screen alert shows the child. A stop's place is saved by itself the first time the
+ * driver ticks a child there. The screen stays on and the phone's place goes to the school every 10 s.
  */
 export default function TripPage() {
   const L = useL();
@@ -50,10 +62,14 @@ export default function TripPage() {
   const [trip, setTrip] = useState<Trip | null>(null);
   const [planKind, setPlanKind] = useState<TripKind>(defaultKind);
   const [pos, setPos] = useState<LatLng | null>(null);
+  const [heading, setHeading] = useState<number | null>(null);
   const [kmh, setKmh] = useState<number | null>(null);
   const [gps, setGps] = useState<"wait" | "on" | "off">("wait");
+  const [gpsTry, setGpsTry] = useState(0);
   const [alertFor, setAlertFor] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"stop" | "delay" | null>(null);
+  const [card, setCard] = useState(false);
+  const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
   const [sure, setSure] = useState(false);
   const [fail, setFail] = useState("");
@@ -101,20 +117,31 @@ export default function TripPage() {
     };
   }, [trip?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  /* ── where the bus is ── */
+  /* ── where the bus is, and which way it faces ── */
   const target = useRef<LatLng | null>(null);
   target.current = nextAt || (next && DEMO_UNSAVED[next.name]) || (morning && !next ? schoolAt : null);
   const ptsRef = useRef(pts);
   ptsRef.current = pts;
+  const lastTurn = useRef<LatLng | null>(null);
+  const place = useCallback((p: LatLng) => {
+    setPos(p);
+    // Turn only after a few metres, so standing still (GPS wobble) doesn't spin the map.
+    const from = lastTurn.current;
+    if (!from) lastTurn.current = p;
+    else if (metres(from, p) > 6) {
+      setHeading(bearing(from, p));
+      lastTurn.current = p;
+    }
+  }, []);
 
   useEffect(() => {
     if (!trip || !route) return;
     if (DEMO) {
       // A pretend bus that drives along the road line towards the next stop and waits there.
       const line = ptsRef.current;
-      let p: LatLng = line.length ? { lat: line[0][0] - 0.0022, lng: line[0][1] - 0.0016 } : schoolAt || { lat: 25.75, lng: 71.4 };
+      let p: LatLng = line.length ? { lat: line[0][0] - 0.0009, lng: line[0][1] - 0.0007 } : schoolAt || { lat: 25.75, lng: 71.4 };
       let i = 0;
-      setPos(p);
+      place(p);
       setGps("on");
       setKmh(28);
       const t = setInterval(() => {
@@ -122,8 +149,8 @@ export default function TripPage() {
         if (!to) return;
         const ln = ptsRef.current;
         const ti = ln.length ? nearestIdx(ln, to) : -1;
-        let budget = 20;
-        for (let guard = 0; guard < 50 && budget > 0; guard++) {
+        let budget = 45;
+        for (let guard = 0; guard < 80 && budget > 0; guard++) {
           const goal: LatLng = ti >= 0 && i <= ti ? { lat: ln[i][0], lng: ln[i][1] } : to;
           const d = metres(p, goal);
           if (d <= budget) {
@@ -136,7 +163,7 @@ export default function TripPage() {
             budget = 0;
           }
         }
-        setPos(p);
+        place(p);
         setKmh(metres(p, to) < 8 ? 0 : 28 + Math.round(Math.random() * 6));
       }, 700);
       return () => clearInterval(t);
@@ -145,11 +172,13 @@ export default function TripPage() {
       setGps("off");
       return;
     }
+    setGps("wait");
     let last: { p: LatLng; t: number } | null = null;
     const id = navigator.geolocation.watchPosition(
       (g) => {
         const p = { lat: g.coords.latitude, lng: g.coords.longitude };
-        setPos(p);
+        place(p);
+        if (g.coords.heading !== null && !Number.isNaN(g.coords.heading) && (g.coords.speed || 0) > 1.5) setHeading(g.coords.heading);
         setGps("on");
         // The phone's own speed when it gives one, else from the last two places.
         if (g.coords.speed !== null && g.coords.speed >= 0) setKmh(Math.round(g.coords.speed * 3.6));
@@ -160,7 +189,7 @@ export default function TripPage() {
       { enableHighAccuracy: true, maximumAge: 5_000, timeout: 20_000 }
     );
     return () => navigator.geolocation.clearWatch(id);
-  }, [trip?.id, route?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [trip?.id, route?.id, gpsTry]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Tell the school where the bus is, every 10 seconds.
   const lastPos = useRef<LatLng | null>(null);
@@ -177,13 +206,23 @@ export default function TripPage() {
   /* ── about 100 m before a stop: the full screen alert, once per stop ── */
   useEffect(() => setAlertFor(null), [next?.name]);
   const warned = useRef<string | null>(null);
+  const autoClose = useRef(true);
   useEffect(() => {
     if (!next || dist === null || dist > NEAR_M || warned.current === next.name || sheet === "stop") return;
     warned.current = next.name;
+    autoClose.current = readAlertClose() === "auto";
+    reached.current = false;
     setAlertFor(next.name);
     ding(2);
     navigator.vibrate?.([300, 120, 300, 120, 300]);
   }, [next?.name, dist !== null && dist <= NEAR_M]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Manual mode: once the bus has stood at the stop and driven on, the alert goes by itself.
+  const reached = useRef(false);
+  useEffect(() => {
+    if (!alertFor || dist === null) return;
+    if (dist <= AT_M) reached.current = true;
+    else if (reached.current && dist > LEFT_STOP_M) setAlertFor(null);
+  }, [alertFor, dist]);
 
   /* ── actions ── */
   const act = useCallback(
@@ -204,6 +243,11 @@ export default function TripPage() {
     },
     [L]
   );
+
+  /** A stop without a saved place gets the bus's place the first time the driver works there. */
+  async function savePlaceIfNew() {
+    if (next && !nextAt && pos) await act("/bus/stop-location", { stop: next.name, lat: pos.lat, lng: pos.lng });
+  }
 
   async function start() {
     if (await act("/bus/trip", { kind: planKind })) window.history.replaceState(null, "", "/trip/");
@@ -226,8 +270,8 @@ export default function TripPage() {
   }
 
   /* ── screens ── */
-  if (!data) {
-    const none = error?.status === 404 || error?.status === 403;
+  if (!data || !route) {
+    const none = error?.status === 404 || error?.status === 403 || (data && !route);
     return (
       <Shell>
         <div className="pt-safe space-y-3 p-4">
@@ -247,17 +291,6 @@ export default function TripPage() {
       </Shell>
     );
   }
-  if (!route)
-    return (
-      <Shell>
-        <div className="pt-safe space-y-3 p-4">
-          <p className="text-[15px] font-semibold">{L({ hi: "आपको अभी कोई रूट नहीं दिया गया।", en: "No route is assigned to you yet." })}</p>
-          <Link href="/" className="d-btn d-btn-k w-full">
-            {L({ hi: "होम पर जाएँ", en: "Go to Home" })}
-          </Link>
-        </div>
-      </Shell>
-    );
 
   // Pins in driving order: the school starts the afternoon run and ends the morning one.
   const stopPins: MapStop[] = order
@@ -276,7 +309,7 @@ export default function TripPage() {
   if (!trip)
     return (
       <Shell>
-        <BusMap stops={pins} path={pts} bus={null} className="absolute inset-0" label={L({ hi: "रूट का नक्शा", en: "Route map" })} />
+        <BusMap stops={pins} path={pts} bus={null} className="absolute inset-0" label={L({ hi: "रूट का नक्शा", en: "Route map" })} bottomInset={230} />
         <div className="pt-safe absolute inset-x-4 top-0 z-[600] flex gap-2">
           <Link href="/" className="mt-3 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.06),0_4px_14px_rgba(0,0,0,.08)]" aria-label={L({ hi: "होम", en: "Home" })}>
             <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -313,15 +346,6 @@ export default function TripPage() {
               </span>
             </p>
           )}
-          {!route.path && (
-            <p className="mt-3 flex gap-2 rounded-[10px] bg-drv-soft px-3 py-2.5 text-[12.5px] leading-snug text-drv-mute">
-              <MapPin className="mt-px h-[15px] w-[15px] shrink-0" aria-hidden />
-              <span>{L({ hi: "स्टॉप की जगह अभी सेव नहीं है, इसलिए नक्शे पर रास्ता नहीं दिख रहा। पहली ट्रिप में हर स्टॉप पर बस रोककर जगह सेव करें, फिर सड़क वाला रास्ता अपने आप बन जाएगा।", en: "Stop places aren't saved yet, so the map has no route. On the first trip, stop at each stop and save its place; the road route then appears on its own." })}</span>
-            </p>
-          )}
-          {route.path && !route.path.road && (
-            <p className="mt-2 text-[12px] text-drv-mute">{L({ hi: "सड़क वाला रास्ता अभी नहीं मिला, सीधी लाइन दिख रही है।", en: "The road route isn't available right now; showing straight lines." })}</p>
-          )}
           {fail && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
           <button onClick={start} disabled={busy || !order.length} className="d-btn d-btn-y my-4 w-full">
             <Play className="h-[14px] w-[14px]" fill="currentColor" aria-hidden />
@@ -350,26 +374,42 @@ export default function TripPage() {
   const to = morning ? route.school.name : order[order.length - 1]?.name;
   const delay = trip.delay ? DELAY_REASONS.find((r) => r.id === trip.delay!.reason) : null;
   const alertStop = alertFor ? order.find((s) => s.name === alertFor) || null : null;
+  const pct = order.length ? Math.round((doneCount / order.length) * 100) : 0;
+  // How much of the map the bottom sheet covers (the driving view keeps the bus above it).
+  const inset = !next ? 250 : open ? 380 : 172;
 
   return (
     <Shell>
-      <BusMap stops={pins} path={pts} bus={pos} className="absolute inset-0" label={L({ hi: "लाइव नक्शा", en: "Live map" })} locateClass="top-[calc(env(safe-area-inset-top)+196px)]" />
+      <BusMap stops={pins} path={pts} bus={pos} heading={heading} mode="nav" className="absolute inset-0" label={L({ hi: "लाइव नक्शा", en: "Live map" })} bottomInset={inset} />
 
-      {/* Top card: the bus and where it's going. */}
+      {/* Top left: the trip card opens from this button. */}
       <div className="pt-safe absolute inset-x-3 top-0 z-[600]">
-        <section className="d-card mt-3 px-3.5 pt-3">
+        <button
+          onClick={() => setCard((c) => !c)}
+          aria-expanded={card}
+          aria-label={card ? L({ hi: "ट्रिप कार्ड बंद करें", en: "Close the trip card" }) : L({ hi: "ट्रिप की जानकारी", en: "Trip details" })}
+          className="relative mt-3 grid h-11 w-11 place-items-center rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.12)] active:bg-drv-soft"
+        >
+          {card ? <X className="h-5 w-5" aria-hidden /> : <Bus className="h-5 w-5" aria-hidden />}
+          <span className={clsx("absolute right-0.5 top-0.5 h-2.5 w-2.5 rounded-full border-2 border-white", gps === "on" ? "bg-drv-mint" : gps === "off" ? "bg-rose-600" : "bg-drv-faint")} aria-hidden />
+        </button>
+
+        <section
+          className={clsx(
+            "d-card mt-2 origin-top-left px-3.5 pt-3 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)]",
+            card ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-2 scale-[.97] opacity-0"
+          )}
+          aria-hidden={!card}
+        >
           <div className="flex items-start gap-2.5">
-            <Link href="/" className="-ml-1 grid h-8 w-8 shrink-0 place-items-center rounded-full active:bg-drv-soft" aria-label={L({ hi: "होम", en: "Home" })}>
+            <Link href="/" tabIndex={card ? 0 : -1} className="-ml-1 grid h-8 w-8 shrink-0 place-items-center rounded-full active:bg-drv-soft" aria-label={L({ hi: "होम", en: "Home" })}>
               <ChevronLeft className="h-5 w-5" aria-hidden />
             </Link>
             <div className="min-w-0 flex-1">
               <p className="text-[11.5px] text-drv-mute">{L({ hi: "गाड़ी नंबर", en: "Vehicle number" })}</p>
               <p className="truncate text-[16px] font-semibold tracking-[0.01em]">{route.vehicleNo || route.name}</p>
             </div>
-            <span className="d-chip">
-              <span className={gps === "on" ? "d-live" : clsx("h-[7px] w-[7px] rounded-full", gps === "off" ? "bg-rose-600" : "bg-drv-faint")} />
-              {gps === "on" ? L({ hi: "चल रही है", en: "In transit" }) : gps === "off" ? L({ hi: "GPS बंद", en: "GPS off" }) : L({ hi: "GPS ढूँढ रहे", en: "Finding GPS" })}
-            </span>
+            <span className={gps === "on" ? "d-live mt-2" : clsx("mt-2 h-[7px] w-[7px] rounded-full", gps === "off" ? "bg-rose-600" : "bg-drv-faint")} aria-label={gps === "on" ? "GPS on" : "GPS off"} />
           </div>
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2.5">
             <div className="min-w-0">
@@ -398,103 +438,127 @@ export default function TripPage() {
               <dd className="text-[14px] font-semibold">{onBoard}</dd>
             </div>
           </dl>
+          <div className="flex items-center justify-between border-t border-drv-line py-2.5">
+            <span className="text-[12px] text-drv-mute">
+              {label} · {L({ hi: `${sinceMin} मिनट से`, en: `${sinceMin} min` })}
+            </span>
+            <button onClick={endTrip} disabled={busy} className={clsx("rounded-full px-3 py-1.5 text-[12.5px] font-semibold", sure ? "bg-rose-600 text-white" : "text-rose-600 active:bg-rose-50")}>
+              {sure ? L({ hi: "पक्का, बंद करें", en: "Yes, end" }) : L({ hi: "ट्रिप बंद करें", en: "End trip" })}
+            </button>
+          </div>
         </section>
       </div>
 
-      {/* Bottom sheet: progress and the next stop. */}
-      <div className="pb-safe absolute inset-x-0 bottom-0 z-[600] rounded-t-[20px] bg-white px-4 pt-2 shadow-[0_-4px_20px_rgba(0,0,0,.08)]">
-        <div className="mx-auto mb-3 h-1 w-9 rounded-full bg-[#DEDEDA]" aria-hidden />
-        <div className="flex items-start justify-between gap-3">
-          <div className="min-w-0">
-            <p className="flex items-center gap-1.5 text-[11.5px] font-semibold text-drv-green">
-              <span className="d-live" />
-              {L({ hi: "लाइव", en: "Live status" })}
-            </p>
-            <p className="mt-1 text-[15px] font-semibold">{L({ hi: `${sinceMin} मिनट से चल रही है`, en: `Running for ${sinceMin} min` })}</p>
-            <p className="text-[12px] text-drv-mute">{label}</p>
-          </div>
-          <div className="shrink-0 border-l border-drv-line pl-3 text-right">
-            <p className="text-[11px] text-drv-mute">{L({ hi: "बस में", en: "On board" })}</p>
-            <p className="text-[13px] font-semibold">{L({ hi: `${onBoard} बच्चे`, en: `${onBoard} children` })}</p>
-          </div>
+      {/* What the map can't show yet: no GPS, or a route with no saved stop places. */}
+      {(gps !== "on" || (!pts.length && !pins.length)) && !card && (
+        <div className="pt-safe pointer-events-none absolute inset-x-3 top-0 z-[590] flex justify-center">
+          {gps === "off" ? (
+            <div className="pointer-events-auto mt-[68px] w-full rounded-[14px] bg-drv-black px-3.5 py-3 text-white shadow-[0_8px_24px_rgba(0,0,0,.25)]">
+              <p className="text-[14px] font-semibold">{L({ hi: "फ़ोन की लोकेशन नहीं मिल रही", en: "Can't get the phone's location" })}</p>
+              <p className="mt-0.5 text-[12.5px] leading-snug text-white/70">
+                {L({ hi: "फ़ोन में Location चालू करें और इस ऐप को लोकेशन की इजाज़त दें। तभी बस नक्शे पर दिखेगी और स्टॉप का अलर्ट आएगा।", en: "Turn on Location and allow this app to use it. Only then the bus shows on the map and stop alerts come." })}
+              </p>
+              <button onClick={() => setGpsTry((x) => x + 1)} className="mt-2.5 rounded-[10px] bg-drv-yellow px-3.5 py-2 text-[13px] font-semibold text-black active:translate-y-px">
+                {L({ hi: "फिर कोशिश करें", en: "Try again" })}
+              </button>
+            </div>
+          ) : gps === "wait" ? (
+            <span className="d-chip mt-[72px] bg-white px-3 py-1.5 text-[12.5px] shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)]">{L({ hi: "बस की लोकेशन ढूँढ रहे हैं…", en: "Finding the bus's location…" })}</span>
+          ) : (
+            <span className="d-chip mt-[72px] max-w-full whitespace-normal bg-white px-3 py-1.5 text-center text-[12.5px] leading-snug shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)]">
+              {L({ hi: "पहली ट्रिप: हर स्टॉप पर बच्चे टिक करते ही वो स्टॉप नक्शे पर जुड़ जाएगा", en: "First trip: each stop joins the map as you tick children there" })}
+            </span>
+          )}
         </div>
-        <div className="mb-1.5 mt-3 h-1 overflow-hidden rounded-full bg-[#EDEDEA]">
-          <div className="h-full rounded-full bg-drv-mint transition-[width] duration-500" style={{ width: `${order.length ? (doneCount / order.length) * 100 : 0}%` }} />
-        </div>
-        <p className="text-[12px] text-drv-mute">
-          <b className="mr-1.5 text-[13px] font-semibold text-drv-green">{order.length ? Math.round((doneCount / order.length) * 100) : 0}%</b>
-          {L({ hi: `${order.length} में से ${doneCount} स्टॉप पूरे`, en: `${doneCount} of ${order.length} stops done` })}
-        </p>
+      )}
 
-        {delay && trip.delay && (
-          <button onClick={() => setSheet("delay")} className="mt-3 flex w-full items-center gap-2 rounded-[10px] bg-drv-note px-3 py-2 text-left text-[12.5px] text-[#4A3F00]">
-            <TriangleAlert className="h-4 w-4 shrink-0 text-drv-gold" aria-hidden />
-            <span className="min-w-0 flex-1">{L({ hi: `पैरेंट्स को बताया: ${trip.delay.minutes} मिनट देर · ${delay.hi}`, en: `Parents told: ${trip.delay.minutes} min late · ${delay.en}` })}</span>
-          </button>
-        )}
+      {/* Bottom sheet: small while driving; the handle opens the rest. */}
+      <div className="pb-safe absolute inset-x-0 bottom-0 z-[600] rounded-t-[20px] bg-white px-4 shadow-[0_-4px_20px_rgba(0,0,0,.08)]">
+        <button onClick={() => setOpen((o) => !o)} className="flex w-full justify-center pb-2 pt-2.5" aria-expanded={open} aria-label={open ? L({ hi: "छोटा करें", en: "Show less" }) : L({ hi: "और दिखाएँ", en: "Show more" })}>
+          <span className="h-1 w-9 rounded-full bg-[#DEDEDA]" aria-hidden />
+        </button>
 
         {next ? (
-          <button onClick={() => setSheet("stop")} className="mt-3 block w-full rounded-[12px] bg-drv-soft p-3 text-left active:bg-drv-line">
-            <span className="flex items-center justify-between gap-3">
-              <span className="min-w-0 truncate text-[13.5px] font-semibold">
-                {L({ hi: "अगला", en: "Next" })} · {next.name}
+          <>
+            <button onClick={() => setSheet("stop")} className="flex w-full items-start justify-between gap-3 text-left">
+              <span className="min-w-0">
+                <span className="block text-[11.5px] font-semibold text-drv-green">
+                  {L({ hi: `अगला स्टॉप · ${nextIdx + 1}/${order.length}`, en: `Next stop · ${nextIdx + 1}/${order.length}` })}
+                </span>
+                <span className="block truncate text-[17px] font-semibold">{next.name}</span>
+                <span className="block text-[12.5px] text-drv-mute">
+                  {morning ? L({ hi: `${next.kids.length} बच्चे चढ़ेंगे`, en: `${next.kids.length} getting on` }) : L({ hi: `${next.kids.length} बच्चे उतरेंगे`, en: `${next.kids.length} getting off` })}
+                  {minsNext !== null ? L({ hi: ` · करीब ${minsNext} मिनट`, en: ` · about ${minsNext} min` }) : ""}
+                </span>
               </span>
-              <span className="shrink-0 text-[13.5px] font-semibold text-drv-green">{toNext !== null ? distText(toNext) : L({ hi: "जगह सेव नहीं", en: "place not saved" })}</span>
-            </span>
-            <span className="mt-0.5 block text-[12px] text-drv-mute">
-              {morning ? L({ hi: `${next.kids.length} बच्चे चढ़ेंगे`, en: `${next.kids.length} getting on` }) : L({ hi: `${next.kids.length} बच्चे उतरेंगे`, en: `${next.kids.length} getting off` })}
-              {minsNext !== null ? L({ hi: ` · करीब ${minsNext} मिनट`, en: ` · about ${minsNext} min` }) : ""}
-            </span>
-            <span className="mt-2.5 flex items-center justify-between">
-              <Faces kids={next.kids} more={(n) => L({ hi: `+${n} और`, en: `+${n} more` })} />
-              <ChevronRight className="h-4 w-4 text-drv-mute" aria-hidden />
-            </span>
-          </button>
-        ) : (
-          <div className="mt-3 rounded-[12px] bg-drv-soft p-3">
-            <p className="text-[14px] font-semibold">{L({ hi: "सारे स्टॉप हो गए", en: "All stops done" })}</p>
-            <p className="mt-0.5 text-[12.5px] text-drv-mute">
-              {ticked} / {kidsAll.length} {morning ? L({ hi: "बच्चे चढ़े", en: "children got on" }) : L({ hi: "बच्चे उतरे", en: "children got off" })}
-            </p>
-            {!morning && ticked < kidsAll.length && <p className="mt-1.5 text-[12.5px] font-semibold text-rose-600">{L({ hi: "बस में कोई बच्चा रह तो नहीं गया? एक बार देख लें।", en: "Is any child still on the bus? Check once." })}</p>}
-            {morning && !schoolAt && (
-              <button disabled={!pos || busy} onClick={() => pos && act("/bus/school-location", { lat: pos.lat, lng: pos.lng })} className="d-btn d-btn-line mt-2.5 w-full">
-                <MapPin className="h-4 w-4" aria-hidden />
-                {L({ hi: "बस स्कूल पर है, जगह सेव करें", en: "The bus is at school, save its place" })}
-              </button>
-            )}
-          </div>
-        )}
+              {toNext !== null && <span className="shrink-0 pt-3 text-[20px] font-semibold text-drv-green">{distText(toNext)}</span>}
+            </button>
 
-        {fail && !sheet && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
+            <div className={clsx("grid transition-[grid-template-rows] duration-300 ease-out", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
+              <div className="min-h-0 overflow-hidden">
+                <div className="flex items-center justify-between pt-3">
+                  <Faces kids={next.kids} more={(n) => L({ hi: `+${n} और`, en: `+${n} more` })} />
+                  <span className="text-[12px] text-drv-mute">{L({ hi: `बस में ${onBoard}`, en: `${onBoard} on board` })}</span>
+                </div>
+                <div className="mb-1.5 mt-4 h-1 overflow-hidden rounded-full bg-[#EDEDEA]">
+                  <div className="h-full rounded-full bg-drv-mint transition-[width] duration-500" style={{ width: `${pct}%` }} />
+                </div>
+                <p className="text-[12px] text-drv-mute">
+                  <b className="mr-1.5 text-[13px] font-semibold text-drv-green">{pct}%</b>
+                  {L({ hi: `${order.length} में से ${doneCount} स्टॉप पूरे`, en: `${doneCount} of ${order.length} stops done` })}
+                </p>
+                {delay && trip.delay && (
+                  <button onClick={() => setSheet("delay")} className="mt-3 flex w-full items-center gap-2 rounded-[10px] bg-drv-note px-3 py-2 text-left text-[12.5px] text-[#4A3F00]">
+                    <TriangleAlert className="h-4 w-4 shrink-0 text-drv-gold" aria-hidden />
+                    <span className="min-w-0 flex-1">{L({ hi: `पैरेंट्स को बताया: ${trip.delay.minutes} मिनट देर · ${delay.hi}`, en: `Parents told: ${trip.delay.minutes} min late · ${delay.en}` })}</span>
+                  </button>
+                )}
+              </div>
+            </div>
 
-        <div className="mt-3 flex gap-2 pb-4">
-          {next ? (
-            <>
+            {fail && !sheet && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
+            <div className="mt-3 flex gap-2 pb-4">
               <button onClick={() => setSheet("delay")} className="d-btn d-btn-line shrink-0 px-3.5">
                 <TriangleAlert className="h-4 w-4 text-drv-gold" aria-hidden />
                 {L({ hi: "देरी", en: "Late" })}
               </button>
               <button onClick={() => setSheet("stop")} className="d-btn d-btn-k flex-1">
                 {L({ hi: "स्टॉप पर पहुँचे", en: "At the stop" })}
+                <ChevronRight className="h-4 w-4" aria-hidden />
               </button>
-              <button onClick={endTrip} disabled={busy} className={clsx("d-btn shrink-0 px-3.5", sure ? "bg-rose-600 text-white" : "d-btn-line text-rose-600")}>
-                {sure ? L({ hi: "पक्का?", en: "Sure?" }) : L({ hi: "बंद", en: "End" })}
+              <button onClick={() => setOpen((o) => !o)} className="d-btn d-btn-line shrink-0 px-3" aria-label={open ? L({ hi: "छोटा करें", en: "Show less" }) : L({ hi: "और दिखाएँ", en: "Show more" })}>
+                <ChevronDown className={clsx("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} aria-hidden />
               </button>
-            </>
-          ) : (
-            <button onClick={endTrip} disabled={busy} className={clsx("d-btn flex-1", sure ? "bg-rose-600 text-white" : "d-btn-y")}>
+            </div>
+          </>
+        ) : (
+          <div className="pb-4">
+            <p className="text-[16px] font-semibold">{L({ hi: "सारे स्टॉप हो गए", en: "All stops done" })}</p>
+            <p className="mt-0.5 text-[12.5px] text-drv-mute">
+              {ticked} / {kidsAll.length} {morning ? L({ hi: "बच्चे चढ़े", en: "children got on" }) : L({ hi: "बच्चे उतरे", en: "children got off" })}
+            </p>
+            {!morning && ticked < kidsAll.length && <p className="mt-1.5 text-[12.5px] font-semibold text-rose-600">{L({ hi: "बस में कोई बच्चा रह तो नहीं गया? एक बार देख लें।", en: "Is any child still on the bus? Check once." })}</p>}
+            {morning && !schoolAt && (
+              <button disabled={!pos || busy} onClick={() => pos && act("/bus/school-location", { lat: pos.lat, lng: pos.lng })} className="d-btn d-btn-line mt-3 w-full">
+                <MapPin className="h-4 w-4" aria-hidden />
+                {L({ hi: "बस स्कूल पर है, जगह सेव करें", en: "The bus is at school, save its place" })}
+              </button>
+            )}
+            {fail && !sheet && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
+            <button onClick={endTrip} disabled={busy} className={clsx("d-btn mt-3 w-full", sure ? "bg-rose-600 text-white" : "d-btn-y")}>
               {sure ? L({ hi: "पक्का, ट्रिप बंद करें", en: "Yes, end the trip" }) : L({ hi: "ट्रिप पूरी करें", en: "Finish the trip" })}
             </button>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {alertStop && (
         <DropAlert
+          key={alertStop.name}
           stop={alertStop}
           kind={trip.kind}
           dist={dist}
+          auto={autoClose.current}
           onClose={() => setAlertFor(null)}
           onOk={() => {
             setAlertFor(null);
@@ -511,10 +575,12 @@ export default function TripPage() {
           absent={route.absent.filter((a) => a.stop === next.name).map((a) => a.name)}
           busy={busy}
           fail={fail}
-          canSave={nextAt ? null : !!pos}
-          onTick={(kidId, on) => act("/bus/mark", { kidId, on })}
-          onSave={() => pos && act("/bus/stop-location", { stop: next.name, lat: pos.lat, lng: pos.lng })}
+          onTick={async (kidId, on) => {
+            await savePlaceIfNew();
+            act("/bus/mark", { kidId, on });
+          }}
           onDone={async () => {
+            await savePlaceIfNew();
             if (await act("/bus/stop-done", { stop: next.name })) setSheet(null);
           }}
           onClose={() => setSheet(null)}
