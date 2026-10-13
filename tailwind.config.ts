@@ -91,16 +91,30 @@ const drv = {
   note: "#FFF9DB",
 };
 
+// Ajrakh (Barmer block print): the parent-messages screens' own look. Maroon, mustard, sand.
+const ajk = {
+  m: "#6E1E2B",
+  m2: "#521520",
+  pink: "#EBC9CE",
+  y: "#E3A72F",
+  sand: "#F5EAD7",
+  sand2: "#EADBC1",
+  ink: "#2B1A12",
+  mute: "#7A6455",
+};
+
 const config: Config = {
   content: ["./app/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./lib/**/*.{ts,tsx}"],
   theme: {
     extend: {
-      colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF", drv },
+      colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF", drv, ajk },
       fontFamily: {
         // Figtree for Latin and numbers; Hind fills in Devanagari.
         sans: ["Figtree", "Hind", "'Noto Sans Devanagari'", "system-ui", "sans-serif"],
         // The driver's screens: Inter like ride apps, Noto Sans Devanagari for Hindi.
         drv: ["'Inter Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
+        // Parent messages: Baloo 2 (made for Indian scripts, Latin and Devanagari together).
+        ajk: ["'Baloo 2'", "Hind", "system-ui", "sans-serif"],
       },
       fontSize: {
         // Parents read on small phones, often outdoors: the floor is 13px, body is 16px.

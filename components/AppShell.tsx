@@ -24,6 +24,10 @@ interface PageInfo {
   action?: { href: string; text: Bi };
   /** Only teachers have this screen; anyone else who opens it by link goes back to Home. */
   teacher?: boolean;
+  /** The screen draws its own header and background (parent messages' Ajrakh look). */
+  own?: boolean;
+  /** No tab bar (a chat, whose reply box sits at the bottom). */
+  bare?: boolean;
 }
 
 const PAGES: Record<string, PageInfo> = {
@@ -43,6 +47,8 @@ const PAGES: Record<string, PageInfo> = {
   "/notice/": { title: { hi: "सूचनाएँ", en: "Notice" }, back: "/" },
   "/trip/": { title: { hi: "ट्रिप", en: "Trip" }, back: "/" },
   "/trip/history/": { title: { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, back: "/" },
+  "/messages/": { title: { hi: "अभिभावकों के संदेश", en: "Parent messages" }, back: "/", teacher: true, own: true },
+  "/messages/chat/": { title: { hi: "संदेश", en: "Message" }, back: "/messages/", teacher: true, own: true, bare: true },
 };
 
 /** Drivers get their own bar: a black pill with Record, Home (raised, yellow) and Profile. */
@@ -87,6 +93,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const L = useL();
   const page = PAGES[path];
   const isHome = path === "/";
+  const own = !!page?.own;
   const teacher = !me || me.role === "teacher";
   const driver = me?.role === "driver";
   const tabs = teacher ? TEACHER_TABS : OTHER_TABS;
@@ -97,8 +104,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [blocked]);
 
   return (
-    <div className={clsx("mx-auto flex min-h-[100dvh] max-w-[560px] flex-col bg-white", driver && "drv")}>
-      {!isHome && (
+    <div className={clsx("mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", own ? "bg-ajk-sand" : "bg-white", driver && "drv")}>
+      {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">
             {page?.back ? (
@@ -120,8 +127,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={clsx("flex-1 pb-28", !isHome && "space-y-3.5 px-4 pt-1")}>
-        {!isHome && <OfflineNote show={stale && !!me} />}
+      <main className={clsx("flex-1", !page?.bare && "pb-28", !isHome && !own && "space-y-3.5 px-4 pt-1")}>
+        {!isHome && !own && <OfflineNote show={stale && !!me} />}
         {blocked ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
             <ErrorCard offline={error.status === 0} onRetry={reload} />
@@ -131,7 +138,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </main>
 
-      {driver ? (
+      {page?.bare ? null : driver ? (
         <DriverNav path={path} />
       ) : (
       <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white" aria-label="Main">

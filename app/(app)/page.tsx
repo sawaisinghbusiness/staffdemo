@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Banknote, Bell, BookOpen, CalendarCheck, CalendarX2, Clock3, Megaphone, NotebookPen, Search, Table2, TrendingUp, Users, type LucideIcon } from "lucide-react";
+import { Banknote, Bell, BookOpen, CalendarCheck, CalendarX2, ChevronRight, Clock3, Megaphone, MessageCircle, NotebookPen, Search, Table2, TrendingUp, Users, type LucideIcon } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, type Bi } from "@/lib/i18n";
@@ -52,6 +52,24 @@ const MARK: Record<"P" | "A" | "L" | "H", Bi> = {
   L: { hi: "आज आप छुट्टी पर हैं", en: "You are on leave today" },
   H: { hi: "आज आधा दिन दर्ज है", en: "Half day marked for today" },
 };
+
+/** Parent messages on Home, in Ask Teacher's maroon, with how many are unread. */
+function ParentMessagesRow() {
+  const L = useL();
+  const { data } = useApi<{ unread: number }>("/chats/unread");
+  const n = data?.unread || 0;
+  return (
+    <Link href="/messages/" className="flex min-h-[56px] items-center gap-3 rounded-2xl bg-ajk-m px-4 font-ajk text-white active:brightness-110">
+      <MessageCircle className="h-[22px] w-[22px] text-ajk-y" aria-hidden />
+      <span className="flex-1 text-[16px] font-bold">{L({ hi: "अभिभावकों के संदेश", en: "Parent messages" })}</span>
+      {n > 0 ? (
+        <span className="grid h-6 min-w-6 place-items-center rounded-full bg-ajk-y px-2 text-[13px] font-bold text-ajk-ink">{n}</span>
+      ) : (
+        <ChevronRight className="h-5 w-5 text-ajk-pink" aria-hidden />
+      )}
+    </Link>
+  );
+}
 
 const nowHHMM = () => {
   const d = new Date();
@@ -173,6 +191,8 @@ export default function HomePage() {
             {L({ hi: "बच्चे खोजें", en: "Search students" })}
           </Link>
         )}
+
+        {teacher && <ParentMessagesRow />}
 
         {error && error.status !== 401 && !data && <ErrorCard offline={error.status === 0} onRetry={reload} />}
 

@@ -3,6 +3,8 @@
  * Sign in with any 10-digit mobile and the code 123456; pick a role to see its screens.
  * Set NEXT_PUBLIC_DEMO=0 (Vercel → Environment Variables) to use the real backend.
  */
+import { demoChats } from "./demoChats";
+
 export const DEMO = process.env.NEXT_PUBLIC_DEMO !== "0";
 export const DEMO_CODE = "123456";
 
@@ -325,6 +327,14 @@ export async function demoApi(path: string, method: string, body: any): Promise<
     const me = PEOPLE[s.role];
     const isTeacher = s.role === "teacher";
     if (p === "/me") return { role: s.role, name: me.name, roleLabel: me.roleLabel, empCode: me.empCode, phone: "9414000000", joined: me.joined, school: SCHOOL, sections: isTeacher ? SECTIONS : [] };
+
+    if (p.startsWith("/chats")) {
+      try {
+        return demoChats(p, method, body, q, t, isTeacher);
+      } catch (e: any) {
+        throw new DemoError(e?.status ?? 500, e?.message || "");
+      }
+    }
 
     if (p.startsWith("/bus/")) {
       if (s.role !== "driver") throw new DemoError(403, "Only the bus driver can open this.");
