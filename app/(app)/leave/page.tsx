@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Clock3, Plus, Tag } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
+import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang, type Lang } from "@/lib/i18n";
 import { dayMonth, monthYear, num, weekdayDate } from "@/lib/format";
@@ -24,6 +25,7 @@ interface Mine {
 interface Req {
   id: string;
   student: string;
+  photoUrl?: string | null;
   classSec: string;
   from: string;
   to: string;
@@ -160,7 +162,7 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
   const L = useL();
   const { lang } = useLang();
   const [busy, setBusy] = useState("");
-  const [msg, setMsg] = useState("");
+  const setMsg = useToastMsg();
 
   if (!data) {
     if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
@@ -186,11 +188,6 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
 
   return (
     <div className="space-y-4">
-      {msg && (
-        <p className="text-[14px] font-medium text-rose-700" role="alert">
-          {msg}
-        </p>
-      )}
       {pending.length === 0 ? (
         <Empty>{L({ hi: "कोई अर्ज़ी जवाब के इंतज़ार में नहीं।", en: "Nothing is waiting for you." })}</Empty>
       ) : (
@@ -199,7 +196,7 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
             <li key={r.id} className="row-card">
               {/* Name - class; then Reason, From and Notes each on its own line; days bottom-left, the answers bottom-right. */}
               <div className="flex items-center gap-2.5">
-                <Avatar name={r.student} size={40} />
+                <Avatar name={r.student} url={r.photoUrl} size={40} />
                 <p className="min-w-0 flex-1 truncate font-title text-[17px] font-bold text-ink-900">
                   {r.student} <span className="text-[13.5px] font-medium text-ink-500">- {r.classSec}</span>
                 </p>

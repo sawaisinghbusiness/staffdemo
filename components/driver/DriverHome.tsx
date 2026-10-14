@@ -53,7 +53,7 @@ export function DriverHome() {
         </Link>
         {me && (
           <Link href="/profile/" className="ml-0.5 shrink-0 rounded-full" aria-label={L({ hi: "मेरी प्रोफ़ाइल", en: "My profile" })}>
-            <Face name={me.name} size={38} />
+            <Face name={me.name} url={me.photoUrl} size={38} />
           </Link>
         )}
       </div>

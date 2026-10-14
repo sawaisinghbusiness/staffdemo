@@ -86,7 +86,7 @@ export default function MessageChatPage() {
           </Link>
           {s ? (
             <>
-              <Avatar name={s.name} size={36} />
+              <Avatar name={s.name} url={s.photoUrl} size={36} />
               <div className="min-w-0">
                 <p className="truncate text-[16px] font-semibold leading-tight text-ink-900">{s.name}</p>
                 <p className="truncate text-[12.5px] text-ink-500">{sub}</p>

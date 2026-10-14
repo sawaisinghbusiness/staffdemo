@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { ChevronLeft, Lock } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
+import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL } from "@/lib/i18n";
 import { Avatar, ErrorCard, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
@@ -97,7 +98,7 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
   const { data, error, reload } = useApi<Sheet>(`/marks/sheet?exam=${exam}&section=${section}&subject=${encodeURIComponent(subject)}`);
   const [vals, setVals] = useState<Record<string, Record<string, string>>>({});
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const setMsg = useToastMsg();
 
   useEffect(() => {
     if (data) setVals(Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.marks[p.key] == null ? "" : String(s.marks[p.key])]))])));
@@ -173,11 +174,6 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
 
       {!locked && (
         <StickyBar>
-          {msg && (
-            <p className={clsx("mb-1.5 text-[14px] font-medium", msg.ok ? "text-jade-700" : "text-rose-700")} role="alert">
-              {msg.text}
-            </p>
-          )}
           <button onClick={save} disabled={busy} className="btn-primary w-full">
             {busy ? "…" : `${L({ hi: "सेव करें", en: "Save" })} · ${filled} / ${data.students.length} ${L({ hi: "भरे", en: "filled" })}`}
           </button>

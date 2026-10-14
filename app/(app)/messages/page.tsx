@@ -95,7 +95,7 @@ function Row({ r, i }: { r: InboxRow; i: number }) {
           "border-ink-900"
         )}
       >
-        <Avatar name={r.student} size={44} tint={i} />
+        <Avatar name={r.student} url={r.photoUrl} size={44} tint={i} />
         {/* Top: name · class, and the new-message count in the corner. Bottom: the message, and how long ago. */}
         <span className="min-w-0 flex-1 space-y-1">
           <span className="flex items-center justify-between gap-2">

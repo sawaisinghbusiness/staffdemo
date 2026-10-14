@@ -16,6 +16,8 @@ export interface Me {
   name: string;
   roleLabel: Bi;
   empCode: string;
+  /** Read fresh from the ERP staff record each time. */
+  photoUrl?: string | null;
   phone: string;
   joined: string;
   school: { name: string; shortName: string; logoUrl: string | null; officePhone: string; address?: string };

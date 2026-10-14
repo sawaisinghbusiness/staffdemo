@@ -69,7 +69,7 @@ export default function ProfilePage() {
   return (
     <div className="animate-rise space-y-4 pb-2">
       <section className="flex flex-col items-center pt-1 text-center">
-        <Avatar name={me.name} size={76} tint={5} />
+        <Avatar name={me.name} url={me.photoUrl} size={76} tint={5} />
         <h2 className="mt-2.5 text-[19px] font-bold">{me.name}</h2>
         <p className="text-[13.5px] text-ink-500">
           {L(me.roleLabel)} · {me.empCode}

@@ -24,9 +24,11 @@ export const tintOf = (s: string) => Array.from(s).reduce((a, c) => a + c.charCo
 
 export function Avatar({ name, url, size = 48, tint }: { name: string; url?: string | null; size?: number; tint?: number }) {
   const [bg, fg] = TINTS[(tint ?? tintOf(name)) % TINTS.length];
-  return url ? (
+  // A photo replaced in the ERP deletes the old file: if a saved (old) link fails, show initials, not a broken image.
+  const [failed, setFailed] = useState<string | null>(null);
+  return url && failed !== url ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" width={size} height={size} className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />
+    <img src={url} alt="" width={size} height={size} onError={() => setFailed(url)} className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />
   ) : (
     <span className="grid shrink-0 place-items-center rounded-full font-bold" style={{ width: size, height: size, fontSize: size * 0.34, background: bg, color: fg }}>
       {initials(name)}
@@ -55,15 +57,17 @@ export function Status({ tone, children }: { tone: Tone; children: React.ReactNo
   return <span className={TONE_CLASS[tone]}>{children}</span>;
 }
 
-/** The kit's tabs with an underline. */
+/** The kit's tabs with an underline that slides to the picked tab. */
 export function LineTabs<K extends string>({ value, onChange, options, label }: { value: K; onChange: (k: K) => void; options: { key: K; text: string }[]; label: string }) {
+  const at = Math.max(0, options.findIndex((o) => o.key === value));
   return (
-    <div className="tabs-line" role="tablist" aria-label={label}>
+    <div className="tabs-line relative" role="tablist" aria-label={label}>
       {options.map((o) => (
         <button key={o.key} role="tab" aria-selected={value === o.key} onClick={() => onChange(o.key)}>
           {o.text}
         </button>
       ))}
+      <span aria-hidden className="tabs-line-bar" style={{ width: `${100 / options.length}%`, transform: `translateX(${at * 100}%)` }} />
     </div>
   );
 }

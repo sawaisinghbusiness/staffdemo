@@ -154,7 +154,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
             {/* Staff member */}
             {me && (
               <div className="flex items-center gap-3 px-5 py-4">
-                <Avatar name={me.name} size={44} tint={0} />
+                <Avatar name={me.name} url={me.photoUrl} size={44} tint={0} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate text-[16px] font-semibold text-ink-900">{me.name}</p>
                   <p className="truncate text-[13px] text-ink-500">

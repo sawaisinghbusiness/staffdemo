@@ -117,7 +117,7 @@ export default function HomePage() {
       <header className="pt-safe px-4">
         {/* One row like the parent app: menu, school, then language, search, notices and the staff member. */}
         <div className="enter flex items-center gap-1.5 pt-4" style={v(0)}>
-          <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 mr-0.5 grid h-11 w-10 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100">
+          <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 mr-0.5 grid h-11 w-10 shrink-0 place-items-center rounded-full text-white active:bg-white/15">
             <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
           </button>
           <SchoolMark name={school.name} url={school.logoUrl} size={44} />
@@ -138,7 +138,7 @@ export default function HomePage() {
               </button>
             ))}
           </div>
-          <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-brand-800 active:bg-ink-100" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
+          <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-white active:bg-white/15" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
             <Bell className={clsx("h-[21px] w-[21px]", unread > 0 && "bell-ring")} strokeWidth={2} aria-hidden />
             {unread > 0 && (
               <span className="badge-pop absolute right-0 top-1 grid h-[17px] min-w-[17px] place-items-center rounded-full border-2 border-white bg-rose-600 px-0.5 text-[10px] font-bold leading-none text-white">
@@ -147,12 +147,12 @@ export default function HomePage() {
             )}
           </Link>
           <Link href="/profile/" className="shrink-0 rounded-full ring-2 ring-white transition-transform duration-300 active:scale-90" aria-label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}>
-            <Avatar name={me.name} size={38} tint={0} />
+            <Avatar name={me.name} url={me.photoUrl} size={38} tint={0} />
           </Link>
         </div>
 
         <div className="mt-5">
-          <h1 className="truncate text-[clamp(21px,6.4vw,26px)] font-bold leading-tight text-brand-800">
+          <h1 className="truncate text-[clamp(21px,6.4vw,26px)] font-bold leading-tight text-white">
             <span className="reveal">
               <span style={v(0)}>{greet},</span>
             </span>{" "}

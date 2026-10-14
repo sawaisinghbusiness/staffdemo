@@ -17,6 +17,7 @@ import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/noto-sans-devanagari/wght.css";
 import "./globals.css";
 import { LangProvider } from "@/lib/i18n";
+import { Toaster } from "@/lib/toast";
 
 export const metadata: Metadata = {
   title: "School Staff",
@@ -37,7 +38,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        <LangProvider>{children}</LangProvider>
+        <LangProvider>
+          {children}
+          <Toaster />
+        </LangProvider>
       </body>
     </html>
   );

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { api, ApiError, useApi } from "@/lib/api";
+import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { dayMonth } from "@/lib/format";
@@ -28,7 +29,7 @@ export default function NotesPage() {
   const [student, setStudent] = useState("");
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const setMsg = useToastMsg();
 
   useEffect(() => {
     if (!sec && sections.length) setSec(sections.find((s) => s.classTeacher)?.id || sections[0].id);
@@ -77,11 +78,6 @@ export default function NotesPage() {
           </SelectBox>
         </div>
         <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={500} className="textarea-box" placeholder={L({ hi: "जैसे: भिन्न में कमज़ोर है, घर पर रोज़ 15 मिनट अभ्यास करवाएँ।", en: "e.g. Falling behind in fractions; needs 15 minutes of practice at home daily." })} />
-        {msg && (
-          <p className={clsx("text-[14px] font-medium", msg.ok ? "text-jade-700" : "text-rose-700")} role="alert">
-            {msg.text}
-          </p>
-        )}
         <button type="submit" disabled={busy || !student} className="btn-go w-full">
           {busy ? "…" : L({ hi: "नोट भेजें", en: "Send note" })}
         </button>

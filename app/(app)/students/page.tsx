@@ -11,19 +11,22 @@ import { Avatar, Empty, ErrorCard, ListSkeleton, SelectBox } from "@/components/
 interface Roster {
   id: string;
   classSec: string;
-  students: { id: string; name: string; rollNo: string }[];
+  students: { id: string; name: string; rollNo: string; photoUrl?: string | null }[];
 }
 
-/** Pick one of your classes, then a student. Search by name or roll number. */
+/**
+ * Only the class(es) you are class teacher of (user's ask, 2026-10-14), not every class you teach.
+ * Pick one if there are several, then a student. Search by name or roll number.
+ */
 export default function StudentsPage() {
   const { me } = useStaff();
   const L = useL();
-  const sections = me?.sections || [];
+  const sections = (me?.sections || []).filter((s) => s.classTeacher);
   const [id, setId] = useState("");
   const [q, setQ] = useState("");
   const [focus, setFocus] = useState(false);
   useEffect(() => {
-    if (!id && sections.length) setId(sections.find((s) => s.classTeacher)?.id || sections[0].id);
+    if (!id && sections.length) setId(sections[0].id);
   }, [sections, id]);
   useEffect(() => setFocus(new URLSearchParams(window.location.search).get("search") === "1"), []);
   const { data, error, reload } = useApi<Roster>(id ? `/students?section=${id}` : null);
@@ -31,16 +34,19 @@ export default function StudentsPage() {
   const term = q.trim().toLowerCase();
   const list = (data?.students || []).filter((s) => !term || s.name.toLowerCase().includes(term) || s.rollNo.replace(/^0+/, "") === term.replace(/^0+/, ""));
 
+  if (me && !sections.length) return <Empty>{L({ hi: "आप किसी कक्षा के क्लास टीचर नहीं हैं।", en: "You are not the class teacher of any class." })}</Empty>;
+
   return (
     <div className="animate-rise space-y-3">
-      <SelectBox label={L({ hi: "कक्षा", en: "Class" })} value={id} onChange={setId}>
-        {sections.map((s) => (
-          <option key={s.id} value={s.id}>
-            {s.classSec}
-            {s.classTeacher ? ` · ${L({ hi: "क्लास टीचर", en: "class teacher" })}` : ""}
-          </option>
-        ))}
-      </SelectBox>
+      {sections.length > 1 && (
+        <SelectBox label={L({ hi: "कक्षा", en: "Class" })} value={id} onChange={setId}>
+          {sections.map((s) => (
+            <option key={s.id} value={s.id}>
+              {s.classSec}
+            </option>
+          ))}
+        </SelectBox>
+      )}
       <label className="field-box min-h-[48px]">
         <Search aria-hidden />
         <input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={L({ hi: "नाम या रोल नंबर से खोजें", en: "Search by name or roll" })} autoFocus={focus} enterKeyHint="search" />
@@ -59,7 +65,7 @@ export default function StudentsPage() {
             {list.map((s) => (
               <li key={s.id}>
                 <Link href={`/students/detail/?id=${encodeURIComponent(s.id)}`} className="flex min-h-[60px] items-center gap-3 border-b border-ink-100 active:bg-ink-50">
-                  <Avatar name={s.name} size={40} />
+                  <Avatar name={s.name} url={s.photoUrl} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15.5px] font-medium">{s.name}</span>
                     <span className="block text-[12.5px] text-ink-400">

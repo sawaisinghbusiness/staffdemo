@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
+import { useToastMsg } from "@/lib/toast";
 import { useL } from "@/lib/i18n";
 import { LEAVE_TYPES, type LeaveType } from "@/lib/leave";
 import { ErrorCard, ListSkeleton, SelectBox } from "@/components/ui";
@@ -23,7 +24,7 @@ export default function ApplyLeavePage() {
   const [half, setHalf] = useState(false);
   const [reason, setReason] = useState("");
   const [busy, setBusy] = useState(false);
-  const [problem, setProblem] = useState("");
+  const setProblem = useToastMsg();
 
   useEffect(() => {
     if (data && !from) {
@@ -98,11 +99,6 @@ export default function ApplyLeavePage() {
       </div>
       <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} maxLength={300} className="textarea-box" placeholder={L({ hi: "छुट्टी का कारण", en: "Reason for leave" })} />
       <p className="text-[13px] text-ink-500">{L({ hi: "स्कूल ऑफ़िस इसे देखकर यहीं जवाब देगा।", en: "The school office will see this and reply here." })}</p>
-      {problem && (
-        <p role="alert" className="text-[14px] text-rose-700">
-          {problem}
-        </p>
-      )}
       <button type="submit" disabled={busy} className="btn-primary w-full">
         {busy ? "…" : L({ hi: "अर्ज़ी भेजें", en: "Apply" })}
       </button>

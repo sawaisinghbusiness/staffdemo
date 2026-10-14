@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays, Check, Clock3, Trash2 } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
+import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { dayMonth } from "@/lib/format";
@@ -27,7 +28,7 @@ interface Item {
 interface Subs {
   homework: Item;
   checked: boolean;
-  students: { id: string; name: string; rollNo: string; submitted: boolean | null }[];
+  students: { id: string; name: string; rollNo: string; submitted: boolean | null; photoUrl?: string | null }[];
 }
 
 type Tab = "create" | "check";
@@ -68,7 +69,7 @@ function Create() {
   const [details, setDetails] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const setMsg = useToastMsg();
 
   const sections = opts.data?.sections || [];
   const sec = sections.find((s) => s.id === sectionId);
@@ -144,11 +145,6 @@ function Create() {
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           <CalendarDays aria-hidden />
         </label>
-        {msg && (
-          <p className={clsx("text-[14px] font-medium", msg.ok ? "text-jade-700" : "text-rose-700")} role="alert">
-            {msg.text}
-          </p>
-        )}
         <button type="submit" disabled={busy} className="btn-go w-full">
           {busy ? "…" : L({ hi: "होमवर्क भेजें", en: "Send homework" })}
         </button>
@@ -237,7 +233,7 @@ function Ticks({ id }: { id: string }) {
   const { data, error, reload } = useApi<Subs>(`/homework/submissions?id=${encodeURIComponent(id)}`);
   const [done, setDone] = useState<Record<string, boolean>>({});
   const [busy, setBusy] = useState(false);
-  const [msg, setMsg] = useState<{ ok: boolean; text: string } | null>(null);
+  const setMsg = useToastMsg();
 
   // First check: everyone ticked, so the teacher only un-ticks the few who did not bring it.
   useEffect(() => {
@@ -281,7 +277,7 @@ function Ticks({ id }: { id: string }) {
         {data.students.map((s) => (
           <li key={s.id} className="border-b border-ink-900/10 last:border-b-0">
             <button onClick={() => setDone((d) => ({ ...d, [s.id]: !d[s.id] }))} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 text-left">
-              <Avatar name={s.name} size={36} />
+              <Avatar name={s.name} url={s.photoUrl} size={36} />
               <span className="min-w-0 flex-1 truncate font-title text-[16px] font-semibold text-ink-900">{s.name}</span>
               <span className={clsx("grid h-7 w-7 place-items-center rounded-lg transition-colors", done[s.id] ? "border border-[#16a34a] bg-[#22c55e] text-black" : "border-[1.6px] border-ink-300 bg-white")}>{done[s.id] && <Check className="h-4 w-4" strokeWidth={3.2} aria-hidden />}</span>
             </button>
@@ -289,11 +285,6 @@ function Ticks({ id }: { id: string }) {
         ))}
       </ul>
       <StickyBar>
-        {msg && (
-          <p className={clsx("mb-1.5 text-[14px] font-medium", msg.ok ? "text-jade-700" : "text-rose-700")} role="alert">
-            {msg.text}
-          </p>
-        )}
         <button onClick={save} disabled={busy} className="btn-go w-full">
           {busy ? "…" : `${L({ hi: "सेव करें", en: "Save" })} · ${count} / ${data.students.length} ${L({ hi: "ने जमा किया", en: "submitted" })}`}
         </button>

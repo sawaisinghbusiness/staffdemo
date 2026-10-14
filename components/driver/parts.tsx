@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import clsx from "clsx";
 import { initials } from "@/lib/format";
 
@@ -7,9 +8,11 @@ import { initials } from "@/lib/format";
 export function Face({ name, url, size = 36, grey, plain, className }: { name: string; url?: string | null; size?: number; grey?: boolean; plain?: boolean; className?: string }) {
   // `plain`: only a thin white edge, for faces stacked over each other.
   const ring = plain ? "0 0 0 2px #fff" : grey ? "0 0 0 2px #fff, 0 0 0 3.5px #DCDCD8" : "0 0 0 2px #fff, 0 0 0 3.5px #4DCB7F";
-  return url ? (
+  // An old saved link whose file was replaced in the ERP falls back to initials.
+  const [failed, setFailed] = useState<string | null>(null);
+  return url && failed !== url ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" width={size} height={size} className={clsx("shrink-0 rounded-full object-cover", className)} style={{ width: size, height: size, boxShadow: ring }} />
+    <img src={url} alt="" width={size} height={size} onError={() => setFailed(url)} className={clsx("shrink-0 rounded-full object-cover", className)} style={{ width: size, height: size, boxShadow: ring }} />
   ) : (
     <span
       className={clsx("grid shrink-0 place-items-center rounded-full font-semibold", grey ? "bg-drv-soft text-drv-mute" : "bg-[#E9F4EF] text-drv-green", className)}

@@ -90,6 +90,7 @@ function studentDetail(id: string) {
 interface Store {
   role: Role;
   att: Record<string, Record<string, string>>; // `${sec}|${date}` -> studentId -> P/A/L/H
+  attNote?: Record<string, Record<string, string>>; // `${sec}|${date}` -> studentId -> reason (leave)
   hw: any[];
   marks: Record<string, Record<string, Record<string, number | null>>>; // `${exam}|${sec}|${subject}` -> studentId -> part -> marks
   leave: any[] | null;
@@ -162,7 +163,7 @@ function attSheet(secId: string, date: string, s: Store) {
     sunday,
     holiday: date.endsWith("-10-02") ? "Gandhi Jayanti" : null,
     marked: !!saved,
-    students: roster(secId).map((st) => ({ ...st, status: saved?.[st.id] || null })),
+    students: roster(secId).map((st) => ({ ...st, status: saved?.[st.id] || null, remark: s.attNote?.[`${secId}|${date}`]?.[st.id] || "" })),
   };
 }
 
@@ -199,7 +200,8 @@ function myMonth(role: Role, month: string) {
     const date = addDays(first, i - 1);
     const sunday = weekday(date) === 0;
     let mark: "P" | "A" | "L" | "H" | null = null;
-    if (!sunday && date <= t && date >= "2026-04-01" && !date.endsWith("-10-02")) {
+    // Today stays unmarked, as in real life the office marks staff later in the day.
+    if (!sunday && date < t && date >= "2026-04-01" && !date.endsWith("-10-02")) {
       const k = (i + role.length) % 19;
       mark = k === 6 ? "L" : k === 13 ? "H" : "P";
       tot[({ P: "present", A: "absent", L: "leave", H: "half" } as const)[mark]]++;
@@ -488,6 +490,12 @@ export async function demoApi(path: string, method: string, body: any): Promise<
           m[r.id] = v;
         }
         s.att[`${sec.id}|${date}`] = m;
+        const notes: Record<string, string> = {};
+        for (const r of rows) {
+          const why = String(body?.remarks?.[r.id] || "").trim().slice(0, 200);
+          if (why) notes[r.id] = why;
+        }
+        s.attNote = { ...s.attNote, [`${sec.id}|${date}`]: notes };
         save(s);
         const count = (x: string) => Object.values(m).filter((v) => v === x).length;
         return { success: true, present: count("P"), absent: count("A"), leave: count("L"), half: count("H") };

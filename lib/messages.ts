@@ -5,6 +5,7 @@ export interface InboxRow {
   id: string;
   student: string;
   classSec: string;
+  photoUrl?: string | null;
   last: { from: "parent" | "teacher"; text: string; at: string } | null;
   unread: number;
   /** The family's first unanswered message, or null when the teacher wrote last. */

@@ -102,6 +102,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const teacher = !me || me.role === "teacher";
   const driver = me?.role === "driver";
   const tabs = teacher ? TEACHER_TABS : OTHER_TABS;
+  // Home sits on the teal band (the user's pick, 2026-10-14), so its header buttons are white.
+  const band = !driver && isHome;
+  const onBand = band ? "text-white active:bg-white/15" : "text-ink-900 active:bg-ink-100";
   const blocked = !!me && me.role !== "teacher" && !!page?.teacher;
   const lit = isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
   const litIndex = tabs.findIndex((t) => t.href === lit);
@@ -144,25 +147,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "bg-white" : "bg-ink-50", driver && "drv")}>
+    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : band ? "teal-page" : "bg-ink-50")}>
+      {/* The teal band, on Home only for now: under the header, down to the middle of the banner. */}
+      {band && <div aria-hidden className="teal-band" style={{ height: "calc(env(safe-area-inset-top, 0px) + 220px)" }} />}
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">
             {page?.back ? (
-              <Link href={page.back} className="grid h-11 w-11 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={L({ hi: "वापस", en: "Back" })}>
+              <Link href={page.back} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L({ hi: "वापस", en: "Back" })}>
                 <ChevronLeft className="h-6 w-6" aria-hidden />
               </Link>
             ) : driver ? (
               <span />
             ) : (
-              <button type="button" onClick={() => setMenu(true)} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="grid h-11 w-11 place-items-center rounded-full text-ink-900 active:bg-ink-100">
+              <button type="button" onClick={() => setMenu(true)} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)}>
                 <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
               </button>
             )}
-            <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold")}>{page ? L(page.title) : ""}</h1>
+            <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold", band && "text-white")}>{page ? L(page.title) : ""}</h1>
             <span className="flex justify-end">
               {page?.action && (
-                <Link href={page.action.href} className="grid h-11 w-11 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={L(page.action.text)}>
+                <Link href={page.action.href} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L(page.action.text)}>
                   <Plus className="h-6 w-6" aria-hidden />
                 </Link>
               )}
@@ -171,7 +176,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={clsx("flex-1", !page?.bare && "pb-28", !isHome && !own && "space-y-3.5 px-4 pt-1")}>
+      <main className={clsx("relative z-10 flex-1",!page?.bare && "pb-28", !isHome && !own && "space-y-3.5 px-4 pt-1")}>
         {!isHome && !own && <OfflineNote show={stale && !!me} />}
         {blocked ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
