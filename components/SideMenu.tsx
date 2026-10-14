@@ -25,8 +25,9 @@ import {
 } from "lucide-react";
 import { api, clearCache, markSignedIn } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
+import { useCounts } from "@/lib/counts";
 import { useL, useLang, type Bi } from "@/lib/i18n";
-import { Avatar, SchoolMark } from "./ui";
+import { Avatar, CountBadge, SchoolMark } from "./ui";
 
 type Item = { href: string; text: Bi; icon: LucideIcon };
 
@@ -67,6 +68,8 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
   const [leaving, setLeaving] = useState(false);
   const swipe = useRef<number | null>(null);
   const teacher = !me || me.role === "teacher";
+  const counts = useCounts();
+  const count: Record<string, number> = { "/messages/": counts.chats, "/notice/": counts.notices, "/leave/": counts.leaves };
 
   // Slide in on the next frame; Esc closes; the page behind doesn't scroll.
   useEffect(() => {
@@ -112,7 +115,8 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
                 className={clsx("mx-2 flex min-h-[48px] items-center gap-3.5 rounded-xl px-3 text-[15.5px] active:bg-ink-100", on ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-800")}
               >
                 <Icon className="h-[21px] w-[21px] shrink-0 text-ink-900" strokeWidth={1.8} aria-hidden />
-                {L(text)}
+                <span className="min-w-0 flex-1 truncate">{L(text)}</span>
+                {count[href] > 0 && <CountBadge n={count[href]} />}
               </Link>
             </li>
           );

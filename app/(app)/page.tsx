@@ -10,7 +10,8 @@ import { useL, useLang, type Bi } from "@/lib/i18n";
 import { useMenu } from "@/lib/menu";
 import { ripple } from "@/lib/motion";
 import { clock } from "@/lib/format";
-import { Avatar, ErrorCard, OfflineNote, SchoolMark, Skeleton } from "@/components/ui";
+import { useUnseenNotices } from "@/lib/counts";
+import { Avatar, CountBadge, ErrorCard, OfflineNote, SchoolMark, Skeleton } from "@/components/ui";
 import { DriverHome } from "@/components/driver/DriverHome";
 
 interface Lesson {
@@ -66,9 +67,10 @@ const nowHHMM = () => {
 export default function HomePage() {
   const { me, stale } = useStaff();
   const { data, error, reload } = useApi<Home>(me ? "/home" : null);
-  // Unread parent messages put a red dot on the Messages tile.
+  // Unread parent messages, unseen notices and unanswered leave requests each put a red count on their tile.
   const { data: chats } = useApi<{ unread: number }>(me?.role === "teacher" ? "/chats/unread" : null);
   const unreadChats = chats?.unread || 0;
+  const unread = useUnseenNotices();
   const L = useL();
   const { lang, setLang } = useLang();
   const { openMenu } = useMenu();
@@ -104,7 +106,11 @@ export default function HomePage() {
 
   const grid = teacher ? TEACHER_GRID : OTHER_GRID;
   const school = me.school;
-  const unread = data?.noticeCount || 0;
+  const tileCount: Record<string, { n: number; label: Bi }> = {
+    "/messages/": { n: unreadChats, label: { hi: "नए संदेश", en: "new messages" } },
+    "/notice/": { n: unread, label: { hi: "नई सूचनाएँ", en: "new notices" } },
+    "/leave/": { n: teacher ? data?.pendingLeaves || 0 : 0, label: { hi: "अर्ज़ियाँ बाकी", en: "requests waiting" } },
+  };
 
   // Lectures: the one going on now, and those still to come.
   const lessons = data?.lessons || [];
@@ -140,11 +146,7 @@ export default function HomePage() {
           </div>
           <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-white active:bg-white/15" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
             <Bell className={clsx("h-[21px] w-[21px]", unread > 0 && "bell-ring")} strokeWidth={2} aria-hidden />
-            {unread > 0 && (
-              <span className="badge-pop absolute right-0 top-1 grid h-[17px] min-w-[17px] place-items-center rounded-full border-2 border-white bg-rose-600 px-0.5 text-[10px] font-bold leading-none text-white">
-                {unread > 9 ? "9+" : unread}
-              </span>
-            )}
+            {unread > 0 && <CountBadge n={unread} className="absolute -right-1.5 -top-0.5" />}
           </Link>
           <Link href="/profile/" className="shrink-0 rounded-full ring-2 ring-white transition-transform duration-300 active:scale-90" aria-label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}>
             <Avatar name={me.name} url={me.photoUrl} size={38} tint={0} />
@@ -189,11 +191,7 @@ export default function HomePage() {
               <Link key={href} href={href} onPointerDown={ripple} className="quick-tile pop-in" style={v(k)}>
                 <span className="relative">
                   <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
-                  {href === "/messages/" && unreadChats > 0 && (
-                    <span className="badge-pop absolute -right-3 -top-2 grid h-[20px] min-w-[20px] place-items-center rounded-full border-2 border-white bg-[#ff3040] px-1 text-[11px] font-bold leading-none text-white" aria-label={`${unreadChats} ${L({ hi: "नए संदेश", en: "new messages" })}`}>
-                      {unreadChats > 10 ? "10+" : unreadChats}
-                    </span>
-                  )}
+                  {tileCount[href]?.n > 0 && <CountBadge n={tileCount[href].n} label={`${tileCount[href].n} ${L(tileCount[href].label)}`} className="absolute -right-3.5 -top-2.5" />}
                 </span>
                 {L(text)}
               </Link>
@@ -294,7 +292,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
         icon={plainIcon(CalendarX2)}
         title={L({ hi: "छुट्टी की अर्ज़ियाँ", en: "Leave requests" })}
         note={data.pendingLeaves ? L({ hi: `${data.pendingLeaves} जवाब बाकी`, en: `${data.pendingLeaves} waiting` }) : L({ hi: "कोई अर्ज़ी नहीं", en: "None waiting" })}
-        end={data.pendingLeaves ? <span className="text-[14.5px] font-semibold text-brand-600">{L({ hi: "देखें", en: "Review" })}</span> : null}
+        end={data.pendingLeaves ? <CountBadge n={data.pendingLeaves} label={L({ hi: `${data.pendingLeaves} अर्ज़ियाँ बाकी`, en: `${data.pendingLeaves} waiting` })} /> : null}
       />
       {myRow(6)}
     </>

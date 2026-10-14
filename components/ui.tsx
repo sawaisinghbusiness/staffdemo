@@ -49,6 +49,18 @@ export function SchoolMark({ name, url, size = 34 }: { name: string; url?: strin
   );
 }
 
+/**
+ * The red count on anything new and not yet opened, exactly as on Parent Enquiries: "3", or "10+"
+ * above ten. Text works too ("New"). Every screen uses this one, so they always look the same.
+ */
+export function CountBadge({ n, label, className }: { n: number | string; label?: string; className?: string }) {
+  return (
+    <span className={clsx("grid h-6 min-w-6 shrink-0 place-items-center rounded-full bg-[#ff3040] px-1.5 text-[12px] font-bold text-white", className)} aria-label={label}>
+      {typeof n === "number" && n > 10 ? "10+" : n}
+    </span>
+  );
+}
+
 export type Tone = "ok" | "bad" | "wait" | "mute";
 const TONE_CLASS: Record<Tone, string> = { ok: "status-ok", bad: "status-bad", wait: "status-wait", mute: "status-mute" };
 
@@ -58,7 +70,7 @@ export function Status({ tone, children }: { tone: Tone; children: React.ReactNo
 }
 
 /** The kit's tabs with an underline that slides to the picked tab. */
-export function LineTabs<K extends string>({ value, onChange, options, label }: { value: K; onChange: (k: K) => void; options: { key: K; text: string }[]; label: string }) {
+export function LineTabs<K extends string>({ value, onChange, options, label }: { value: K; onChange: (k: K) => void; options: { key: K; text: React.ReactNode }[]; label: string }) {
   const at = Math.max(0, options.findIndex((o) => o.key === value));
   return (
     <div className="tabs-line relative" role="tablist" aria-label={label}>

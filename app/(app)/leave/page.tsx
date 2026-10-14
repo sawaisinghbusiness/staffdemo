@@ -9,7 +9,7 @@ import { useStaff } from "@/lib/staff";
 import { useL, useLang, type Lang } from "@/lib/i18n";
 import { dayMonth, monthYear, num, weekdayDate } from "@/lib/format";
 import { LEAVE_TYPES, type LeaveType } from "@/lib/leave";
-import { Avatar, Empty, ErrorCard, LineTabs, ListSkeleton, Status, type Tone } from "@/components/ui";
+import { Avatar, CountBadge, Empty, ErrorCard, LineTabs, ListSkeleton, Status, type Tone } from "@/components/ui";
 
 type St = "pending" | "approved" | "rejected";
 interface Mine {
@@ -68,7 +68,15 @@ export default function LeavePage() {
           onChange={setTab}
           options={[
             { key: "mine", text: L({ hi: "मेरी छुट्टी", en: "My leave" }) },
-            { key: "requests", text: `${L({ hi: "अर्ज़ियाँ", en: "Requests" })}${waiting ? ` (${waiting})` : ""}` },
+            {
+              key: "requests",
+              text: (
+                <span className="inline-flex items-center gap-1.5">
+                  {L({ hi: "अर्ज़ियाँ", en: "Requests" })}
+                  {waiting > 0 && <CountBadge n={waiting} />}
+                </span>
+              ),
+            },
           ]}
         />
       )}

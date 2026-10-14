@@ -7,7 +7,7 @@ import { ChevronRight } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { waited, when, type Inbox, type InboxRow } from "@/lib/messages";
-import { Avatar, ErrorCard, Skeleton } from "@/components/ui";
+import { Avatar, CountBadge, ErrorCard, Skeleton } from "@/components/ui";
 
 /** Parent messages, laid out like the parent app's Ask Teacher: waiting for a reply first, then the rest. */
 export default function MessagesPage() {
@@ -103,9 +103,7 @@ function Row({ r, i }: { r: InboxRow; i: number }) {
               {r.student} <span className="text-[13.5px] font-medium text-ink-500">· {r.classSec}</span>
             </span>
             {r.unread > 0 ? (
-              <span className="grid h-6 min-w-6 shrink-0 place-items-center rounded-full bg-[#ff3040] px-1.5 text-[12px] font-bold text-white" aria-label={L({ hi: `${r.unread} नए संदेश`, en: `${r.unread} new` })}>
-                {r.unread}
-              </span>
+              <CountBadge n={r.unread} label={L({ hi: `${r.unread} नए संदेश`, en: `${r.unread} new` })} />
             ) : (
               <ChevronRight className="h-[18px] w-[18px] shrink-0 text-ink-300" aria-hidden />
             )}

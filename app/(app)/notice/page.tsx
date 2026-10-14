@@ -1,12 +1,13 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays } from "lucide-react";
 import { useApi } from "@/lib/api";
+import { markNoticesSeen, seenNotices } from "@/lib/counts";
 import { useL, useLang } from "@/lib/i18n";
 import { weekdayDate } from "@/lib/format";
-import { Empty, ErrorCard, ListSkeleton } from "@/components/ui";
+import { CountBadge, Empty, ErrorCard, ListSkeleton } from "@/components/ui";
 
 interface Notice {
   id: string;
@@ -21,6 +22,16 @@ export default function NoticePage() {
   const { lang } = useLang();
   const { data, error, reload } = useApi<{ notices: Notice[] }>("/notices");
   const [open, setOpen] = useState<string[]>([]);
+  // Notices not seen before keep their red "New" for this visit; opening the page counts as seeing them.
+  const [fresh, setFresh] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    if (!data) return;
+    const seen = seenNotices();
+    const unseen = data.notices.filter((n) => !seen.has(n.id)).map((n) => n.id);
+    if (!unseen.length) return;
+    setFresh((f) => new Set([...Array.from(f), ...unseen]));
+    markNoticesSeen(unseen);
+  }, [data]);
 
   if (!data) {
     if (error?.status === 404) return <Empty>{L({ hi: "अभी कोई सूचना नहीं।", en: "No notices yet." })}</Empty>;
@@ -39,6 +50,7 @@ export default function NoticePage() {
               notice={n}
               date={weekdayDate(n.date, lang)}
               isOpen={isOpen}
+              badge={fresh.has(n.id) ? L({ hi: "नया", en: "New" }) : ""}
               more={L({ hi: "पूरा पढ़ें", en: "Read more" })}
               onToggle={() => setOpen((o) => (isOpen ? o.filter((x) => x !== n.id) : [...o, n.id]))}
             />
@@ -50,7 +62,7 @@ export default function NoticePage() {
 }
 
 /** One notice. "Read more" shows only when the body really overflows its two lines. */
-function NoticeCard({ notice: n, date, isOpen, more, onToggle }: { notice: Notice; date: string; isOpen: boolean; more: string; onToggle: () => void }) {
+function NoticeCard({ notice: n, date, isOpen, badge, more, onToggle }: { notice: Notice; date: string; isOpen: boolean; badge: string; more: string; onToggle: () => void }) {
   const bodyRef = useRef<HTMLSpanElement>(null);
   const [clipped, setClipped] = useState(false);
 
@@ -69,11 +81,14 @@ function NoticeCard({ notice: n, date, isOpen, more, onToggle }: { notice: Notic
     <button onClick={() => long && onToggle()} aria-expanded={long ? isOpen : undefined} className="row-card">
       <span className="flex items-start justify-between gap-3">
         <span className="min-w-0 font-title text-[17px] font-bold leading-snug text-ink-900">{n.title}</span>
-        <span className="meta shrink-0 pt-0.5">
-          <span>
-            <CalendarDays aria-hidden />
-            {date}
+        <span className="flex shrink-0 items-center gap-2">
+          <span className="meta pt-0.5">
+            <span>
+              <CalendarDays aria-hidden />
+              {date}
+            </span>
           </span>
+          {badge && <CountBadge n={badge} />}
         </span>
       </span>
       <span ref={bodyRef} className={clsx("mt-1 block whitespace-pre-line text-[14px] leading-relaxed text-ink-600", !isOpen && "line-clamp-2")}>
