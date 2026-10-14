@@ -7,9 +7,9 @@ const SKIN = "#D9966B";
 const SKIN2 = "#C98258";
 const HAIR = "#2A2033";
 const MARI = "#F5A524";
-const V600 = "#6C4FE0";
-const V700 = "#5A3CC9";
-const V100 = "#E7E1FD";
+const V600 = "#1446A0";
+const V700 = "#103A86";
+const V100 = "#E1EAFB";
 
 export const ART = {
   child: `<svg viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg"><circle cx="82" cy="66" r="48" fill="${V100}"/>
@@ -33,7 +33,7 @@ export const ART = {
 <circle cx="76" cy="36.5" r="1.4" fill="#DC2626"/><circle cx="71" cy="43" r="1.5" fill="${HAIR}"/><circle cx="81" cy="43" r="1.5" fill="${HAIR}"/>
 <path d="M72 49q4 2.6 8 0" stroke="${HAIR}" stroke-width="1.5" fill="none" stroke-linecap="round"/>
 <g transform="rotate(-8 76 92)"><rect x="54" y="78" width="44" height="30" rx="3" fill="${V600}"/><rect x="58" y="82" width="36" height="22" rx="1.5" fill="#fff"/>
-<path d="M62 87h22M62 92h22M62 97h14" stroke="#CFC6F8" stroke-width="2" stroke-linecap="round"/><path d="m82 96 3 3 6-7" stroke="#16A34A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
+<path d="M62 87h22M62 92h22M62 97h14" stroke="#C3D4F6" stroke-width="2" stroke-linecap="round"/><path d="m82 96 3 3 6-7" stroke="#16A34A" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></g>
 <circle cx="56" cy="98" r="5" fill="${SKIN}"/><circle cx="97" cy="90" r="5" fill="${SKIN}"/></svg>`,
 
   bus: `<svg viewBox="0 0 170 110" xmlns="http://www.w3.org/2000/svg"><ellipse cx="85" cy="96" rx="72" ry="6" fill="#E3DDF6"/>
@@ -47,8 +47,8 @@ export const ART = {
 
   notebook: `<svg viewBox="0 0 140 120" xmlns="http://www.w3.org/2000/svg"><circle cx="78" cy="64" r="48" fill="${V100}"/>
 <path d="M30 40q22-8 44 2v58q-22-9-44-2z" fill="#fff"/><path d="M118 40q-22-8-44 2v58q22-9 44-2z" fill="#fff"/>
-<path d="M74 42v58" stroke="#CFC6F8" stroke-width="2"/>
-<path d="M38 52q15-4 28 1M38 62q15-4 28 1M38 72q15-4 28 1M38 82q15-4 28 1" stroke="#CFC6F8" stroke-width="2" fill="none"/>
+<path d="M74 42v58" stroke="#C3D4F6" stroke-width="2"/>
+<path d="M38 52q15-4 28 1M38 62q15-4 28 1M38 72q15-4 28 1M38 82q15-4 28 1" stroke="#C3D4F6" stroke-width="2" fill="none"/>
 <path d="M82 53q13-5 28-1M82 63q13-5 28-1M82 73q8-3 16-2" stroke="${V600}" stroke-width="2" fill="none" stroke-linecap="round"/>
 <g transform="rotate(38 104 74)"><rect x="98" y="40" width="10" height="52" rx="2" fill="${MARI}"/><rect x="98" y="40" width="10" height="7" fill="#E97A8A"/><path d="m98 92 5 10 5-10z" fill="#F2D3B5"/><path d="m101.5 99 1.5 3 1.5-3z" fill="${HAIR}"/></g></svg>`,
 
@@ -90,7 +90,7 @@ ${range(8).map((k) => `<circle cx="${10 + k * 20}" cy="${36 + (k % 2) * 4}" r="5
 <circle cx="84" cy="36" r="4.5" fill="none" stroke="#1E3A8A" stroke-width="1.4"/><circle cx="84" cy="36" r="1" fill="#1E3A8A"/>
 ${range(6).map((k) => `<circle cx="${20 + k * 24}" cy="84" r="5" fill="${k % 2 ? SKIN2 : SKIN}"/><rect x="${15 + k * 24}" y="89" width="10" height="12" rx="4" fill="#fff"/>`).join("")}</svg>`,
 
-  teach: `<svg viewBox="0 0 160 110" xmlns="http://www.w3.org/2000/svg"><rect width="160" height="110" fill="#EDE8FE"/><rect x="30" y="18" width="100" height="60" rx="4" fill="#2F4A3A"/><rect x="26" y="78" width="108" height="5" rx="2" fill="#B98A5B"/>
+  teach: `<svg viewBox="0 0 160 110" xmlns="http://www.w3.org/2000/svg"><rect width="160" height="110" fill="#E8EFFC"/><rect x="30" y="18" width="100" height="60" rx="4" fill="#2F4A3A"/><rect x="26" y="78" width="108" height="5" rx="2" fill="#B98A5B"/>
 <text x="80" y="47" text-anchor="middle" font-family="Figtree,sans-serif" font-size="13" font-weight="700" fill="#F1F5EE">Thank you</text><text x="80" y="64" text-anchor="middle" font-family="Figtree,sans-serif" font-size="9" fill="#C9D9CC">5 September</text>
 <circle cx="40" cy="96" r="7" fill="${MARI}"/><circle cx="52" cy="98" r="6" fill="#E97A8A"/><circle cx="118" cy="97" r="7" fill="#DC2626"/><path d="M118 90q2-5 6-6" stroke="#2F8F46" stroke-width="2" fill="none"/></svg>`,
 

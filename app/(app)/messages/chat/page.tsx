@@ -1,18 +1,18 @@
 "use client";
 
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import clsx from "clsx";
-import { CalendarPlus, CheckCheck, Phone, School, SendHorizontal, Video, X } from "lucide-react";
+import { CalendarPlus, CheckCheck, ChevronLeft, Phone, School, SendHorizontal, Video, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL, useLang, type Lang } from "@/lib/i18n";
-import { ampm, clockOf, dayLine, initials, type ChatMessage, type SchoolDay, type Thread } from "@/lib/messages";
-import { AjrakhHeader } from "@/components/AjrakhHeader";
-import { ErrorCard, Skeleton } from "@/components/ui";
+import { ampm, clockOf, dayLine, type ChatMessage, type SchoolDay, type Thread } from "@/lib/messages";
+import { Avatar, ErrorCard, Skeleton } from "@/components/ui";
 
 /** New messages show without a refresh: the chat is asked again this often while it is on screen. */
 const POLL_MS = 8000;
 
-/** One parent conversation: the child's line on top, the messages, and a reply box with "send a time". */
+/** One parent conversation, laid out like the parent app's chat, with "send a meeting time" by the reply box. */
 export default function MessageChatPage() {
   const L = useL();
   const { lang } = useLang();
@@ -75,39 +75,30 @@ export default function MessageChatPage() {
   }
 
   const s = data?.student;
+  const sub = s ? [`${L({ hi: "अभिभावक", en: "Parent" })} · ${s.classSec}`, s.rollNo && `${L({ hi: "रोल", en: "Roll" })} ${s.rollNo}`].filter(Boolean).join(" · ") : "";
 
   return (
-    <div className="flex min-h-[100dvh] flex-col font-ajk text-ajk-ink">
-      <AjrakhHeader back="/messages/">
-        {s ? (
-          <div className="flex items-center gap-2.5">
-            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ajk-y text-[13px] font-bold text-ajk-ink">{initials(s.name)}</span>
-            <div className="min-w-0">
-              <p className="truncate text-[17px] font-bold leading-tight">{s.name}</p>
-              <p className="truncate text-[13px] text-ajk-pink">
-                {L({ hi: "अभिभावक", en: "Parent" })} · {s.classSec}
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="h-10" />
-        )}
-      </AjrakhHeader>
-
-      {s && (
-        <p className="flex gap-4 border-b-[1.5px] border-ajk-sand2 bg-white px-4 py-2 text-[13.5px] text-ajk-mute">
-          {s.rollNo && (
-            <span>
-              {L({ hi: "रोल", en: "Roll" })} <b className="font-bold text-ajk-ink">{s.rollNo}</b>
-            </span>
+    <div className="flex min-h-[100dvh] flex-col bg-ink-50">
+      <header className="pt-safe sticky top-0 z-20 border-b border-ink-100 bg-white">
+        <div className="flex h-14 items-center gap-2 pl-1.5 pr-4">
+          <Link href="/messages/" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={L({ hi: "वापस", en: "Back" })}>
+            <ChevronLeft className="h-6 w-6" aria-hidden />
+          </Link>
+          {s ? (
+            <>
+              <Avatar name={s.name} size={36} />
+              <div className="min-w-0">
+                <p className="truncate text-[16px] font-semibold leading-tight text-ink-900">{s.name}</p>
+                <p className="truncate text-[12.5px] text-ink-500">{sub}</p>
+              </div>
+            </>
+          ) : (
+            <Skeleton className="h-9 w-40 rounded-lg" />
           )}
-          <span>
-            {L({ hi: "इस महीने हाज़िरी", en: "Attendance this month" })} <b className="font-bold text-ajk-ink">{s.attendance === null ? "—" : `${s.attendance}%`}</b>
-          </span>
-        </p>
-      )}
+        </div>
+      </header>
 
-      <div className="flex-1 px-3.5 pb-28 pt-3" aria-live="polite">
+      <div className="flex-1 px-4 pb-28 pt-3" aria-live="polite">
         {!data ? (
           error ? (
             <ErrorCard offline={error.status === 0} onRetry={load} />
@@ -123,7 +114,7 @@ export default function MessageChatPage() {
               const newDay = i === 0 || new Date(m.at).toDateString() !== new Date(data.messages[i - 1].at).toDateString();
               return (
                 <Fragment key={m.id}>
-                  {newDay && <p className="self-center pb-0.5 pt-2 text-[12.5px] font-semibold text-ajk-mute">{dayLine(m.at, lang)}</p>}
+                  {newDay && <p className="self-center pb-0.5 pt-2 text-[12.5px] font-medium text-ink-400">{dayLine(m.at, lang)}</p>}
                   {m.meeting ? <SentTime m={m} lang={lang} /> : <Bubble m={m} lang={lang} />}
                 </Fragment>
               );
@@ -133,7 +124,7 @@ export default function MessageChatPage() {
         <div ref={end} />
       </div>
 
-      <div className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t-[1.5px] border-ajk-sand2 bg-white">
+      <div className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white">
         {fail && (
           <p className="px-4 pt-2 text-[13px] text-rose-600" role="alert">
             {fail}
@@ -146,7 +137,7 @@ export default function MessageChatPage() {
             send();
           }}
         >
-          <button type="button" onClick={() => setSheet(true)} disabled={!data} aria-label={L({ hi: "मिलने का समय भेजें", en: "Send a meeting time" })} className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-xl bg-ajk-sand text-ajk-m disabled:opacity-40">
+          <button type="button" onClick={() => setSheet(true)} disabled={!data} aria-label={L({ hi: "मिलने का समय भेजें", en: "Send a meeting time" })} className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-xl border border-ink-200 bg-white text-brand-700 disabled:opacity-40">
             <CalendarPlus className="h-[22px] w-[22px]" aria-hidden />
           </button>
           <label htmlFor="reply" className="sr-only">
@@ -159,9 +150,9 @@ export default function MessageChatPage() {
             maxLength={1000}
             onChange={(e) => setText(e.target.value)}
             placeholder={L({ hi: "जवाब लिखें", en: "Write a reply" })}
-            className="max-h-32 min-h-[46px] flex-1 resize-none rounded-xl bg-ajk-sand px-3.5 py-[11px] text-[16px] leading-snug text-ajk-ink outline-none placeholder:text-ajk-mute focus:ring-2 focus:ring-ajk-y"
+            className="max-h-32 min-h-[46px] flex-1 resize-none rounded-xl border border-ink-200 bg-white px-3.5 py-[11px] text-[16px] leading-snug text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
           />
-          <button type="submit" disabled={busy || !text.trim() || !data} aria-label={L({ hi: "भेजें", en: "Send" })} className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-xl bg-ajk-m text-white transition-opacity disabled:opacity-40">
+          <button type="submit" disabled={busy || !text.trim() || !data} aria-label={L({ hi: "भेजें", en: "Send" })} className="grid h-[46px] w-[46px] shrink-0 place-items-center rounded-xl bg-brand-700 text-white transition-opacity disabled:opacity-40">
             <SendHorizontal className="h-5 w-5" aria-hidden />
           </button>
         </form>
@@ -185,9 +176,9 @@ export default function MessageChatPage() {
 function Bubble({ m, lang }: { m: ChatMessage; lang: Lang }) {
   const mine = m.from === "teacher";
   return (
-    <div className={mine ? "max-w-[80%] self-end rounded-2xl rounded-br-[5px] bg-ajk-m px-3 pb-1.5 pt-2 text-white" : "max-w-[80%] self-start rounded-2xl rounded-bl-[5px] border-[1.5px] border-ajk-sand2 bg-white px-3 pb-1.5 pt-2"}>
+    <div className={mine ? "max-w-[80%] self-end rounded-2xl rounded-br-md border-[1.5px] border-ink-900 bg-brand-700 px-3.5 pb-1.5 pt-2 text-white" : "max-w-[80%] self-start rounded-2xl rounded-bl-md border-[1.5px] border-ink-900 bg-white px-3.5 pb-1.5 pt-2 text-ink-900"}>
       <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.text}</p>
-      <p className={clsx("mt-0.5 flex items-center justify-end gap-1 text-[11px]", mine ? "text-ajk-pink" : "text-ajk-mute")}>
+      <p className={clsx("mt-0.5 flex items-center justify-end gap-1 text-[11px]", mine ? "text-white/70" : "text-ink-400")}>
         {clockOf(m.at, lang)}
         {mine && <CheckCheck className="h-3.5 w-3.5" aria-hidden />}
       </p>
@@ -195,30 +186,34 @@ function Bubble({ m, lang }: { m: ChatMessage; lang: Lang }) {
   );
 }
 
-/** A time the teacher sent, with what the family said. */
+/** A time the teacher sent, with what the family said (the parent app's meeting card, from this side). */
 function SentTime({ m, lang }: { m: ChatMessage; lang: Lang }) {
   const L = useL();
   const x = m.meeting!;
-  const day = new Date(x.date + "T00:00:00").toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { weekday: "short", month: "long" });
+  const loc = lang === "hi" ? "hi-IN" : "en-IN";
+  const d = new Date(x.date + "T00:00:00");
+  const day = `${d.toLocaleDateString(loc, { weekday: "short" })}, ${d.toLocaleDateString(loc, { month: "long" })}`;
   const place = { school: L({ hi: "स्कूल में", en: "In school" }), call: L({ hi: "फ़ोन पर", en: "Phone call" }), online: L({ hi: "ऑनलाइन", en: "Online" }) }[x.place];
   const state =
     x.status === "yes"
       ? { dot: "bg-jade-600", text: "text-jade-700", word: L({ hi: "अभिभावक आएँगे", en: "Parent is coming" }) }
       : x.status === "other"
-        ? { dot: "bg-ajk-mute", text: "text-ajk-mute", word: L({ hi: "दूसरा समय माँगा", en: "Asked for another time" }) }
+        ? { dot: "bg-ink-400", text: "text-ink-500", word: L({ hi: "दूसरा समय माँगा", en: "Asked for another time" }) }
         : { dot: "bg-marigold-500", text: "text-marigold-600", word: L({ hi: "जवाब का इंतज़ार", en: "Waiting for the parent" }) };
   return (
-    <div className="w-[84%] max-w-[320px] self-end overflow-hidden rounded-2xl rounded-br-[5px] border-[1.5px] border-ajk-y bg-white">
-      <p className="bg-ajk-y px-3.5 py-1.5 text-[13px] font-bold">{L({ hi: "मिलने का समय भेजा", en: "Meeting time sent" })}</p>
-      <div className="flex items-center gap-3 px-3.5 py-2.5">
-        <b className="text-[34px] font-extrabold leading-none text-ajk-m">{+x.date.slice(8)}</b>
-        <span className="text-[14px] leading-tight text-ajk-mute">
+    <div className="w-[84%] max-w-[320px] self-end overflow-hidden rounded-2xl border-[1.5px] border-ink-900 bg-white">
+      <p className="px-4 pt-3 text-[12.5px] font-semibold text-ink-500">{L({ hi: "मिलने का समय भेजा", en: "Meeting time sent" })}</p>
+      <div className="flex items-center gap-3 px-4 pb-3 pt-1">
+        <b className="tnum text-[32px] font-bold leading-none text-brand-700">{+x.date.slice(8)}</b>
+        <span className="text-[14px] leading-snug text-ink-700">
           {day} · {ampm(x.time)}
           <br />
-          {place} · {x.minutes} {L({ hi: "मिनट", en: "min" })}
+          <span className="text-ink-500">
+            {place} · {x.minutes} {L({ hi: "मिनट", en: "min" })}
+          </span>
         </span>
       </div>
-      <p className={clsx("flex items-center gap-1.5 border-t-[1.5px] border-dashed border-ajk-sand2 px-3.5 py-2 text-[13.5px] font-semibold", state.text)}>
+      <p className={clsx("flex items-center gap-1.5 border-t border-ink-100 px-4 py-2.5 text-[13.5px] font-medium", state.text)}>
         <span className={clsx("h-2 w-2 rounded-full", state.dot)} aria-hidden />
         {state.word}
       </p>
@@ -270,23 +265,21 @@ function TimeSheet({ name, today, busy, onClose, onSend }: { name: string; today
   ];
 
   return (
-    <div className="fixed inset-0 z-40 flex items-end justify-center bg-[rgba(43,26,18,.5)] animate-fadeIn" role="dialog" aria-modal="true" aria-label={L({ hi: "मिलने का समय भेजें", en: "Send a meeting time" })} onClick={onClose}>
-      <div className="pb-safe w-full max-w-[560px] animate-slide-up rounded-t-3xl bg-white font-ajk text-ajk-ink" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-40 flex items-end justify-center bg-ink-950/50 animate-fadeIn" role="dialog" aria-modal="true" aria-label={L({ hi: "मिलने का समय भेजें", en: "Send a meeting time" })} onClick={onClose}>
+      <div className="pb-safe w-full max-w-[560px] animate-slide-up rounded-t-3xl bg-white text-ink-900" onClick={(e) => e.stopPropagation()}>
         <div className="flex items-start justify-between px-5 pb-1 pt-4">
           <div>
-            <h2 className="text-[20px] font-extrabold leading-tight">{L({ hi: "मिलने का समय भेजें", en: "Send a meeting time" })}</h2>
-            <p className="text-[13.5px] text-ajk-mute">
-              {L({ hi: `${name} के अभिभावक को · 10 मिनट`, en: `To ${name}'s parent · 10 minutes` })}
-            </p>
+            <h2 className="text-[19px] font-bold leading-tight">{L({ hi: "मिलने का समय भेजें", en: "Send a meeting time" })}</h2>
+            <p className="text-[13.5px] text-ink-500">{L({ hi: `${name} के अभिभावक को · 10 मिनट`, en: `To ${name}'s parent · 10 minutes` })}</p>
           </div>
-          <button onClick={onClose} className="-mr-2 grid h-11 w-11 place-items-center rounded-full text-ajk-mute active:bg-ajk-sand" aria-label={L({ hi: "बंद करें", en: "Close" })}>
+          <button onClick={onClose} className="-mr-2 grid h-11 w-11 place-items-center rounded-full text-ink-500 active:bg-ink-100" aria-label={L({ hi: "बंद करें", en: "Close" })}>
             <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
 
         <div className="space-y-4 px-5 pb-5 pt-3">
           <div>
-            <p className="mb-2 text-[13.5px] font-bold text-ajk-mute">{L({ hi: "दिन", en: "Day" })}</p>
+            <p className="mb-2 text-[13.5px] font-semibold text-ink-500">{L({ hi: "दिन", en: "Day" })}</p>
             <div className="grid grid-cols-6 gap-1.5">
               {days.map((d) => (
                 <button
@@ -296,17 +289,17 @@ function TimeSheet({ name, today, busy, onClose, onSend }: { name: string; today
                     setTime("");
                   }}
                   aria-pressed={date === d}
-                  className={clsx("flex min-h-[54px] flex-col items-center justify-center rounded-xl border-[1.5px] text-[11.5px] font-semibold leading-tight", date === d ? "border-ajk-m bg-ajk-m text-ajk-pink" : "border-ajk-sand2 bg-ajk-sand text-ajk-mute")}
+                  className={clsx("flex min-h-[54px] flex-col items-center justify-center rounded-xl border text-[11.5px] font-medium leading-tight", date === d ? "border-brand-700 bg-brand-700 text-white/80" : "border-ink-200 bg-white text-ink-500")}
                 >
                   {dayName(d, { weekday: "short" })}
-                  <b className={clsx("text-[17px]", date === d ? "text-white" : "text-ajk-ink")}>{+d.slice(8)}</b>
+                  <b className={clsx("text-[17px] font-bold", date === d ? "text-white" : "text-ink-900")}>{+d.slice(8)}</b>
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <p className="mb-2 text-[13.5px] font-bold text-ajk-mute">{L({ hi: "समय", en: "Time" })}</p>
+            <p className="mb-2 text-[13.5px] font-semibold text-ink-500">{L({ hi: "समय", en: "Time" })}</p>
             {!data ? (
               <Skeleton className="h-[104px] w-full rounded-xl" />
             ) : (
@@ -320,12 +313,12 @@ function TimeSheet({ name, today, busy, onClose, onSend }: { name: string; today
                       onClick={() => setTime(sl.time)}
                       aria-pressed={time === sl.time}
                       className={clsx(
-                        "flex h-[50px] flex-col items-center justify-center rounded-xl border-[1.5px] text-[14.5px] font-bold tabular-nums leading-none",
-                        time === sl.time ? "border-ajk-m bg-ajk-m text-white" : ok ? "border-ajk-sand2 bg-white" : "border-transparent bg-ajk-sand/70 text-ajk-mute/60"
+                        "flex h-[50px] flex-col items-center justify-center rounded-xl border text-[14.5px] font-semibold tabular-nums leading-none",
+                        time === sl.time ? "border-brand-700 bg-brand-700 text-white" : ok ? "border-ink-200 bg-white text-ink-900" : "border-transparent bg-ink-100 text-ink-400"
                       )}
                     >
                       {ampm(sl.time).replace(/ (AM|PM)$/, "")}
-                      {(sl.state === "class" || sl.label) && <span className="mt-1 text-[10.5px] font-semibold">{sl.state === "class" ? L({ hi: "क्लास", en: "Class" }) : sl.label}</span>}
+                      {(sl.state === "class" || sl.label) && <span className="mt-1 text-[10.5px] font-medium">{sl.state === "class" ? L({ hi: "क्लास", en: "Class" }) : sl.label}</span>}
                     </button>
                   );
                 })}
@@ -334,10 +327,10 @@ function TimeSheet({ name, today, busy, onClose, onSend }: { name: string; today
           </div>
 
           <div>
-            <p className="mb-2 text-[13.5px] font-bold text-ajk-mute">{L({ hi: "कहाँ", en: "Where" })}</p>
-            <div className="grid grid-cols-3 gap-1 rounded-xl border-[1.5px] border-ajk-sand2 bg-ajk-sand p-1">
+            <p className="mb-2 text-[13.5px] font-semibold text-ink-500">{L({ hi: "कहाँ", en: "Where" })}</p>
+            <div className="grid grid-cols-3 gap-1 rounded-xl bg-ink-100 p-1">
               {PLACES.map(({ k, icon: Icon, text }) => (
-                <button key={k} onClick={() => setPlace(k)} aria-pressed={place === k} className={clsx("flex h-10 items-center justify-center gap-1.5 rounded-lg text-[14px] font-semibold", place === k ? "bg-white text-ajk-ink shadow-[0_1px_3px_rgba(43,26,18,.15)]" : "text-ajk-mute")}>
+                <button key={k} onClick={() => setPlace(k)} aria-pressed={place === k} className={clsx("flex h-10 items-center justify-center gap-1.5 rounded-lg text-[14px] font-semibold", place === k ? "bg-white text-ink-900 shadow-[0_1px_3px_rgba(15,23,42,.12)]" : "text-ink-500")}>
                   <Icon className="h-4 w-4" aria-hidden />
                   {text}
                 </button>
@@ -345,7 +338,7 @@ function TimeSheet({ name, today, busy, onClose, onSend }: { name: string; today
             </div>
           </div>
 
-          <button disabled={!time || busy} onClick={() => onSend({ date, time, place })} className="flex h-[52px] w-full items-center justify-center rounded-xl bg-ajk-y text-[15.5px] font-bold text-ajk-ink disabled:opacity-40">
+          <button disabled={!time || busy} onClick={() => onSend({ date, time, place })} className="flex h-[52px] w-full items-center justify-center rounded-xl bg-brand-700 text-[15.5px] font-semibold text-white disabled:opacity-40">
             {time ? L({ hi: `भेजें · ${dayName(date, { weekday: "short", day: "numeric", month: "short" })}, ${ampm(time)}`, en: `Send · ${dayName(date, { weekday: "short", day: "numeric", month: "short" })}, ${ampm(time)}` }) : L({ hi: "समय चुनें", en: "Pick a time" })}
           </button>
         </div>

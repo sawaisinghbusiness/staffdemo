@@ -1,22 +1,22 @@
 import type { Config } from "tailwindcss";
 
 /**
- * Our own violet (deeper than the kit's lavender) on white. Colour carries meaning only:
- * jade = present / paid, red = absent / unpaid, marigold = waiting / leave, violet = the app and holidays.
+ * School navy blue on white, the same as the parent app (2026-10-14). Colour carries meaning only:
+ * jade = present / paid, red = absent / unpaid, marigold = waiting / leave, blue = the app and holidays.
  */
-// Grey with a slight violet bias, so it sits with the brand instead of reading as a default.
+// Grey with a slight blue bias, so it sits with the brand instead of reading as a default.
 const ink = {
-  50: "#F7F6FA",
-  100: "#ECEAF2",
-  200: "#DDD9E8",
-  300: "#C9C4D8",
-  400: "#8E8AA3",
-  500: "#625D77",
-  600: "#4E4963",
-  700: "#3B3650",
-  800: "#2A2540",
-  900: "#1F1B2E",
-  950: "#16131F",
+  50: "#F5F7FB",
+  100: "#EAEEF5",
+  200: "#DCE2EC",
+  300: "#C5CDDA",
+  400: "#8A93A6",
+  500: "#5F687B",
+  600: "#4B5468",
+  700: "#384155",
+  800: "#262E42",
+  900: "#16213A",
+  950: "#0F172A",
 };
 
 // Present / paid.
@@ -41,18 +41,18 @@ const marigold = {
   700: "#924F04",
 };
 
-// The app's own violet.
+// The app's own navy blue.
 const brand = {
-  50: "#F3F0FE",
-  100: "#E7E1FD",
-  200: "#CFC6F8",
-  300: "#B9AAF5",
-  400: "#9580EC",
-  500: "#7C62E8",
-  600: "#6C4FE0",
-  700: "#5A3CC9",
-  800: "#3F2A94",
-  900: "#2C1E68",
+  50: "#EEF3FD",
+  100: "#E1EAFB",
+  200: "#C3D4F6",
+  300: "#9AB6EE",
+  400: "#5E88DD",
+  500: "#2F63C8",
+  600: "#1446A0",
+  700: "#103A86",
+  800: "#0F2F6E",
+  900: "#0B2252",
 };
 
 const night = {
@@ -109,8 +109,10 @@ const config: Config = {
     extend: {
       colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF", drv, ajk },
       fontFamily: {
-        // Figtree for Latin and numbers; Hind fills in Devanagari.
-        sans: ["Figtree", "Hind", "'Noto Sans Devanagari'", "system-ui", "sans-serif"],
+        // One face like the parent app: Inter for Latin and numbers, Noto Sans Devanagari for Hindi.
+        sans: ["'Inter Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
+        // Names on cards (Teacher's Note): Figtree, rounder than Inter.
+        title: ["Figtree", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
         // The driver's screens: Inter like ride apps, Noto Sans Devanagari for Hindi.
         drv: ["'Inter Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
         // Parent messages: Baloo 2 (made for Indian scripts, Latin and Devanagari together).

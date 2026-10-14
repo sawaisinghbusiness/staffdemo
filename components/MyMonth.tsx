@@ -100,7 +100,7 @@ export function MyMonth() {
       {notes.length > 0 && (
         <ul className="space-y-2">
           {notes.map((d) => (
-            <li key={d.date} className="flex min-h-[46px] items-center gap-2.5 rounded-xl bg-ink-50 px-3 text-[14px]">
+            <li key={d.date} className="glass-line card-in flex min-h-[46px] items-center gap-2.5 !rounded-xl px-3 text-[14px]">
               <span className={clsx("h-2 w-2 shrink-0 rounded-full", d.mark ? DOT[d.mark] : DOT.hol)} aria-hidden />
               <span className="min-w-0 flex-1">
                 {d.mark ? L(NAME[d.mark]) : `${L({ hi: "छुट्टी", en: "Holiday" })} · ${d.holiday}`}

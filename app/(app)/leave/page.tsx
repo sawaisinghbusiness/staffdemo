@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarX2, Clock3, Plus } from "lucide-react";
+import { Clock3, Plus, Tag } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang, type Lang } from "@/lib/i18n";
-import { monthYear, num, weekdayDate } from "@/lib/format";
+import { dayMonth, monthYear, num, weekdayDate } from "@/lib/format";
 import { LEAVE_TYPES, type LeaveType } from "@/lib/leave";
 import { Avatar, Empty, ErrorCard, LineTabs, ListSkeleton, Status, type Tone } from "@/components/ui";
 
@@ -125,22 +125,27 @@ function MyLeave() {
                     <p className="text-[15px] font-bold leading-snug">{range(r.from, r.to, lang)}</p>
                     <Status tone={TONE[r.status]}>{L(WORD[r.status])}</Status>
                   </div>
-                  <p className="meta mt-1.5">
-                    <span>
-                      <CalendarX2 aria-hidden />
-                      {r.type ? L(LEAVE_TYPES[r.type]) : L({ hi: "छुट्टी", en: "Leave" })}
+                  {/* Reason on the left; type and length in the bottom-right corner. */}
+                  <div className="mt-1.5 flex items-end justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[14px] text-ink-700">{r.reason}</p>
+                      {r.status === "pending" && (
+                        <button onClick={() => cancel(r.id)} className="mt-1 text-[13.5px] font-semibold text-ink-500 underline-offset-2 active:underline">
+                          {L({ hi: "अर्ज़ी वापस लें", en: "Withdraw" })}
+                        </button>
+                      )}
+                    </div>
+                    <span className="flex shrink-0 items-center gap-2.5 text-[13px] font-semibold text-ink-900">
+                      <span className="inline-flex items-center gap-1">
+                        <Tag className="h-[14px] w-[14px] text-ink-500" strokeWidth={2} aria-hidden />
+                        {r.type ? L(LEAVE_TYPES[r.type]) : L({ hi: "छुट्टी", en: "Leave" })}
+                      </span>
+                      <span className="inline-flex items-center gap-1">
+                        <Clock3 className="h-[14px] w-[14px] text-ink-500" strokeWidth={2} aria-hidden />
+                        {r.halfDay ? L({ hi: "आधा दिन", en: "Half day" }) : r.days === 1 ? L({ hi: "पूरा दिन", en: "Full day" }) : `${num(r.days)} ${L({ hi: "दिन", en: "days" })}`}
+                      </span>
                     </span>
-                    <span>
-                      <Clock3 aria-hidden />
-                      {r.halfDay ? L({ hi: "आधा दिन", en: "Half day" }) : r.days === 1 ? L({ hi: "पूरा दिन", en: "Full day" }) : `${num(r.days)} ${L({ hi: "दिन", en: "days" })}`}
-                    </span>
-                  </p>
-                  <p className="mt-1.5 text-[14px] text-ink-700">{r.reason}</p>
-                  {r.status === "pending" && (
-                    <button onClick={() => cancel(r.id)} className="link -mb-2 text-[14px] !text-ink-500">
-                      {L({ hi: "अर्ज़ी वापस लें", en: "Withdraw" })}
-                    </button>
-                  )}
+                  </div>
                 </li>
               ))}
             </ul>
@@ -192,24 +197,42 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
         <ul className="space-y-2">
           {pending.map((r) => (
             <li key={r.id} className="row-card">
+              {/* Name - class; then Reason, From and Notes each on its own line; days bottom-left, the answers bottom-right. */}
               <div className="flex items-center gap-2.5">
                 <Avatar name={r.student} size={40} />
-                <div className="min-w-0">
-                  <p className="truncate text-[15px] font-bold">{r.student}</p>
-                  <p className="text-[12.5px] text-ink-500">
-                    {r.classSec} · {when(r)}
-                    {r.type ? ` · ${L(LEAVE_TYPES[r.type])}` : ""}
-                  </p>
-                </div>
+                <p className="min-w-0 flex-1 truncate font-title text-[17px] font-bold text-ink-900">
+                  {r.student} <span className="text-[13.5px] font-medium text-ink-500">- {r.classSec}</span>
+                </p>
+                <span className="inline-flex shrink-0 items-center gap-1 text-[14px] font-bold text-ink-900">
+                  <Clock3 className="h-[15px] w-[15px] text-ink-500" strokeWidth={2} aria-hidden />
+                  {r.halfDay ? L({ hi: "आधा दिन", en: "Half day" }) : `${num(r.days)} ${L({ hi: "दिन", en: r.days === 1 ? "day" : "days" })}`}
+                </span>
               </div>
-              <p className="mb-3 mt-2 text-[14px]">{r.reason}</p>
-              <div className="grid grid-cols-2 gap-2">
-                <button onClick={() => decide(r.id, "approved")} disabled={busy === r.id} className="btn-primary min-h-[44px]">
-                  {L({ hi: "मंज़ूर", en: "Approve" })}
-                </button>
-                <button onClick={() => decide(r.id, "rejected")} disabled={busy === r.id} className="btn-line min-h-[44px]">
-                  {L({ hi: "नामंज़ूर", en: "Not approve" })}
-                </button>
+              <dl className="mt-2.5 space-y-1.5 border-t border-ink-900/10 pt-2.5 text-[14px]">
+                <div className="grid grid-cols-[64px_1fr] gap-2">
+                  <dt className="text-ink-500">{L({ hi: "कारण", en: "Reason" })}</dt>
+                  <dd className="font-semibold text-ink-900">{r.type ? L(LEAVE_TYPES[r.type]) : L({ hi: "छुट्टी", en: "Leave" })}</dd>
+                </div>
+                <div className="grid grid-cols-[64px_1fr] gap-2">
+                  <dt className="text-ink-500">{L({ hi: "कब", en: "From" })}</dt>
+                  <dd className="font-semibold text-ink-900">{r.from === r.to ? dayMonth(r.from, lang) : `${dayMonth(r.from, lang)} ${L({ hi: "से", en: "to" })} ${dayMonth(r.to, lang)}`}</dd>
+                </div>
+                {r.reason && (
+                  <div className="grid grid-cols-[64px_1fr] gap-2">
+                    <dt className="text-ink-500">{L({ hi: "नोट", en: "Notes" })}</dt>
+                    <dd className="text-ink-900">{r.reason}</dd>
+                  </div>
+                )}
+              </dl>
+              <div className="mt-3 flex items-center justify-end gap-2">
+                <span className="flex gap-2">
+                  <button onClick={() => decide(r.id, "approved")} disabled={busy === r.id} className="glass-pill glass-ok">
+                    {L({ hi: "मंज़ूर", en: "Approve" })}
+                  </button>
+                  <button onClick={() => decide(r.id, "rejected")} disabled={busy === r.id} className="glass-pill glass-no">
+                    {L({ hi: "नामंज़ूर", en: "Not approve" })}
+                  </button>
+                </span>
               </div>
             </li>
           ))}

@@ -93,7 +93,7 @@ export default function StudentDetailPage() {
             {data.exams.map((e) => {
               const isOpen = open === e.id;
               return (
-                <li key={e.id} className="rounded-2xl bg-ink-50">
+                <li key={e.id} className="glass-line card-in">
                   <button onClick={() => setOpen(isOpen ? null : e.id)} aria-expanded={isOpen} className="flex min-h-[60px] w-full items-center gap-3 px-3.5 py-2.5 text-left">
                     <span className="min-w-0 flex-1">
                       <span className="block text-[15px] font-bold">{e.title}</span>

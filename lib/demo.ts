@@ -1,11 +1,12 @@
 /**
  * Demo mode: the whole staff app runs on the phone with sample data, no backend.
  * Sign in with any 10-digit mobile and the code 123456; pick a role to see its screens.
- * Set NEXT_PUBLIC_DEMO=0 (Vercel → Environment Variables) to use the real backend.
+ * Off by default since 2026-10-14: the app uses the real backend, so what a teacher does here is
+ * what the ERP shows. Set NEXT_PUBLIC_DEMO=1 (Vercel → Environment Variables) to show the demo.
  */
 import { demoChats } from "./demoChats";
 
-export const DEMO = process.env.NEXT_PUBLIC_DEMO !== "0";
+export const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
 export const DEMO_CODE = "123456";
 
 const SESSION = "sa:demo-session";
@@ -24,7 +25,7 @@ const addDays = (iso: string, n: number) => new Date(Date.parse(iso + "T00:00:00
 const weekday = (iso: string) => new Date(iso + "T00:00:00Z").getUTCDay();
 const schoolDay = (iso: string) => (weekday(iso) === 0 ? addDays(iso, -1) : iso);
 
-const SCHOOL = { name: "Mother Teresa Nobles Academy", shortName: "MTNA", logoUrl: null as string | null, address: "Nehru Nagar, Barmer", officePhone: "94600 62543" };
+const SCHOOL = { name: "Mother Teresa Nobles Academy", shortName: "MTNA", logoUrl: "/school-logo.png" as string | null, address: "Nehru Nagar, Barmer", officePhone: "94600 62543" };
 
 const PEOPLE: Record<Role, { name: string; roleLabel: { hi: string; en: string }; empCode: string; joined: string; salary: number }> = {
   teacher: { name: "Rakesh Bishnoi", roleLabel: { hi: "अध्यापक", en: "Teacher" }, empCode: "T-014", joined: "2019-06-15", salary: 28000 },

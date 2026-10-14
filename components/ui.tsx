@@ -1,15 +1,15 @@
 "use client";
 
-import { useEffect } from "react";
+import { Children, isValidElement, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import clsx from "clsx";
-import { ChevronDown, Phone, RotateCw, WifiOff, X } from "lucide-react";
+import { Check, ChevronDown, Phone, RotateCw, Search, WifiOff, X } from "lucide-react";
 import { initials } from "@/lib/format";
 import { useL } from "@/lib/i18n";
 
 /** Soft pastel pairs (background, text) for avatars, subject marks and the home grid. Never the same hue as a status. */
 export const TINTS: [string, string][] = [
-  ["#EDE8FE", "#5A3CC9"],
+  ["#E8EFFC", "#103A86"],
   ["#E0F2FE", "#0369A1"],
   ["#DCFCE7", "#15803D"],
   ["#FEF3C7", "#B45309"],
@@ -69,15 +69,101 @@ export function LineTabs<K extends string>({ value, onChange, options, label }: 
 }
 
 /** Bordered dropdown with its small label inside, as the kit draws it. */
+/** Plain text of an <option>'s children ("12", ". ", "Aarav" → "12. Aarav"). */
+const textOf = (n: React.ReactNode): string =>
+  n == null || typeof n === "boolean" ? "" : typeof n === "string" || typeof n === "number" ? String(n) : Array.isArray(n) ? n.map(textOf).join("") : isValidElement(n) ? textOf((n.props as { children?: React.ReactNode }).children) : "";
+
+/**
+ * A field that opens the app's own small list box right under it, instead of the phone's plain dropdown.
+ * About six rows show; the rest scroll inside the box. Takes <option> children as before.
+ */
 export function SelectBox({ label, value, onChange, children, className }: { label: string; value: string; onChange: (v: string) => void; children: React.ReactNode; className?: string }) {
+  const L = useL();
+  const [open, setOpen] = useState(false);
+  const [q, setQ] = useState("");
+  const wrap = useRef<HTMLDivElement>(null);
+  const list = useRef<HTMLUListElement>(null);
+  const options = Children.toArray(children)
+    .filter(isValidElement)
+    .map((o) => {
+      const p = o.props as { value?: string | number; children?: React.ReactNode };
+      const text = textOf(p.children).trim();
+      return { value: p.value !== undefined ? String(p.value) : text, text };
+    });
+  const current = options.find((o) => o.value === value);
+  const close = useCallback(() => {
+    setOpen(false);
+    setQ("");
+  }, []);
+  const search = options.length > 8;
+  const shown = q ? options.filter((o) => o.text.toLowerCase().includes(q.trim().toLowerCase())) : options;
+
+  // A tap outside or Escape closes the box; on opening, the chosen row is scrolled into view.
+  useEffect(() => {
+    if (!open) return;
+    const out = (e: PointerEvent) => wrap.current && !wrap.current.contains(e.target as Node) && close();
+    const esc = (e: KeyboardEvent) => e.key === "Escape" && close();
+    document.addEventListener("pointerdown", out);
+    window.addEventListener("keydown", esc);
+    const box = list.current;
+    const sel = box?.querySelector<HTMLElement>("[aria-selected='true']");
+    if (box && sel) box.scrollTop = sel.offsetTop - box.clientHeight / 2 + sel.offsetHeight / 2;
+    return () => {
+      document.removeEventListener("pointerdown", out);
+      window.removeEventListener("keydown", esc);
+    };
+  }, [open, close]);
+
   return (
-    <label className={clsx("field-box", className)}>
-      <small>{label}</small>
-      <select value={value} onChange={(e) => onChange(e.target.value)}>
-        {children}
-      </select>
-      <ChevronDown aria-hidden />
-    </label>
+    <div ref={wrap} className={clsx("relative", open && "z-30")}>
+      <button type="button" onClick={() => (open ? close() : setOpen(true))} disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} className={clsx("field-box text-left disabled:opacity-60", open && "!border-[#3099a4]", className)}>
+        {/* One line: "Class - 5th B". */}
+        <span className="min-w-0 flex-1 truncate text-[15.5px]">
+          <span className="text-ink-500">{label} - </span>
+          <span className="font-semibold text-ink-900">{current?.text || "—"}</span>
+        </span>
+        <ChevronDown className={clsx("transition-transform duration-200", open && "rotate-180")} aria-hidden />
+      </button>
+      {open && (
+        <div className="drop-in absolute inset-x-0 top-full mt-1.5 min-w-[200px] overflow-hidden rounded-xl border-[1.5px] border-ink-900 bg-white shadow-[0_12px_28px_rgba(22,33,58,.16)]">
+          {search && (
+            <label className="block border-b border-ink-100 p-2">
+              <span className="sr-only">{L({ hi: "खोजें", en: "Search" })}</span>
+              <span className="flex h-9 items-center gap-2 rounded-lg bg-ink-100 px-2.5">
+                <Search className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
+                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L({ hi: "खोजें", en: "Search" })} className="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-ink-400" />
+              </span>
+            </label>
+          )}
+          {shown.length === 0 ? (
+            <p className="px-3 py-4 text-center text-[14px] text-ink-500">{L({ hi: "कुछ नहीं मिला", en: "Nothing found" })}</p>
+          ) : (
+            <ul ref={list} role="listbox" aria-label={label} className="max-h-[264px] overflow-y-auto overscroll-contain py-1">
+              {shown.map((o) => {
+                const on = o.value === value;
+                return (
+                  <li key={o.value}>
+                    <button
+                      type="button"
+                      role="option"
+                      aria-selected={on}
+                      onClick={() => {
+                        onChange(o.value);
+                        close();
+                      }}
+                      className={clsx("flex min-h-[44px] w-full items-center gap-2.5 px-3 text-left active:bg-ink-100", on && "bg-[#3099a4]/10")}
+                    >
+                      <span className={clsx("min-w-0 flex-1 truncate text-[15px]", on ? "font-semibold text-[#3099a4]" : "text-ink-900")}>{o.text}</span>
+                      {on && <Check className="h-4 w-4 shrink-0 text-[#3099a4]" strokeWidth={2.6} aria-hidden />}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -139,7 +225,7 @@ export function CallOffice({ phone, className }: { phone?: string; className?: s
 
 /** Save bar that sits just above the tab bar on long lists (attendance, homework check, marks). */
 export function StickyBar({ children }: { children: React.ReactNode }) {
-  return <div className="fixed inset-x-0 bottom-[calc(62px+env(safe-area-inset-bottom))] z-10 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
+  return <div className="fixed inset-x-0 bottom-[calc(66px+env(safe-area-inset-bottom))] z-10 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
 }
 
 /** Bottom sheet with a grab handle. Closes on the dim area, the X and Escape. */

@@ -40,9 +40,9 @@ export default function TimetablePage() {
           const n = i + 1;
           const on = n === shown;
           return (
-            <button key={n} role="tab" aria-selected={on} aria-label={DAYS_FULL[lang][i]} onClick={() => setDay(n)} className={clsx("flex min-h-[54px] flex-col items-center justify-center rounded-xl text-[11.5px] leading-tight", on ? "bg-brand-600 text-brand-100" : "bg-ink-50 text-ink-500")}>
+            <button key={n} role="tab" aria-selected={on} aria-label={DAYS_FULL[lang][i]} onClick={() => setDay(n)} className={clsx("flex min-h-[54px] flex-col items-center justify-center rounded-xl text-[11.5px] leading-tight", on ? "bg-[#3099a4] text-white/80" : "border border-ink-200 bg-white text-ink-500")}>
               {d}
-              <b className={clsx("tnum text-[16px]", on ? "text-white" : n === today ? "text-brand-600" : "text-ink-900")}>{+addDays(monday, i).slice(8)}</b>
+              <b className={clsx("tnum text-[16px]", on ? "text-white" : n === today ? "text-[#3099a4]" : "text-ink-900")}>{+addDays(monday, i).slice(8)}</b>
             </button>
           );
         })}
@@ -62,7 +62,7 @@ export default function TimetablePage() {
                   <span className="absolute inset-y-0 left-[6px] w-0.5 bg-brand-100" />
                   <span className={clsx("absolute left-[2px] top-[18px] h-2.5 w-2.5 rounded-full ring-2 ring-white", p.isBreak || !c ? "bg-ink-300" : "bg-brand-600")} />
                 </span>
-                <div className={clsx("my-1 rounded-xl border px-3 py-2.5 text-[15px]", p.isBreak ? "border-dashed border-ink-200 bg-ink-50 font-medium text-ink-400" : live ? "border-brand-600 bg-brand-50 font-semibold" : c ? "border-ink-100 font-semibold" : "border-ink-100 font-medium text-ink-400")}>
+                <div className={clsx("my-1 rounded-xl px-3 py-2.5 text-[15px]", p.isBreak ? "border border-dashed border-ink-300 font-medium text-ink-400" : live ? "glass-line !rounded-xl !border-[#3099a4] !bg-[#3099a4]/10 font-semibold" : c ? "glass-line !rounded-xl font-semibold" : "glass-line !rounded-xl font-medium text-ink-400")}>
                   {p.isBreak ? p.label : c ? c.subject : L({ hi: "खाली", en: "Free" })}
                   {c && <span className="ml-1.5 text-[13px] font-normal text-ink-500">{c.classSec}</span>}
                   {live && <span className="ml-1.5 text-[11px] font-bold uppercase text-brand-600">{L({ hi: "अभी", en: "Now" })}</span>}

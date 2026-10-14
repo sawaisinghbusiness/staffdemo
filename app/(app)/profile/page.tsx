@@ -92,9 +92,9 @@ export default function ProfilePage() {
         <div className="flex min-h-[54px] items-center gap-3 border-b border-ink-100 px-0.5">
           <Languages className="h-[21px] w-[21px] shrink-0 text-ink-700" strokeWidth={1.8} aria-hidden />
           <span className="min-w-0 flex-1 text-[15.5px]">{L({ hi: "भाषा", en: "Language" })}</span>
-          <div className="flex rounded-[10px] bg-ink-50 p-[3px]" role="radiogroup" aria-label={L({ hi: "भाषा", en: "Language" })}>
+          <div className="flex rounded-[10px] bg-ink-100 p-[3px]" role="radiogroup" aria-label={L({ hi: "भाषा", en: "Language" })}>
             {(["en", "hi"] as const).map((l) => (
-              <button key={l} role="radio" aria-checked={lang === l} onClick={() => setLang(l)} className={clsx("min-h-[38px] rounded-lg px-3 text-[14px]", lang === l ? "bg-white font-semibold text-brand-600 shadow-sm" : "font-medium text-ink-500")}>
+              <button key={l} role="radio" aria-checked={lang === l} onClick={() => setLang(l)} className={clsx("min-h-[38px] rounded-lg px-3 text-[14px]", lang === l ? "bg-white font-semibold text-[#3099a4] shadow-sm" : "font-medium text-ink-500")}>
                 {l === "hi" ? "हिंदी" : "English"}
               </button>
             ))}
@@ -123,7 +123,7 @@ function AlertSetting() {
         <BellRing className="h-[21px] w-[21px] shrink-0 text-ink-700" strokeWidth={1.8} aria-hidden />
         <span className="min-w-0 flex-1 text-[15.5px]">{L({ hi: "स्टॉप का अलर्ट", en: "Stop alert" })}</span>
       </div>
-      <div className="mt-2.5 grid grid-cols-2 rounded-[10px] bg-ink-50 p-[3px]" role="radiogroup" aria-label={L({ hi: "स्टॉप का अलर्ट", en: "Stop alert" })}>
+      <div className="mt-2.5 grid grid-cols-2 rounded-[10px] bg-ink-100 p-[3px]" role="radiogroup" aria-label={L({ hi: "स्टॉप का अलर्ट", en: "Stop alert" })}>
         {(["auto", "manual"] as const).map((m) => (
           <button key={m} role="radio" aria-checked={mode === m} onClick={() => setMode(m)} className={clsx("min-h-[38px] rounded-lg px-2 text-[13.5px]", mode === m ? "bg-white font-semibold text-ink-900 shadow-sm" : "font-medium text-ink-500")}>
             {m === "auto" ? L({ hi: "3 सेकंड में अपने आप बंद", en: "Closes by itself in 3 s" }) : L({ hi: "मैं खुद बंद करूँगा", en: "I close it myself" })}

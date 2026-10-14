@@ -58,14 +58,14 @@ export function when(iso: string, lang: Lang) {
   return d.toLocaleDateString(loc(lang), { day: "numeric", month: "short" });
 }
 
-/** How long the family has waited: "25 min", "14 h", "3 days". */
+/** How long the family has waited: "25 min ago", "14 hours ago", "3 days ago". */
 export function waited(iso: string, lang: Lang) {
   const min = Math.max(1, Math.round((Date.now() - Date.parse(iso)) / 60000));
-  if (min < 60) return lang === "hi" ? `${min} मिनट` : `${min} min`;
+  if (min < 60) return lang === "hi" ? `${min} मिनट पहले` : `${min} min ago`;
   const h = Math.round(min / 60);
-  if (h < 48) return lang === "hi" ? `${h} घंटे` : `${h} h`;
+  if (h < 48) return lang === "hi" ? `${h} घंटे पहले` : `${h} ${h === 1 ? "hour" : "hours"} ago`;
   const d = Math.round(h / 24);
-  return lang === "hi" ? `${d} दिन` : `${d} days`;
+  return lang === "hi" ? `${d} दिन पहले` : `${d} days ago`;
 }
 
 export const clockOf = (iso: string, lang: Lang) => new Date(iso).toLocaleTimeString(loc(lang), { hour: "numeric", minute: "2-digit" });

@@ -36,7 +36,7 @@ export default function SalaryPage() {
       {data.slips.map((s) => {
         const isOpen = shown === s.month;
         return (
-          <li key={s.month} className="rounded-2xl bg-ink-50">
+          <li key={s.month} className="glass-line card-in">
             <button onClick={() => setOpen(isOpen ? "" : s.month)} aria-expanded={isOpen} className="flex min-h-[64px] w-full items-center gap-3 px-3.5 py-3 text-left">
               <span className="min-w-0 flex-1">
                 <span className="block text-[15.5px] font-bold">{monthYear(s.month, lang)}</span>

@@ -18,7 +18,7 @@ export interface Me {
   empCode: string;
   phone: string;
   joined: string;
-  school: { name: string; shortName: string; logoUrl: string | null; officePhone: string };
+  school: { name: string; shortName: string; logoUrl: string | null; officePhone: string; address?: string };
   sections: MySection[];
 }
 

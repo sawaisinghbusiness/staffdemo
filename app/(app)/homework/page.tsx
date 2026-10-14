@@ -2,11 +2,11 @@
 
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import { BookOpen, CalendarDays, Check, Trash2 } from "lucide-react";
+import { CalendarDays, Check, Clock3, Trash2 } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
-import { dayMonth, weekdayDate } from "@/lib/format";
+import { dayMonth } from "@/lib/format";
 import { Avatar, Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
 
 interface Options {
@@ -21,6 +21,8 @@ interface Item {
   details: string;
   assignedOn: string;
   dueDate: string | null;
+  /** False for homework someone else (or the office) posted: only its poster may delete it. */
+  mine?: boolean;
 }
 interface Subs {
   homework: Item;
@@ -85,6 +87,7 @@ function Create() {
 
   async function post(e: React.FormEvent) {
     e.preventDefault();
+    if (!title.trim()) return setMsg({ ok: false, text: L({ hi: "पहले लिखें कि क्या करना है।", en: "Write the homework first." }) });
     setBusy(true);
     setMsg(null);
     try {
@@ -146,8 +149,8 @@ function Create() {
             {msg.text}
           </p>
         )}
-        <button type="submit" disabled={busy} className="btn-primary w-full">
-          {busy ? "…" : L({ hi: "भेजें", en: "Publish" })}
+        <button type="submit" disabled={busy} className="btn-go w-full">
+          {busy ? "…" : L({ hi: "होमवर्क भेजें", en: "Send homework" })}
         </button>
       </form>
 
@@ -158,31 +161,34 @@ function Create() {
         ) : (
           <ul className="space-y-2">
             {list.data.items.map((h) => (
-              <li key={h.id} className="row-card flex items-start gap-2">
-                <div className="min-w-0 flex-1">
-                  <p className="meta">
-                    <span>
-                      <BookOpen aria-hidden />
-                      {h.subject} · {h.classSec}
-                    </span>
-                    <span>
-                      <CalendarDays aria-hidden />
-                      {weekdayDate(h.assignedOn, lang)}
-                    </span>
+              <li key={h.id} className="row-card">
+                {/* Top: subject - class, and the day it was given in the corner. Then the work. Bottom: due date, delete. */}
+                <div className="flex items-center justify-between gap-2">
+                  <p className="min-w-0 truncate font-title text-[17px] font-bold leading-tight text-ink-900">
+                    {h.subject} <span className="text-[13.5px] font-medium text-ink-500">- {h.classSec}</span>
                   </p>
-                  <p className="mt-1 text-[15px] font-bold leading-snug">{h.title}</p>
-                  {h.details && <p className="mt-0.5 text-[14px] text-ink-600">{h.details}</p>}
+                  <span className="flex shrink-0 items-center gap-1">
+                    <span className="text-[14px] font-bold text-ink-900">{dayMonth(h.assignedOn, lang)}</span>
+                    {!h.id.startsWith("seed") && h.mine !== false && (
+                      <button onClick={() => remove(h.id)} className="-my-2 -mr-2 grid h-9 w-9 place-items-center rounded-full text-ink-500 active:bg-ink-100" aria-label={L({ hi: "हटाएँ", en: "Delete" })}>
+                        <Trash2 className="h-[17px] w-[17px]" aria-hidden />
+                      </button>
+                    )}
+                  </span>
+                </div>
+                {/* The work on the left; the due date in the bottom-right corner. */}
+                <div className="mt-1.5 flex items-end justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[15px] font-semibold leading-snug text-ink-900">{h.title}</p>
+                    {h.details && <p className="mt-0.5 line-clamp-2 text-[14px] text-ink-600">{h.details}</p>}
+                  </div>
                   {h.dueDate && (
-                    <p className="mt-0.5 text-[13px] text-ink-500">
+                    <span className="inline-flex shrink-0 items-center gap-1 text-[13.5px] font-bold text-ink-900">
+                      <Clock3 className="h-[15px] w-[15px] text-ink-500" strokeWidth={2} aria-hidden />
                       {L({ hi: "जमा", en: "Due" })} {dayMonth(h.dueDate, lang)}
-                    </p>
+                    </span>
                   )}
                 </div>
-                {!h.id.startsWith("seed") && (
-                  <button onClick={() => remove(h.id)} className="-mr-2 -mt-1.5 grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-400 active:bg-ink-100" aria-label={L({ hi: "हटाएँ", en: "Delete" })}>
-                    <Trash2 className="h-[18px] w-[18px]" aria-hidden />
-                  </button>
-                )}
               </li>
             ))}
           </ul>
@@ -262,31 +268,22 @@ function Ticks({ id }: { id: string }) {
   return (
     <div className="space-y-2 pb-20">
       <div className="row-card">
-        <p className="meta">
-          <span>
-            <BookOpen aria-hidden />
-            {h.subject} · {h.classSec}
-          </span>
-          <span>
-            <CalendarDays aria-hidden />
-            {weekdayDate(h.assignedOn, lang)}
-          </span>
-        </p>
-        <p className="mt-1 text-[15px] font-bold">{h.title}</p>
+        <div className="flex items-start justify-between gap-2">
+          <p className="min-w-0 truncate font-title text-[17px] font-bold leading-tight text-ink-900">
+            {h.subject} <span className="text-[13.5px] font-medium text-ink-500">- {h.classSec}</span>
+          </p>
+          <span className="shrink-0 text-[14px] font-bold text-ink-900">{dayMonth(h.assignedOn, lang)}</span>
+        </div>
+        <p className="mt-1.5 text-[15px] font-semibold text-ink-900">{h.title}</p>
       </div>
       <p className="text-[13px] text-ink-500">{data.checked ? L({ hi: "पहले जाँचा जा चुका है, बदल सकते हैं।", en: "Already checked; you can change it." }) : L({ hi: "जिसने जमा नहीं किया, उसका टिक हटाएँ।", en: "Untick anyone who did not submit." })}</p>
-      <ul>
+      <ul className="glass-line overflow-hidden px-3.5">
         {data.students.map((s) => (
-          <li key={s.id}>
-            <button onClick={() => setDone((d) => ({ ...d, [s.id]: !d[s.id] }))} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 border-b border-ink-100 text-left">
+          <li key={s.id} className="border-b border-ink-900/10 last:border-b-0">
+            <button onClick={() => setDone((d) => ({ ...d, [s.id]: !d[s.id] }))} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 text-left">
               <Avatar name={s.name} size={36} />
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[15px]">{s.name}</span>
-                <span className="block text-[12px] text-ink-400">
-                  {L({ hi: "रोल", en: "Roll" })} {s.rollNo}
-                </span>
-              </span>
-              <span className={clsx("grid h-6 w-6 place-items-center rounded-full", done[s.id] ? "bg-brand-600 text-white" : "border-[1.6px] border-ink-300")}>{done[s.id] && <Check className="h-3.5 w-3.5" strokeWidth={3.5} aria-hidden />}</span>
+              <span className="min-w-0 flex-1 truncate font-title text-[16px] font-semibold text-ink-900">{s.name}</span>
+              <span className={clsx("grid h-7 w-7 place-items-center rounded-lg transition-colors", done[s.id] ? "border border-[#16a34a] bg-[#22c55e] text-black" : "border-[1.6px] border-ink-300 bg-white")}>{done[s.id] && <Check className="h-4 w-4" strokeWidth={3.2} aria-hidden />}</span>
             </button>
           </li>
         ))}
@@ -297,7 +294,7 @@ function Ticks({ id }: { id: string }) {
             {msg.text}
           </p>
         )}
-        <button onClick={save} disabled={busy} className="btn-primary w-full">
+        <button onClick={save} disabled={busy} className="btn-go w-full">
           {busy ? "…" : `${L({ hi: "सेव करें", en: "Save" })} · ${count} / ${data.students.length} ${L({ hi: "ने जमा किया", en: "submitted" })}`}
         </button>
       </StickyBar>

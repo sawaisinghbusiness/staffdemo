@@ -30,13 +30,28 @@
 @layer components {
   /* ── Kit building blocks (same names in the parent and the staff app) ── */
 
-  /* Grey rounded row card: the kit's list item. */
+  /* The list card, as on Parent Enquiries (2026-10-14): half-strength glass with a black edge. */
+  .glass-line {
+    @apply rounded-2xl border-[1.5px] border-ink-900;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4));
+    -webkit-backdrop-filter: blur(10px) saturate(150%);
+    backdrop-filter: blur(10px) saturate(150%);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 4px 14px rgba(22, 33, 58, 0.08);
+  }
   .row-card {
-    @apply block rounded-2xl bg-ink-50 px-3.5 py-3;
+    @apply glass-line block px-3.5 py-3;
+    animation: card-in 0.42s var(--ease-out) both;
   }
   a.row-card,
   button.row-card {
-    @apply w-full text-left transition-colors active:bg-ink-100;
+    @apply w-full text-left;
+    transition: transform 0.18s var(--ease-out);
+  }
+  a.row-card:active,
+  button.row-card:active {
+    transform: scale(0.985);
   }
   /* Small grey line of facts with icons: subject · date · time. */
   .meta {
@@ -70,15 +85,16 @@
     @apply -mb-px min-h-[44px] flex-1 border-b-2 border-transparent text-center text-[15px] font-medium text-ink-400;
   }
   .tabs-line > [aria-selected="true"] {
-    @apply border-brand-600 font-semibold text-brand-600;
+    @apply border-[#3099a4] font-semibold text-[#3099a4];
   }
 
-  /* Thin outlined status: Pending / Approved. The colour is in the word and the line, never a fill. */
+  /* Thin outlined status: Pending / Not approved. The colour is in the word and the line. Approved is filled. */
   .status {
     @apply inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-2.5 py-px text-[12px] font-semibold leading-5;
   }
+  /* Approved: solid green with black text (the user's pick, 2026-10-14). */
   .status-ok {
-    @apply status text-jade-600;
+    @apply status border-[#28d72a] bg-[#28d72a] text-black;
   }
   .status-bad {
     @apply status text-rose-600;
@@ -122,6 +138,18 @@
   }
 
   /* Pastel square with a line icon, plus its label: the home grid. */
+  /* Home, as in the parent app: the Today card and the Quick Actions tiles. */
+  .today-card {
+    @apply overflow-hidden rounded-2xl border border-ink-100 bg-white px-4 pt-4 shadow-[0_1px_3px_rgba(15,47,110,0.07)];
+  }
+  /* Every tile the same height: icon on one line, room for a two-line label under it. */
+  .quick-tile {
+    @apply relative flex h-[84px] min-w-0 flex-col items-center justify-start gap-2 overflow-hidden rounded-xl border border-ink-100 bg-white px-0.5 pt-4 text-center text-[11px] font-medium leading-[1.2] tracking-[-0.01em] text-ink-900 active:bg-ink-50;
+  }
+  .quick-tile > span:first-child {
+    @apply grid h-7 w-7 shrink-0 place-items-center text-ink-900;
+  }
+
   .icon-tile {
     @apply flex min-h-[76px] flex-col items-center gap-1.5 text-center text-[12.5px] font-medium leading-tight text-ink-900;
   }
@@ -155,7 +183,7 @@
 
   /* Month grid with a dot under each marked day. */
   .cal {
-    @apply rounded-3xl bg-ink-50 px-2.5 pb-2 pt-1;
+    @apply glass-line rounded-3xl px-2.5 pb-2 pt-1;
   }
 
   .btn {
@@ -163,6 +191,10 @@
   }
   .btn-primary {
     @apply btn bg-brand-600 text-white hover:bg-brand-700;
+  }
+  /* The main send / save button: solid green, black bold Figtree (Teacher's Note, 2026-10-14). */
+  .btn-go {
+    @apply btn bg-gradient-to-b from-[#3ee840] to-[#1fb821] font-title text-[18px] font-bold text-black active:brightness-95;
   }
   .btn-line {
     @apply btn border border-brand-100 bg-white text-brand-600 hover:bg-brand-50;
@@ -228,7 +260,7 @@
   height: 18px;
   border-radius: 50%;
   background: #fff;
-  border: 3px solid #6c4fe0;
+  border: 3px solid #1446A0;
   box-shadow: 0 1px 3px rgba(31, 27, 46, 0.35);
 }
 .map-stop-done {
@@ -252,9 +284,9 @@
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  background: #6c4fe0;
+  background: #1446A0;
   border: 4px solid #fff;
-  box-shadow: 0 0 0 7px rgba(108, 79, 224, 0.18), 0 2px 6px rgba(31, 27, 46, 0.35);
+  box-shadow: 0 0 0 7px rgba(20, 70, 160, 0.18), 0 2px 6px rgba(31, 27, 46, 0.35);
 }
 .leaflet-container {
   font-family: inherit;
@@ -398,4 +430,338 @@
   border-top: 2px solid #e3a72f;
   background-color: #521520;
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Cpath d='M9 2l2 5 5 2-5 2-2 5-2-5-5-2 5-2z' fill='%23E3A72F'/%3E%3Ccircle cx='0' cy='0' r='1.6' fill='%23F5EAD7'/%3E%3Ccircle cx='18' cy='0' r='1.6' fill='%23F5EAD7'/%3E%3Ccircle cx='0' cy='18' r='1.6' fill='%23F5EAD7'/%3E%3Ccircle cx='18' cy='18' r='1.6' fill='%23F5EAD7'/%3E%3C/svg%3E");
+}
+
+/* ───────────── Motion, the same as the parent app (2026-10-14) ───────────── */
+:root {
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-pop: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Home rows arrive one after another: set --i on each (0, 1, 2 …). */
+.enter {
+  animation: enter 0.6s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 70ms);
+}
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.985);
+  }
+}
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.82);
+  }
+}
+@keyframes icon-jump {
+  40% {
+    transform: translateY(-3px) rotate(-6deg);
+  }
+}
+
+/* Home's search bar as liquid glass: a frosted, see-through pill with a bright top edge. */
+.glass-search {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(255, 255, 255, 0.4));
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
+  backdrop-filter: blur(16px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.95),
+    inset 0 -1px 2px rgba(22, 33, 58, 0.06),
+    0 4px 14px rgba(22, 33, 58, 0.1);
+  transition: transform 0.3s var(--ease-pop);
+}
+.glass-search:active {
+  transform: scale(0.97);
+}
+
+/* Enquiry cards: half-strength glass, a 50% white frosted face with a bright top edge. */
+.glass-card {
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.6), rgba(255, 255, 255, 0.4));
+  -webkit-backdrop-filter: blur(10px) saturate(150%);
+  backdrop-filter: blur(10px) saturate(150%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 4px 14px rgba(22, 33, 58, 0.08);
+}
+
+/* Answer badges as 50% liquid glass: a half-clear coloured face, frosted, with a bright top edge. */
+.glass-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0 16px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  -webkit-backdrop-filter: blur(12px) saturate(170%);
+  backdrop-filter: blur(12px) saturate(170%);
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.6),
+    inset 0 -1px 2px rgba(0, 0, 0, 0.12),
+    0 4px 12px rgba(22, 33, 58, 0.14);
+  transition: transform 0.18s var(--ease-out);
+}
+.glass-pill:active {
+  transform: scale(0.96);
+}
+.glass-pill:disabled {
+  opacity: 0.6;
+}
+/* Answer badges: solid green / red, black text, a soft white top edge. */
+.glass-ok,
+.glass-no {
+  text-shadow: none;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 4px 14px rgba(22, 33, 58, 0.1);
+}
+.glass-ok {
+  color: #000;
+  background: #22c55e;
+  border: 1px solid #16a34a;
+}
+.glass-no {
+  color: #000;
+  background: #ef4444;
+  border: 1px solid #dc2626;
+}
+
+/* A dropdown's list box unfolds from its field. */
+.drop-in {
+  transform-origin: top;
+  animation: drop-in 0.18s var(--ease-out) both;
+}
+@keyframes drop-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0) scaleY(0.96);
+  }
+}
+
+/* List cards glide in: a short fade and rise, one after another, no bounce. */
+.card-in {
+  animation: card-in 0.42s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+}
+.press {
+  transition: transform 0.18s var(--ease-out);
+}
+.press:active {
+  transform: scale(0.985);
+}
+/* Cards in a list arrive one after another (the first eight; the rest with the eighth). */
+li:nth-child(2) > .row-card,
+li.row-card:nth-child(2),
+.card-in:nth-child(2) {
+  animation-delay: 45ms;
+}
+li:nth-child(3) > .row-card,
+li.row-card:nth-child(3),
+.card-in:nth-child(3) {
+  animation-delay: 90ms;
+}
+li:nth-child(4) > .row-card,
+li.row-card:nth-child(4),
+.card-in:nth-child(4) {
+  animation-delay: 135ms;
+}
+li:nth-child(5) > .row-card,
+li.row-card:nth-child(5),
+.card-in:nth-child(5) {
+  animation-delay: 180ms;
+}
+li:nth-child(6) > .row-card,
+li.row-card:nth-child(6),
+.card-in:nth-child(6) {
+  animation-delay: 225ms;
+}
+li:nth-child(7) > .row-card,
+li.row-card:nth-child(7),
+.card-in:nth-child(7) {
+  animation-delay: 270ms;
+}
+li:nth-child(n + 8) > .row-card,
+li.row-card:nth-child(n + 8),
+.card-in:nth-child(n + 8) {
+  animation-delay: 315ms;
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-in,
+  .row-card {
+    animation: none;
+  }
+}
+
+/* Quick tiles pop in, then give a springy press. */
+.pop-in {
+  animation: pop-in 0.5s var(--ease-pop) both;
+  animation-delay: calc(240ms + var(--i, 0) * 45ms);
+}
+.quick-tile {
+  transition: transform 0.35s var(--ease-pop), background-color 0.2s;
+}
+.quick-tile:active {
+  transform: scale(0.92);
+  transition-duration: 0.08s;
+}
+.quick-tile:active > span:first-child {
+  animation: icon-jump 0.4s var(--ease-pop);
+}
+
+/* The attendance tick draws itself after its circle pops. */
+.tick-pop {
+  animation: pop-in 0.45s var(--ease-pop) 0.35s both;
+}
+.tick-draw path,
+.tick-draw polyline {
+  stroke-dasharray: 26;
+  stroke-dashoffset: 26;
+  animation: draw 0.45s var(--ease-out) 0.7s forwards;
+}
+@keyframes draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+/* Mark now: a slow ring that breathes out from the button. */
+.pay-pulse {
+  position: relative;
+  isolation: isolate;
+}
+.pay-pulse::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: inherit;
+  animation: breathe 2.6s var(--ease-out) 1.2s infinite;
+}
+@keyframes breathe {
+  0% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  70%,
+  100% {
+    opacity: 0;
+    transform: scale(1.35, 1.6);
+  }
+}
+
+/* Ink drop from where the finger lands (lib/motion.ts → ripple). */
+.ripple-ink {
+  position: absolute;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: rgba(20, 70, 160, 0.13);
+  transform: scale(0);
+  animation: ripple 0.65s var(--ease-out) forwards;
+}
+@keyframes ripple {
+  70% {
+    opacity: 1;
+  }
+  to {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+/* "Hello, Name" slides up out of its own line. */
+.reveal {
+  display: inline-block;
+  overflow: hidden;
+  vertical-align: bottom;
+  padding-bottom: 0.08em;
+}
+.reveal > span {
+  display: inline-block;
+  animation: reveal 0.75s var(--ease-out) both;
+  animation-delay: calc(80ms + var(--i, 0) * 90ms);
+}
+@keyframes reveal {
+  from {
+    transform: translateY(105%);
+  }
+}
+
+/* Bell rings once when there are new notices; the count pops in. */
+.bell-ring {
+  transform-origin: 50% 8%;
+  animation: ring 0.9s ease-in-out 0.9s both;
+}
+@keyframes ring {
+  0%, 100% { transform: rotate(0); }
+  15% { transform: rotate(16deg); }
+  30% { transform: rotate(-13deg); }
+  45% { transform: rotate(9deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(3deg); }
+}
+.badge-pop {
+  animation: pop-in 0.45s var(--ease-pop) 0.8s both;
+}
+
+/* Sliding pill under the active tab / language. */
+.slide-pill {
+  transition: transform 0.45s var(--ease-pop), opacity 0.2s;
+}
+.tab-icon-on {
+  animation: icon-jump 0.45s var(--ease-pop);
+}
+
+/* Home again later in the same visit: no arrival, everything already in place. */
+.calm .enter,
+.calm .pop-in,
+.calm .reveal > span,
+.calm .tick-pop,
+.calm .badge-pop,
+.calm .bell-ring {
+  animation: none;
+}
+.calm .tick-draw path,
+.calm .tick-draw polyline {
+  animation: none;
+  stroke-dashoffset: 0;
+}
+
+/* Every other screen fades up when it opens. */
+.page-in {
+  animation: enter 0.45s var(--ease-out) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .enter,
+  .pop-in,
+  .reveal > span,
+  .tick-pop,
+  .bell-ring,
+  .badge-pop,
+  .tab-icon-on,
+  .page-in,
+  .pay-pulse::before {
+    animation: none;
+  }
+  .tick-draw path,
+  .tick-draw polyline {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .slide-pill {
+    transition: none;
+  }
 }
