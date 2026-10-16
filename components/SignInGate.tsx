@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, hasSignInMark, markSignedIn } from "@/lib/api";
 import { DEMO, demoSignedIn } from "@/lib/demo";
+import { isErpMode } from "@/lib/erpMode";
 
 /**
  * Opening the app when not signed in goes straight to the sign-in page: no screen of the app is
@@ -14,6 +15,7 @@ export function SignInGate({ children }: { children: React.ReactNode }) {
   const [ok, setOk] = useState(false);
   useEffect(() => {
     const out = () => window.location.replace("/login/");
+    if (isErpMode()) return hasSignInMark() ? setOk(true) : out();
     if (DEMO) return demoSignedIn() ? setOk(true) : out();
     if (hasSignInMark()) return setOk(true);
     api("/me")

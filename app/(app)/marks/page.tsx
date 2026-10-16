@@ -36,7 +36,7 @@ export default function MarksPage() {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (data && !exam) {
+    if (data?.exams.length && data.sections.length && !exam) {
       setExam(data.exams[0].id);
       setSectionId(data.sections[0].id);
       setSubject(data.sections[0].subjects[0]);

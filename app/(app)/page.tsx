@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Banknote, Bell, BookOpen, CalendarCheck, CalendarX2, Check, ChevronRight, Clock3, Megaphone, Menu as MenuIcon, MessageCircle, NotebookPen, Search, Table2, TrendingUp, Users, X, type LucideIcon } from "lucide-react";
+import { Banknote, Bell, BookOpen, Briefcase, Bus, Cake, CalendarCheck, CalendarClock, CalendarDays, CalendarX2, Check, ChevronRight, Clock3, FileText, IdCard, IndianRupee, LayoutDashboard, ListChecks, Megaphone, Menu as MenuIcon, MessageCircle, MessageSquareText, MessagesSquare, NotebookPen, Search, Table2, TrendingUp, Trophy, UserPlus, Users, X, type LucideIcon } from "lucide-react";
+import { isErpMode } from "@/lib/erpMode";
+import { toast } from "@/lib/toast";
 import { useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang, type Bi } from "@/lib/i18n";
@@ -11,7 +13,7 @@ import { useMenu } from "@/lib/menu";
 import { ripple } from "@/lib/motion";
 import { clock } from "@/lib/format";
 import { useUnseenNotices } from "@/lib/counts";
-import { Avatar, CountBadge, ErrorCard, OfflineNote, SchoolMark, Skeleton } from "@/components/ui";
+import { Avatar, CountBadge, ErrorCard, OfflineNote, Skeleton } from "@/components/ui";
 import { DriverHome } from "@/components/driver/DriverHome";
 
 interface Lesson {
@@ -31,7 +33,7 @@ interface Home {
   noticeCount?: number;
 }
 
-type Tile = { href: string; text: Bi; icon: LucideIcon };
+type Tile = { href: string; text: Bi; icon: LucideIcon; soon?: boolean };
 const TEACHER_GRID: Tile[] = [
   { href: "/attendance/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
   { href: "/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: BookOpen },
@@ -49,6 +51,30 @@ const OTHER_GRID: Tile[] = [
   { href: "/salary/", text: { hi: "सैलरी", en: "Salary" }, icon: Banknote },
   { href: "/notice/", text: { hi: "सूचना", en: "Notice" }, icon: Megaphone },
 ];
+/** ERP login: every module of the ERP website's menu. `soon` until that module is built here, one by one. */
+const ERP_GRID: Tile[] = [
+  { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" }, icon: LayoutDashboard, soon: true },
+  { href: "/erp/students/", text: { hi: "बच्चे", en: "Students" }, icon: Users },
+  { href: "/erp/fees/collect/", text: { hi: "फ़ीस", en: "Fees" }, icon: IndianRupee },
+  { href: "/erp/attendance/mark/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
+  { href: "/erp/students/enquiries/", text: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, icon: UserPlus },
+  { href: "/erp/messages/", text: { hi: "मैसेज", en: "Messages" }, icon: MessageSquareText },
+  { href: "/erp/meetings/", text: { hi: "मीटिंग", en: "Meetings" }, icon: CalendarClock },
+  { href: "/erp/parent-chats/", text: { hi: "अभिभावक चैट", en: "Parent Chats" }, icon: MessagesSquare },
+  { href: "/erp/exams/marks/", text: { hi: "परीक्षा", en: "Exams" }, icon: Trophy },
+  { href: "/erp/timetable/", text: { hi: "टाइम टेबल", en: "Time Table" }, icon: Table2 },
+  { href: "/erp/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: BookOpen },
+  { href: "/erp/syllabus/", text: { hi: "सिलेबस", en: "Syllabus" }, icon: ListChecks, soon: true },
+  { href: "/erp/copy-check/", text: { hi: "कॉपी जाँच", en: "Copy Check" }, icon: NotebookPen, soon: true },
+  { href: "/erp/staff/", text: { hi: "स्टाफ़", en: "Staff" }, icon: Briefcase, soon: true },
+  { href: "/erp/payroll/", text: { hi: "सैलरी", en: "Payroll" }, icon: Banknote, soon: true },
+  { href: "/erp/transport/", text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus, soon: true },
+  { href: "/erp/students/certificates/", text: { hi: "सर्टिफ़िकेट", en: "Certificates" }, icon: FileText },
+  { href: "/erp/students/id-cards/", text: { hi: "आईडी कार्ड", en: "ID Cards" }, icon: IdCard },
+  { href: "/erp/calendar/", text: { hi: "कैलेंडर", en: "Calendar" }, icon: CalendarDays, soon: true },
+  { href: "/erp/birthdays/", text: { hi: "जन्मदिन", en: "Birthdays" }, icon: Cake, soon: true },
+];
+// Settings is not a tile: it sits at the foot of the side menu (user, 2026-10-16).
 
 let arrived = false;
 
@@ -87,6 +113,42 @@ export default function HomePage() {
   // Every action shows from the start; "Show less" folds it to the first row.
   const [more, setMore] = useState(true);
 
+  // Scrolling: the teal band holds still while the top row sinks into the top edge and the rest
+  // slides up over it; once the Today card reaches where the banner was, the band scrolls away too.
+  const headRef = useRef<HTMLElement>(null);
+  const imgRef = useRef<HTMLImageElement>(null);
+  const todayRef = useRef<HTMLDivElement>(null);
+  const ready = !!me && me.role !== "driver";
+  useEffect(() => {
+    if (!ready) return;
+    const root = document.documentElement.style;
+    let frame = 0;
+    const paint = () => {
+      frame = 0;
+      const y = Math.max(0, window.scrollY);
+      const img = imgRef.current, today = todayRef.current, head = headRef.current;
+      const stop = img && today ? today.offsetTop - img.offsetTop : 0;
+      root.setProperty("--band-y", `${Math.min(y, stop)}px`);
+      if (head) {
+        const p = Math.min(1, y / 110);
+        head.style.opacity = String(1 - p);
+        head.style.transform = `translate3d(0,${-y * 0.25}px,0) scale(${1 - 0.08 * p})`;
+      }
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(paint);
+    };
+    paint();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", onScroll);
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", onScroll);
+      if (frame) cancelAnimationFrame(frame);
+      root.removeProperty("--band-y");
+    };
+  }, [ready]);
+
   const teacher = me?.role === "teacher";
   const first = me?.name.split(" ")[0] || "";
   const hour = +now.slice(0, 2);
@@ -104,8 +166,7 @@ export default function HomePage() {
       </div>
     );
 
-  const grid = teacher ? TEACHER_GRID : OTHER_GRID;
-  const school = me.school;
+  const grid = isErpMode() ? ERP_GRID : teacher ? TEACHER_GRID : OTHER_GRID;
   const tileCount: Record<string, { n: number; label: Bi }> = {
     "/messages/": { n: unreadChats, label: { hi: "नए संदेश", en: "new messages" } },
     "/notice/": { n: unread, label: { hi: "नई सूचनाएँ", en: "new notices" } },
@@ -120,16 +181,15 @@ export default function HomePage() {
 
   return (
     <div className={clsx("animate-fadeIn", calm && "calm")}>
-      <header className="pt-safe px-4">
-        {/* One row like the parent app: menu, school, then language, search, notices and the staff member. */}
+      <header ref={headRef} className="pt-safe origin-top px-4 will-change-transform">
+        {/* One row like the parent app: menu, search, then language, notices and the staff member. */}
         <div className="enter flex items-center gap-1.5 pt-4" style={v(0)}>
           <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 mr-0.5 grid h-11 w-10 shrink-0 place-items-center rounded-full text-white active:bg-white/15">
             <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
           </button>
-          <SchoolMark name={school.name} url={school.logoUrl} size={44} />
-          {/* Search fills the room between the logo and the language switch. */}
+          {/* Search fills the room between the menu and the language switch. */}
           {teacher ? (
-            <Link href="/students/?search=1" className="glass-search ml-1 mr-0.5 flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-3 text-ink-500" aria-label={L({ hi: "बच्चे खोजें", en: "Search students" })}>
+            <Link href={isErpMode() ? "/erp/students/?search=1" : "/students/?search=1"} className="glass-search ml-1 mr-0.5 flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-3 text-ink-500" aria-label={L({ hi: "बच्चे खोजें", en: "Search students" })}>
               <Search className="h-[18px] w-[18px] shrink-0 text-brand-800" strokeWidth={2.2} aria-hidden />
               <span className="truncate text-[14px]">{L({ hi: "खोजें", en: "Search" })}</span>
             </Link>
@@ -171,9 +231,15 @@ export default function HomePage() {
 
         {/* The school's banner, right under the greeting. */}
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/home-top.jpeg" alt={L({ hi: "स्टाफ पोर्टल – सेंट पॉल स्कूल", en: "Staff portal – St. Paul School" })} className="enter aspect-[1366/768] w-full rounded-2xl border border-ink-100 bg-ink-100 object-cover" style={v(3)} />
+        <img
+          ref={imgRef}
+          src={isErpMode() ? "/home-top-erp.jpg" : "/home-top.jpeg"}
+          alt={isErpMode() ? L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" }) : L({ hi: "स्टाफ पोर्टल – सेंट पॉल स्कूल", en: "Staff portal – St. Paul School" })}
+          className="enter aspect-[1366/768] w-full rounded-2xl border border-ink-100 bg-ink-100 object-cover" style={v(3)} />
 
-        <Today data={data} teacher={teacher} />
+        <div ref={todayRef}>
+          <Today data={data} teacher={teacher} />
+        </div>
 
         <section className="enter" style={v(4)}>
           <div className="mb-3 flex items-center justify-between">
@@ -187,7 +253,16 @@ export default function HomePage() {
           </div>
           {/* Four to a row; folded, only the first row shows. */}
           <div className="grid grid-cols-4 gap-2">
-            {(more ? grid : grid.slice(0, 4)).map(({ href, text, icon: Icon }, k) => (
+            {(more ? grid : grid.slice(0, 4)).map(({ href, text, icon: Icon, soon }, k) =>
+              soon ? (
+                // Not built yet in the app: drawn muted, a tap says so.
+                <button key={href} type="button" onPointerDown={ripple} onClick={() => toast(false, `${L(text)}: ${L({ hi: "जल्द आ रहा है", en: "coming soon" })}`)} className="quick-tile pop-in !text-ink-400" style={v(k)}>
+                  <span className="relative !text-ink-400">
+                    <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
+                  </span>
+                  {L(text)}
+                </button>
+              ) : (
               <Link key={href} href={href} onPointerDown={ripple} className="quick-tile pop-in" style={v(k)}>
                 <span className="relative">
                   <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
@@ -195,7 +270,8 @@ export default function HomePage() {
                 </span>
                 {L(text)}
               </Link>
-            ))}
+              )
+            )}
           </div>
         </section>
 
@@ -252,7 +328,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
 
   if (!data)
     return (
-      <section className="today-card space-y-3 pb-4">
+      <section className="today-card space-y-3 border-black pb-4">
         <Skeleton className="h-6 w-24" />
         {[0, 1, 2].map((k) => (
           <div key={k} className="flex items-center gap-3.5">
@@ -319,7 +395,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
   );
 
   return (
-    <section className="today-card enter" style={v(3)}>
+    <section className="today-card enter border-black" style={v(3)}>
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-[20px] font-bold text-brand-800">{L({ hi: "आज", en: "Today" })}</h2>
         <span className="truncate text-[13.5px] text-ink-500">{todayText(data.date, lang)}</span>

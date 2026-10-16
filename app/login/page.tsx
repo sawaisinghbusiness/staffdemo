@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import clsx from "clsx";
-import { ArrowLeft, Phone } from "lucide-react";
+import { ArrowLeft, Eye, EyeOff, Phone } from "lucide-react";
 import { api, ApiError, clearCache, markSignedIn } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { phoneText } from "@/lib/format";
 import { DEMO, DEMO_CODE } from "@/lib/demo";
-import { SchoolMark } from "@/components/ui";
+import { setErpMode } from "@/lib/erpMode";
+import { LineTabs, SchoolMark } from "@/components/ui";
 
 interface PublicSchool {
   name: string;
@@ -28,6 +29,10 @@ export default function LoginPage() {
   const L = useL();
   const { lang, setLang } = useLang();
   const [school, setSchool] = useState<PublicSchool | null>(null);
+  const [mode, setMode] = useState<"staff" | "erp">("staff");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [step, setStep] = useState<"mobile" | "code">("mobile");
   const [mobile, setMobile] = useState("");
   const [role, setRole] = useState<Role>("teacher");
@@ -89,6 +94,7 @@ export default function LoginPage() {
     setError("");
     try {
       await api("/verify", { body: { mobile, code: value, role } });
+      setErpMode(false);
       clearCache();
       markSignedIn(true);
       window.location.replace("/");
@@ -98,6 +104,47 @@ export default function LoginPage() {
       setBusy(false);
     }
   }
+
+  /** ERP login: the ERP website's own username + password, checked by the backend's /api/auth/login (real backend even in demo). */
+  async function erpLogin(e: React.FormEvent) {
+    e.preventDefault();
+    if (!username.trim() || !password) {
+      setError(L({ hi: "यूज़रनेम और पासवर्ड दोनों डालें।", en: "Enter both username and password." }));
+      setShake((n) => n + 1);
+      return;
+    }
+    setBusy(true);
+    setError("");
+    try {
+      let res: Response;
+      try {
+        res = await fetch("/api/auth/login", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ identifier: username.trim(), password }),
+          cache: "no-store",
+        });
+      } catch {
+        throw new ApiError(0, "offline");
+      }
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new ApiError(res.status, (data as any)?.error || L({ hi: "यूज़रनेम या पासवर्ड गलत है।", en: "Wrong username or password." }));
+      clearCache();
+      setErpMode(true);
+      markSignedIn(true);
+      window.location.replace("/");
+    } catch (err) {
+      fail(err);
+      setPassword("");
+      setBusy(false);
+    }
+  }
+
+  const switchMode = (m: "staff" | "erp") => {
+    setMode(m);
+    setError("");
+  };
 
   return (
     <main className="pt-safe mx-auto flex min-h-[100dvh] max-w-[440px] flex-col bg-white px-5 pb-6">
@@ -113,13 +160,74 @@ export default function LoginPage() {
         <p className="text-[13px] text-ink-500">{school?.address || L({ hi: "स्टाफ़ ऐप", en: "Staff app" })}</p>
       </div>
 
-      <div className="pb-4 pt-8">
-        <h1 className="text-[24px] font-extrabold">{L({ hi: "स्टाफ़ लॉगिन", en: "Staff sign in" })}</h1>
-        <p className="mt-1 text-[14px] text-ink-500">{L({ hi: "वही नंबर डालें जो स्कूल में आपके रिकॉर्ड में दर्ज है।", en: "Use the number the school has on your record." })}</p>
+      <div className="mt-6">
+        <LineTabs
+          label={L({ hi: "लॉगिन का तरीका", en: "Sign-in type" })}
+          value={mode}
+          onChange={switchMode}
+          options={[
+            { key: "staff", text: L({ hi: "स्टाफ़", en: "Staff" }) },
+            { key: "erp", text: L({ hi: "ERP लॉगिन", en: "ERP login" }) },
+          ]}
+        />
+      </div>
+
+      <div className="pb-4 pt-6">
+        <h1 className="text-[24px] font-extrabold">{mode === "erp" ? L({ hi: "ERP लॉगिन", en: "ERP sign in" }) : L({ hi: "स्टाफ़ लॉगिन", en: "Staff sign in" })}</h1>
+        <p className="mt-1 text-[14px] text-ink-500">
+          {mode === "erp"
+            ? L({ hi: "वही यूज़रनेम और पासवर्ड डालें जो स्कूल की ERP वेबसाइट पर चलता है।", en: "Use the username and password of the school's ERP website." })
+            : L({ hi: "वही नंबर डालें जो स्कूल में आपके रिकॉर्ड में दर्ज है।", en: "Use the number the school has on your record." })}
+        </p>
       </div>
 
       <div key={shake} className={clsx(shake > 0 && "animate-shake")}>
-        {step === "mobile" ? (
+        {mode === "erp" ? (
+          <form onSubmit={erpLogin} noValidate>
+            <label className="field-box">
+              <small>{L({ hi: "यूज़रनेम", en: "Username" })}</small>
+              <input
+                id="erp-username"
+                type="text"
+                autoComplete="username"
+                autoCapitalize="none"
+                spellCheck={false}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="text-[17px] font-semibold placeholder:font-normal"
+                placeholder={L({ hi: "जैसे admin", en: "e.g. admin" })}
+              />
+            </label>
+            <label className="field-box mt-3">
+              <small>{L({ hi: "पासवर्ड", en: "Password" })}</small>
+              <input
+                id="erp-password"
+                type={showPass ? "text" : "password"}
+                autoComplete="current-password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="text-[17px] font-semibold placeholder:font-normal"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPass((s) => !s)}
+                aria-label={showPass ? L({ hi: "पासवर्ड छुपाएँ", en: "Hide password" }) : L({ hi: "पासवर्ड दिखाएँ", en: "Show password" })}
+                className="grid min-h-[44px] min-w-[44px] place-items-center self-center text-ink-500"
+              >
+                {showPass ? <EyeOff className="h-5 w-5" aria-hidden /> : <Eye className="h-5 w-5" aria-hidden />}
+              </button>
+            </label>
+            {error && (
+              <p className="mt-3 font-medium text-rose-700" role="alert">
+                {error}
+              </p>
+            )}
+            <button type="submit" disabled={busy} className="btn-primary mt-5 w-full">
+              {busy ? "…" : L({ hi: "लॉगिन करें", en: "Sign in" })}
+            </button>
+            <p className="mt-3 text-center text-[13px] text-ink-500">{L({ hi: "एडमिन, अकाउंटेंट और ऑफ़िस स्टाफ़ के लिए", en: "For admin, accountant and office staff" })}</p>
+          </form>
+        ) : step === "mobile" ? (
           <form onSubmit={sendCode} noValidate>
             {DEMO && (
               <fieldset className="mb-3">

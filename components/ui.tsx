@@ -239,9 +239,14 @@ export function CallOffice({ phone, className }: { phone?: string; className?: s
   );
 }
 
-/** Save bar that sits just above the tab bar on long lists (attendance, homework check, marks). */
+/**
+ * Save bar that sits just above the tab bar on long lists (attendance, homework check, marks).
+ * Drawn on <body>: the page's entry animation leaves a transform on the page wrapper, which would
+ * otherwise pin this "fixed" bar to the end of the list instead of the screen.
+ */
 export function StickyBar({ children }: { children: React.ReactNode }) {
-  return <div className="fixed inset-x-0 bottom-[calc(66px+env(safe-area-inset-bottom))] z-10 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
+  const bar = <div className="fixed inset-x-0 bottom-[calc(66px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
+  return typeof document === "undefined" ? bar : createPortal(bar, document.body);
 }
 
 /** Bottom sheet with a grab handle. Closes on the dim area, the X and Escape. */

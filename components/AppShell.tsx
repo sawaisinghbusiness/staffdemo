@@ -8,6 +8,7 @@ import { CalendarCheck, ChevronLeft, History, Home, Menu as MenuIcon, Plus, User
 import { useStaff } from "@/lib/staff";
 import { useL, type Bi } from "@/lib/i18n";
 import { MenuContext } from "@/lib/menu";
+import { isErpMode } from "@/lib/erpMode";
 import { ErrorCard, OfflineNote } from "./ui";
 import { SideMenu } from "./SideMenu";
 
@@ -52,7 +53,46 @@ const PAGES: Record<string, PageInfo> = {
   "/trip/history/": { title: { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, back: "/" },
   "/messages/": { title: { hi: "अभिभावकों की पूछताछ", en: "Parent Enquiries" }, tab: "/", teacher: true },
   "/messages/chat/": { title: { hi: "संदेश", en: "Message" }, back: "/messages/", teacher: true, own: true, bare: true },
+  // ERP login's own screens (the ERP website's modules, one by one).
+  "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" } } },
+  "/erp/students/enquiries/": { title: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, tab: "/erp/students/", action: { href: "/erp/students/enquiries/new/", text: { hi: "नई पूछताछ", en: "New enquiry" } } },
+  "/erp/students/enquiries/detail/": { title: { hi: "पूछताछ", en: "Enquiry" }, back: "/erp/students/enquiries/", tab: "/erp/students/" },
+  "/erp/students/enquiries/new/": { title: { hi: "नई पूछताछ", en: "New Enquiry" }, back: "/erp/students/enquiries/", tab: "/erp/students/" },
+  "/erp/students/promote/": { title: { hi: "प्रमोट और ट्रांसफ़र", en: "Promote & Transfer" }, tab: "/erp/students/" },
+  "/erp/students/certificates/": { title: { hi: "सर्टिफ़िकेट", en: "Certificates" }, tab: "/erp/students/", action: { href: "/erp/students/certificates/issue/", text: { hi: "सर्टिफ़िकेट दें", en: "Issue certificate" } } },
+  "/erp/students/certificates/issue/": { title: { hi: "सर्टिफ़िकेट दें", en: "Issue Certificate" }, back: "/erp/students/certificates/", tab: "/erp/students/" },
+  "/erp/students/photos/": { title: { hi: "बच्चों की फ़ोटो", en: "Photos" }, tab: "/erp/students/" },
+  "/erp/students/id-cards/": { title: { hi: "आईडी कार्ड", en: "ID Cards" }, tab: "/erp/students/" },
+  "/erp/fees/dues/": { title: { hi: "बाकी फ़ीस और याद", en: "Dues & Reminders" }, tab: "/" },
+  "/erp/fees/receipts/": { title: { hi: "रसीदें", en: "Receipts" }, tab: "/" },
+  "/erp/fees/reports/": { title: { hi: "फ़ीस रिपोर्ट", en: "Fee Reports" }, tab: "/" },
+  "/erp/fees/online/": { title: { hi: "ऑनलाइन पेमेंट", en: "Online Payments" }, tab: "/" },
+  "/erp/attendance/mark/": { title: { hi: "हाज़िरी लगाएँ", en: "Mark Attendance" }, tab: "/erp/attendance/mark/" },
+  "/erp/attendance/mark/section/": { title: { hi: "हाज़िरी", en: "Roll Call" }, back: "/erp/attendance/mark/", tab: "/erp/attendance/mark/" },
+  "/erp/exams/marks/": { title: { hi: "अंक भरें", en: "Marks Entry" }, tab: "/" },
+  "/erp/exams/marks/sheet/": { title: { hi: "अंक", en: "Marks" }, back: "/erp/exams/marks/", tab: "/" },
+  "/erp/exams/report-cards/": { title: { hi: "रिपोर्ट कार्ड", en: "Report Cards" }, tab: "/" },
+  "/erp/exams/setup/": { title: { hi: "परीक्षा सेटअप", en: "Exam Setup" }, tab: "/" },
+  "/erp/exams/setup/edit/": { title: { hi: "परीक्षा", en: "Exam" }, back: "/erp/exams/setup/", tab: "/" },
+  "/erp/timetable/": { title: { hi: "टाइम टेबल", en: "Time Table" }, tab: "/" },
+  "/erp/homework/": { title: { hi: "होमवर्क", en: "Homework" }, tab: "/" },
+  "/erp/parent-chats/": { title: { hi: "अभिभावक-टीचर चैट", en: "Parent–Teacher Chats" }, tab: "/" },
+  "/erp/parent-chats/chat/": { title: { hi: "चैट", en: "Chat" }, back: "/erp/parent-chats/", tab: "/" },
+  "/erp/meetings/": { title: { hi: "मीटिंग और PTM", en: "Meetings & PTM" }, tab: "/", action: { href: "/erp/meetings/new/", text: { hi: "नई मीटिंग", en: "New meeting" } } },
+  "/erp/meetings/new/": { title: { hi: "नई मीटिंग", en: "New Meeting" }, back: "/erp/meetings/", tab: "/" },
+  "/erp/messages/": { title: { hi: "मैसेज", en: "Messages" }, tab: "/", action: { href: "/erp/messages/new/", text: { hi: "नया मैसेज", en: "New message" } } },
+  "/erp/messages/new/": { title: { hi: "नया मैसेज", en: "New Message" }, back: "/erp/messages/", tab: "/" },
+  "/erp/messages/detail/": { title: { hi: "मैसेज भेजें", en: "Send Message" }, back: "/erp/messages/", tab: "/" },
+  "/erp/attendance/leave/": { title: { hi: "छुट्टी की अर्ज़ियाँ", en: "Leave Requests" }, tab: "/erp/attendance/mark/" },
+  "/erp/attendance/register/": { title: { hi: "हाज़िरी रजिस्टर", en: "Attendance Register" }, tab: "/erp/attendance/mark/" },
+  "/erp/fees/setup/": { title: { hi: "फ़ीस सेटअप", en: "Fee Setup" }, tab: "/" },
+  "/erp/fees/collect/": { title: { hi: "फ़ीस जमा करें", en: "Collect Fee" }, tab: "/" },
+  "/erp/students/admission/": { title: { hi: "प्रवेश फ़ॉर्म", en: "Admission form" }, back: "/erp/students/", tab: "/erp/students/" },
+  "/erp/students/detail/": { title: { hi: "बच्चा", en: "Student" }, back: "/erp/students/", tab: "/erp/students/" },
 };
+
+/** ERP login: the Students tab opens the ERP's all-students list. */
+const ERP_TABS = TEACHER_TABS.map((t) => (t.href === "/students/" ? { ...t, href: "/erp/students/" } : t.href === "/attendance/" ? { ...t, href: "/erp/attendance/mark/" } : t));
 
 /** Drivers get their own bar: a black pill with Record, Home (raised, yellow) and Profile. */
 function DriverNav({ path }: { path: string }) {
@@ -101,7 +141,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const own = !!page?.own;
   const teacher = !me || me.role === "teacher";
   const driver = me?.role === "driver";
-  const tabs = teacher ? TEACHER_TABS : OTHER_TABS;
+  const [erp] = useState(isErpMode);
+  const tabs = erp ? ERP_TABS : teacher ? TEACHER_TABS : OTHER_TABS;
   // Home sits on the teal band (the user's pick, 2026-10-14), so its header buttons are white.
   const band = !driver && isHome;
   const onBand = band ? "text-white active:bg-white/15" : "text-ink-900 active:bg-ink-100";
@@ -149,7 +190,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
     <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : band ? "teal-page" : "bg-ink-50")}>
       {/* The teal band, on Home only for now: under the header, down to the middle of the banner. */}
-      {band && <div aria-hidden className="teal-band" style={{ height: "calc(env(safe-area-inset-top, 0px) + 220px)" }} />}
+      {band && <div aria-hidden className="teal-band" style={{ height: "calc(env(safe-area-inset-top, 0px) + 220px)", transform: "translate3d(0,var(--band-y,0px),0)", willChange: "transform" }} />}
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">

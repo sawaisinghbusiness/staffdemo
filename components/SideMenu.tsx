@@ -10,6 +10,7 @@ import {
   BookOpen,
   CalendarCheck,
   CalendarX2,
+  ChevronDown,
   Clock3,
   Home,
   LogOut,
@@ -25,6 +26,9 @@ import {
 } from "lucide-react";
 import { api, clearCache, markSignedIn } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
+import { isErpMode } from "@/lib/erpMode";
+import { toast } from "@/lib/toast";
+import { ERP_MENU, ERP_SETTINGS, type ErpItem } from "@/lib/erpNav";
 import { useCounts } from "@/lib/counts";
 import { useL, useLang, type Bi } from "@/lib/i18n";
 import { Avatar, CountBadge, SchoolMark } from "./ui";
@@ -68,6 +72,8 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
   const [leaving, setLeaving] = useState(false);
   const swipe = useRef<number | null>(null);
   const teacher = !me || me.role === "teacher";
+  const [erp] = useState(isErpMode);
+  const [openKey, setOpenKey] = useState<string | null>(null);
   const counts = useCounts();
   const count: Record<string, number> = { "/messages/": counts.chats, "/notice/": counts.notices, "/leave/": counts.leaves };
 
@@ -125,6 +131,60 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
     </div>
   );
 
+  const soon = (text: Bi) => toast(false, `${L(text)}: ${L({ hi: "जल्द आ रहा है", en: "coming soon" })}`);
+  const rowCls = "mx-2 flex min-h-[48px] w-[calc(100%-16px)] items-center gap-3.5 rounded-xl px-3 text-left text-[15.5px] active:bg-ink-100";
+
+  /** One ERP module: a link, a "soon" row, or a row that folds open its sub-pages. */
+  const erpRow = (item: ErpItem) => {
+    const Icon = item.icon;
+    const key = item.text.en;
+    const isOpen = openKey === key;
+    const label = <span className="min-w-0 flex-1 truncate">{L(item.text)}</span>;
+    const icon = <Icon className={clsx("h-[21px] w-[21px] shrink-0", item.soon ? "text-ink-400" : "text-ink-900")} strokeWidth={1.8} aria-hidden />;
+    if (item.children)
+      return (
+        <li key={key}>
+          <button type="button" onClick={() => setOpenKey(isOpen ? null : key)} aria-expanded={isOpen} className={clsx(rowCls, "font-medium text-ink-800", isOpen && "bg-ink-50")}>
+            {icon}
+            {label}
+            <ChevronDown className={clsx("h-[18px] w-[18px] shrink-0 text-ink-400 transition-transform duration-200", isOpen && "rotate-180")} aria-hidden />
+          </button>
+          {isOpen && (
+            <ul className="pb-1">
+              {item.children.map((c) => (
+                <li key={c.href}>
+                  {c.soon ? (
+                    <button type="button" onClick={() => soon(c.text)} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px] font-medium text-ink-400")}>
+                      <span className="min-w-0 flex-1 truncate">{L(c.text)}</span>
+                    </button>
+                  ) : (
+                    <Link href={c.href} onClick={close} aria-current={path === c.href ? "page" : undefined} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px]", path === c.href ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-700")}>
+                      <span className="min-w-0 flex-1 truncate">{L(c.text)}</span>
+                    </Link>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      );
+    return (
+      <li key={key}>
+        {item.soon || !item.href ? (
+          <button type="button" onClick={() => soon(item.text)} className={clsx(rowCls, "font-medium text-ink-400")}>
+            {icon}
+            {label}
+          </button>
+        ) : (
+          <Link href={item.href} onClick={close} aria-current={path === item.href ? "page" : undefined} className={clsx(rowCls, path === item.href ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-800")}>
+            {icon}
+            {label}
+          </Link>
+        )}
+      </li>
+    );
+  };
+
   // Drawn on <body>, so the page's own layers (and the tab bar) can't sit on top of it.
   return createPortal(
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={L({ hi: "मेन्यू", en: "Menu" })}>
@@ -167,9 +227,27 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
                 </div>
               </div>
             )}
-            <div className="border-t border-ink-100">{group(null, teacher ? TEACHER_MAIN : OTHER_MAIN)}</div>
-            {teacher && <div className="border-t border-ink-100">{group({ hi: "स्कूल", en: "School" }, TEACHER_SCHOOL)}</div>}
-            <div className="border-t border-ink-100">{group({ hi: "मेरा खाता", en: "My account" }, ACCOUNT)}</div>
+            {erp ? (
+              // ERP login: the ERP website's whole menu, sub-pages folded under each module; Settings last.
+              <>
+                {ERP_MENU.map((g, i) => (
+                  <div key={i} className="border-t border-ink-100 py-1.5">
+                    {g.title && <p className="px-5 pb-1 pt-2 text-[12.5px] font-semibold text-ink-400">{L(g.title)}</p>}
+                    <ul>{g.items.map(erpRow)}</ul>
+                  </div>
+                ))}
+                <div className="border-t border-ink-100">{group({ hi: "मेरा खाता", en: "My account" }, [ACCOUNT[2]])}</div>
+                <div className="border-t border-ink-100 py-1.5">
+                  <ul>{erpRow(ERP_SETTINGS)}</ul>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="border-t border-ink-100">{group(null, teacher ? TEACHER_MAIN : OTHER_MAIN)}</div>
+                {teacher && <div className="border-t border-ink-100">{group({ hi: "स्कूल", en: "School" }, TEACHER_SCHOOL)}</div>}
+                <div className="border-t border-ink-100">{group({ hi: "मेरा खाता", en: "My account" }, ACCOUNT)}</div>
+              </>
+            )}
           </div>
 
           {/* Language and sign out */}

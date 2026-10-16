@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect } from "react";
 import { useApi, type ApiError } from "./api";
 import { DEMO, demoSignedIn } from "./demo";
+import { isErpMode } from "./erpMode";
 import type { Bi } from "./i18n";
 
 export interface MySection {
@@ -37,7 +38,7 @@ export function StaffProvider({ children }: { children: React.ReactNode }) {
   const { data: me, stale, error, reload } = useApi<Me>("/me");
   useEffect(() => {
     // Signed out: straight to sign-in, without first drawing the home screen.
-    if (DEMO && !demoSignedIn()) window.location.replace("/login/");
+    if (DEMO && !isErpMode() && !demoSignedIn()) window.location.replace("/login/");
   }, []);
   return <Ctx.Provider value={{ me, stale, error: me ? null : error, reload }}>{children}</Ctx.Provider>;
 }

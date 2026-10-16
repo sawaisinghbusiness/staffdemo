@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DEMO, demoApi } from "./demo";
+import { erpApi, isErpMode } from "./erpMode";
 
 export class ApiError extends Error {
   constructor(public status: number, message: string) {
@@ -15,6 +16,14 @@ const TIMEOUT_MS = 15_000;
 /** Calls the backend through this site's own /api (same domain, so the sign-in cookie just works). */
 export async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
   const method = init?.method || (init?.body ? "POST" : "GET");
+  // ERP login: the teacher app's screens, empty (see lib/erpMode.ts). Sign-in itself still goes to staff-app.
+  if (isErpMode() && path !== "/otp" && path !== "/verify") {
+    try {
+      return (await erpApi(path, method, init?.body)) as T;
+    } catch (e: any) {
+      throw new ApiError(e?.status ?? 500, e?.message || "");
+    }
+  }
   if (DEMO) {
     try {
       return (await demoApi(path, method, init?.body)) as T;
