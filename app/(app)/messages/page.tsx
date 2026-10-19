@@ -31,7 +31,7 @@ export default function MessagesPage() {
   return (
     <div className="space-y-4">
       {data.classes.length > 1 && (
-        <div className="no-scrollbar -mx-4 flex gap-2 overflow-x-auto px-4" role="tablist" aria-label={L({ hi: "कक्षा", en: "Class" })}>
+        <div className="no-scrollbar stick-chips flex gap-2 overflow-x-auto" role="tablist" aria-label={L({ hi: "कक्षा", en: "Class" })}>
           {["", ...data.classes].map((c) => (
             <button
               key={c || "all"}

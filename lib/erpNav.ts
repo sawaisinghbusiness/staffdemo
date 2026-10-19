@@ -43,13 +43,15 @@ export interface ErpGroup {
 }
 
 const s = (hi: string, en: string, href: string): ErpSub => ({ text: { hi, en }, href, soon: true });
+/** A sub-page that is built here. */
+const a = (hi: string, en: string, href: string): ErpSub => ({ text: { hi, en }, href });
 
 export const ERP_MENU: ErpGroup[] = [
   {
     title: null,
     items: [
       { text: { hi: "होम", en: "Home" }, icon: Home, href: "/" },
-      { text: { hi: "रिपोर्ट", en: "Report" }, icon: LayoutDashboard, children: [s("आज का सार", "Overview", "/erp/report/"), s("सारी रिपोर्ट", "All reports", "/erp/reports/")] },
+      { text: { hi: "रिपोर्ट", en: "Report" }, icon: LayoutDashboard, children: [{ text: { hi: "आज का सार", en: "Overview" }, href: "/erp/report/" }, s("सारी रिपोर्ट", "All reports", "/erp/reports/")] },
     ],
   },
   {
@@ -83,7 +85,7 @@ export const ERP_MENU: ErpGroup[] = [
         text: { hi: "हाज़िरी", en: "Attendance" },
         icon: CalendarCheck,
         children: [
-          s("आज की हाज़िरी", "Today", "/erp/attendance/today/"),
+          a("आज की हाज़िरी", "Today", "/erp/attendance/today/"),
           { text: { hi: "हाज़िरी लगाएँ", en: "Mark attendance" }, href: "/erp/attendance/mark/" },
           { text: { hi: "रजिस्टर और रिपोर्ट", en: "Register & reports" }, href: "/erp/attendance/register/" },
           { text: { hi: "छुट्टी की अर्ज़ियाँ", en: "Leave requests" }, href: "/erp/attendance/leave/" },
@@ -92,8 +94,8 @@ export const ERP_MENU: ErpGroup[] = [
       { text: { hi: "मैसेज", en: "Messages" }, icon: MessageSquareText, children: [{ text: { hi: "सारे मैसेज", en: "All messages" }, href: "/erp/messages/" }, { text: { hi: "नया मैसेज", en: "New message" }, href: "/erp/messages/new/" }] },
       { text: { hi: "मीटिंग और PTM", en: "Meetings & PTM" }, icon: CalendarClock, href: "/erp/meetings/" },
       { text: { hi: "अभिभावक-टीचर चैट", en: "Parent–teacher chats" }, icon: MessagesSquare, href: "/erp/parent-chats/" },
-      { text: { hi: "कैलेंडर", en: "Calendar" }, icon: CalendarDays, href: "/erp/calendar/", soon: true },
-      { text: { hi: "जन्मदिन", en: "Birthdays" }, icon: Cake, href: "/erp/birthdays/", soon: true },
+      { text: { hi: "कैलेंडर", en: "Calendar" }, icon: CalendarDays, href: "/erp/calendar/" },
+      { text: { hi: "जन्मदिन", en: "Birthdays" }, icon: Cake, href: "/erp/birthdays/" },
     ],
   },
   {
@@ -102,8 +104,8 @@ export const ERP_MENU: ErpGroup[] = [
       { text: { hi: "परीक्षा", en: "Exams" }, icon: Trophy, children: [{ text: { hi: "अंक भरें", en: "Marks entry" }, href: "/erp/exams/marks/" }, { text: { hi: "रिपोर्ट कार्ड", en: "Report cards" }, href: "/erp/exams/report-cards/" }, { text: { hi: "परीक्षा सेटअप", en: "Exam setup" }, href: "/erp/exams/setup/" }] },
       { text: { hi: "टाइम टेबल", en: "Time Table" }, icon: Table2, href: "/erp/timetable/" },
       { text: { hi: "होमवर्क", en: "Homework" }, icon: NotebookPen, href: "/erp/homework/" },
-      { text: { hi: "सिलेबस", en: "Syllabus" }, icon: ListChecks, href: "/erp/syllabus/", soon: true },
-      { text: { hi: "कॉपी जाँच", en: "Copy check" }, icon: ClipboardCheck, href: "/erp/copy-check/", soon: true },
+      { text: { hi: "सिलेबस", en: "Syllabus" }, icon: ListChecks, href: "/erp/syllabus/" },
+      { text: { hi: "कॉपी जाँच", en: "Copy check" }, icon: ClipboardCheck, href: "/erp/copy-check/" },
     ],
   },
   {
@@ -113,15 +115,15 @@ export const ERP_MENU: ErpGroup[] = [
         text: { hi: "स्टाफ़", en: "Staff" },
         icon: Briefcase,
         children: [
-          s("स्टाफ़ लिस्ट", "Directory", "/erp/staff/"),
-          s("नया स्टाफ़", "Add staff", "/erp/staff/new/"),
-          s("विषय बँटवारा", "Allocation", "/erp/staff/allocation/"),
-          s("स्टाफ़ हाज़िरी", "Staff attendance", "/erp/staff/attendance/"),
-          s("स्टाफ़ छुट्टी", "Staff leave", "/erp/staff/leave/"),
-          s("सैलरी", "Payroll", "/erp/staff/payroll/"),
+          a("स्टाफ़ लिस्ट", "Directory", "/erp/staff/"),
+          a("नया स्टाफ़", "Add staff", "/erp/staff/new/"),
+          a("विषय बँटवारा", "Allocation", "/erp/staff/allocation/"),
+          a("स्टाफ़ हाज़िरी", "Staff attendance", "/erp/staff/attendance/"),
+          a("स्टाफ़ छुट्टी", "Staff leave", "/erp/staff/attendance/?tab=leave"),
+          a("सैलरी", "Payroll", "/erp/staff/payroll/"),
         ],
       },
-      { text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus, children: [s("रूट और बस", "Routes & buses", "/erp/transport/"), s("बस के बच्चे", "Bus students", "/erp/transport/students/")] },
+      { text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus, children: [a("रूट और बस", "Routes & buses", "/erp/transport/"), a("बस के बच्चे", "Bus students", "/erp/transport/students/")] },
     ],
   },
 ];
@@ -131,11 +133,11 @@ export const ERP_SETTINGS: ErpItem = {
   text: { hi: "सेटिंग", en: "Settings" },
   icon: Settings2,
   children: [
-    s("स्कूल और सत्र", "School & sessions", "/erp/settings/"),
-    s("कक्षा और विषय", "Classes & subjects", "/erp/settings/classes/"),
-    s("यूज़र और रोल", "Users & roles", "/erp/settings/users/"),
-    s("WhatsApp", "WhatsApp", "/erp/settings/whatsapp/"),
-    s("मैसेज टेम्पलेट", "Message templates", "/erp/settings/templates/"),
+    a("स्कूल और सत्र", "School & sessions", "/erp/settings/"),
+    a("कक्षा और विषय", "Classes & subjects", "/erp/settings/classes/"),
+    a("यूज़र और रोल", "Users & roles", "/erp/settings/users/"),
+    a("WhatsApp", "WhatsApp", "/erp/settings/whatsapp/"),
+    a("मैसेज टेम्पलेट", "Message templates", "/erp/settings/templates/"),
     s("डेटा", "Data", "/erp/settings/data/"),
   ],
 };

@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
-import { CalendarCheck, ChevronLeft, History, Home, Menu as MenuIcon, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
+import { CalendarCheck, ChevronLeft, History, Home, LayoutDashboard, Menu as MenuIcon, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
 import { useStaff } from "@/lib/staff";
 import { useL, type Bi } from "@/lib/i18n";
 import { MenuContext } from "@/lib/menu";
@@ -83,16 +83,43 @@ const PAGES: Record<string, PageInfo> = {
   "/erp/messages/": { title: { hi: "मैसेज", en: "Messages" }, tab: "/", action: { href: "/erp/messages/new/", text: { hi: "नया मैसेज", en: "New message" } } },
   "/erp/messages/new/": { title: { hi: "नया मैसेज", en: "New Message" }, back: "/erp/messages/", tab: "/" },
   "/erp/messages/detail/": { title: { hi: "मैसेज भेजें", en: "Send Message" }, back: "/erp/messages/", tab: "/" },
+  "/erp/settings/templates/": { title: { hi: "मैसेज टेम्पलेट", en: "Message Templates" }, tab: "/" },
+  "/erp/copy-check/": { title: { hi: "कॉपी जाँच", en: "Copy Check" }, tab: "/" },
+  "/erp/copy-check/sheet/": { title: { hi: "कॉपी जाँच", en: "Copy Check" }, back: "/erp/copy-check/", tab: "/" },
+  "/erp/syllabus/": { title: { hi: "सिलेबस", en: "Syllabus" }, tab: "/" },
+  "/erp/syllabus/plan/": { title: { hi: "अध्याय प्लान", en: "Chapter Plan" }, back: "/erp/syllabus/", tab: "/" },
+  "/erp/staff/allocation/": { title: { hi: "विषय बँटवारा", en: "Subject Allocation" }, tab: "/" },
+  "/erp/calendar/": { title: { hi: "कैलेंडर", en: "Calendar" }, tab: "/" },
+  "/erp/birthdays/": { title: { hi: "जन्मदिन", en: "Birthdays" }, tab: "/" },
+  "/erp/attendance/today/": { title: { hi: "आज की हाज़िरी", en: "Today's Attendance" }, tab: "/erp/attendance/mark/" },
   "/erp/attendance/leave/": { title: { hi: "छुट्टी की अर्ज़ियाँ", en: "Leave Requests" }, tab: "/erp/attendance/mark/" },
   "/erp/attendance/register/": { title: { hi: "हाज़िरी रजिस्टर", en: "Attendance Register" }, tab: "/erp/attendance/mark/" },
   "/erp/fees/setup/": { title: { hi: "फ़ीस सेटअप", en: "Fee Setup" }, tab: "/" },
   "/erp/fees/collect/": { title: { hi: "फ़ीस जमा करें", en: "Collect Fee" }, tab: "/" },
   "/erp/students/admission/": { title: { hi: "प्रवेश फ़ॉर्म", en: "Admission form" }, back: "/erp/students/", tab: "/erp/students/" },
+  "/erp/staff/": { title: { hi: "स्टाफ़ लिस्ट", en: "Staff Directory" }, tab: "/" },
+  "/erp/staff/detail/": { title: { hi: "स्टाफ़", en: "Staff" }, back: "/erp/staff/", tab: "/" },
+  "/erp/staff/new/": { title: { hi: "नया स्टाफ़", en: "Add Staff" }, back: "/erp/staff/", tab: "/" },
+  "/erp/staff/class-teachers/": { title: { hi: "क्लास टीचर", en: "Class Teachers" }, back: "/erp/staff/", tab: "/" },
+  "/erp/staff/attendance/": { title: { hi: "स्टाफ़ हाज़िरी और छुट्टी", en: "Staff Attendance & Leave" }, tab: "/" },
+  "/erp/transport/": { title: { hi: "रूट और बस", en: "Routes & Buses" }, tab: "/" },
+  "/erp/transport/route/": { title: { hi: "बस रूट", en: "Bus Route" }, back: "/erp/transport/", tab: "/" },
+  "/erp/transport/students/": { title: { hi: "बस के बच्चे", en: "Bus Students" }, tab: "/" },
+  "/erp/settings/": { title: { hi: "स्कूल और सत्र", en: "School & Session" }, tab: "/" },
+  "/erp/settings/classes/": { title: { hi: "कक्षा और विषय", en: "Classes & Subjects" }, tab: "/" },
+  "/erp/settings/users/": { title: { hi: "यूज़र और रोल", en: "Users & Roles" }, tab: "/" },
+  "/erp/settings/whatsapp/": { title: { hi: "WhatsApp", en: "WhatsApp" }, tab: "/" },
+  "/erp/report/": { title: { hi: "आज का सार", en: "Overview" }, tab: "/" },
+  "/erp/staff/payroll/": { title: { hi: "सैलरी", en: "Payroll" }, tab: "/" },
   "/erp/students/detail/": { title: { hi: "बच्चा", en: "Student" }, back: "/erp/students/", tab: "/erp/students/" },
 };
 
 /** ERP login: the Students tab opens the ERP's all-students list. */
 const ERP_TABS = TEACHER_TABS.map((t) => (t.href === "/students/" ? { ...t, href: "/erp/students/" } : t.href === "/attendance/" ? { ...t, href: "/erp/attendance/mark/" } : t));
+
+/** The middle button: the ERP's Report overview; teachers get Marks. */
+const ERP_REPORT = { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" } as Bi };
+const TEACHER_REPORT = { href: "/marks/", text: { hi: "रिपोर्ट", en: "Report" } as Bi };
 
 /** Drivers get their own bar: a black pill with Record, Home (raised, yellow) and Profile. */
 function DriverNav({ path }: { path: string }) {
@@ -149,6 +176,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const blocked = !!me && me.role !== "teacher" && !!page?.teacher;
   const lit = isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
   const litIndex = tabs.findIndex((t) => t.href === lit);
+  // Four-tab bars get the raised Report button in the middle (Dhan's centre button, 2026-10-17).
+  const mid = tabs.length === 4 ? (erp ? ERP_REPORT : TEACHER_REPORT) : null;
+  const midOn = !!mid && (path === mid.href || lit === mid.href);
+  const cols = mid ? 5 : tabs.length;
+  const litCol = midOn ? -1 : mid && litIndex >= 2 ? litIndex + 1 : litIndex;
   useEffect(() => {
     if (blocked) window.location.replace("/");
   }, [blocked]);
@@ -188,11 +220,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : band ? "teal-page" : "bg-ink-50")}>
+    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : band ? "teal-page" : "app-page")}>
       {/* The teal band, on Home only for now: under the header, down to the middle of the banner. */}
       {band && <div aria-hidden className="teal-band" style={{ height: "calc(env(safe-area-inset-top, 0px) + 220px)", transform: "translate3d(0,var(--band-y,0px),0)", willChange: "transform" }} />}
       {!isHome && !own && (
-        <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
+        <header className="pt-safe sticky top-0 z-20 bg-[#f7f7f7]/95 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur-sm">
           <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">
             {page?.back ? (
               <Link href={page.back} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L({ hi: "वापस", en: "Back" })}>
@@ -235,27 +267,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />
       ) : (
-      <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white" aria-label="Main">
-        <ul className={clsx("relative grid", tabs.length === 2 ? "grid-cols-2" : "grid-cols-4")}>
-          {/* One blue pill that slides to the lit tab, as in the parent app. */}
-          <span
-            aria-hidden
-            className="slide-pill pointer-events-none absolute left-0 top-[9px] flex justify-center"
-            style={{ width: `${100 / tabs.length}%`, transform: `translateX(${Math.max(0, litIndex) * 100}%)`, opacity: litIndex < 0 ? 0 : 1 }}
-          >
-            <span className="h-8 w-[52px] rounded-[10px] bg-brand-600" />
-          </span>
-          {tabs.map(({ href, text, icon: Icon }) => {
+      // Design C (user's pick, 2026-10-19): a floating 50% glass capsule; Report rises above it as a teal disc.
+      <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] px-2.5 pb-[calc(12px+env(safe-area-inset-bottom,0px))]" aria-label="Main">
+        <ul className={clsx("nav-capsule pointer-events-auto relative grid h-16 rounded-3xl", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
+          {/* No pill behind the lit tab (user, 2026-10-19): its icon is coloured and filled inside instead. */}
+          {tabs.map(({ href, text, icon: Icon }, i) => {
             const on = lit === href;
             return (
-              <li key={href} className="relative">
-                <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-[66px] flex-col items-center justify-center gap-0.5 text-[12px] transition-colors duration-300", on ? "font-semibold text-brand-600" : "font-medium text-ink-400")}>
-                  <span className={clsx("grid h-8 w-[52px] place-items-center rounded-[10px] transition-colors duration-300", on && "text-white")}>
-                    <Icon key={on ? "on" : "off"} className={clsx("h-[22px] w-[22px]", on && "tab-icon-on")} strokeWidth={on ? 2.1 : 1.7} aria-hidden />
-                  </span>
-                  {L(text)}
-                </Link>
-              </li>
+              <Fragment key={href}>
+                {mid && i === 2 && (
+                  <li className="relative">
+                    <Link href={mid.href} aria-current={midOn ? "page" : undefined} className={clsx("flex h-16 flex-col items-center justify-end pb-[9px] text-[11px] text-[#3099a4]", midOn ? "font-semibold" : "font-medium")}>
+                      <span className={clsx("absolute -top-[22px] left-1/2 grid h-[54px] w-[54px] -translate-x-1/2 place-items-center rounded-full border-4 bg-[#3099a4] text-white shadow-[0_6px_16px_rgba(48,153,164,0.35)] transition-transform duration-200 active:scale-95", band ? "border-[#eef6f6]" : "border-[#ececec]")}>
+                        <LayoutDashboard className="h-[25px] w-[25px]" strokeWidth={2} aria-hidden />
+                      </span>
+                      {L(mid.text)}
+                    </Link>
+                  </li>
+                )}
+                <li className="relative">
+                  <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-16 flex-col items-center justify-center gap-0.5 text-[11px] transition-colors duration-300", on ? "font-semibold text-brand-600" : "font-medium text-ink-400")}>
+                    <span className="grid h-7 w-[52px] place-items-center">
+                      <Icon key={on ? "on" : "off"} className={clsx("h-[27px] w-[27px]", on && "tab-icon-on")} strokeWidth={on ? 2 : 1.7} fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.22 : undefined} aria-hidden />
+                    </span>
+                    {L(text)}
+                  </Link>
+                </li>
+              </Fragment>
             );
           })}
         </ul>

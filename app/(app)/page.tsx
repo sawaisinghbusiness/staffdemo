@@ -53,7 +53,7 @@ const OTHER_GRID: Tile[] = [
 ];
 /** ERP login: every module of the ERP website's menu. `soon` until that module is built here, one by one. */
 const ERP_GRID: Tile[] = [
-  { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" }, icon: LayoutDashboard, soon: true },
+  { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" }, icon: LayoutDashboard },
   { href: "/erp/students/", text: { hi: "बच्चे", en: "Students" }, icon: Users },
   { href: "/erp/fees/collect/", text: { hi: "फ़ीस", en: "Fees" }, icon: IndianRupee },
   { href: "/erp/attendance/mark/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
@@ -64,15 +64,15 @@ const ERP_GRID: Tile[] = [
   { href: "/erp/exams/marks/", text: { hi: "परीक्षा", en: "Exams" }, icon: Trophy },
   { href: "/erp/timetable/", text: { hi: "टाइम टेबल", en: "Time Table" }, icon: Table2 },
   { href: "/erp/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: BookOpen },
-  { href: "/erp/syllabus/", text: { hi: "सिलेबस", en: "Syllabus" }, icon: ListChecks, soon: true },
-  { href: "/erp/copy-check/", text: { hi: "कॉपी जाँच", en: "Copy Check" }, icon: NotebookPen, soon: true },
-  { href: "/erp/staff/", text: { hi: "स्टाफ़", en: "Staff" }, icon: Briefcase, soon: true },
-  { href: "/erp/payroll/", text: { hi: "सैलरी", en: "Payroll" }, icon: Banknote, soon: true },
-  { href: "/erp/transport/", text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus, soon: true },
+  { href: "/erp/syllabus/", text: { hi: "सिलेबस", en: "Syllabus" }, icon: ListChecks },
+  { href: "/erp/copy-check/", text: { hi: "कॉपी जाँच", en: "Copy Check" }, icon: NotebookPen },
+  { href: "/erp/staff/", text: { hi: "स्टाफ़", en: "Staff" }, icon: Briefcase },
+  { href: "/erp/staff/payroll/", text: { hi: "सैलरी", en: "Payroll" }, icon: Banknote },
+  { href: "/erp/transport/", text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus },
   { href: "/erp/students/certificates/", text: { hi: "सर्टिफ़िकेट", en: "Certificates" }, icon: FileText },
   { href: "/erp/students/id-cards/", text: { hi: "आईडी कार्ड", en: "ID Cards" }, icon: IdCard },
-  { href: "/erp/calendar/", text: { hi: "कैलेंडर", en: "Calendar" }, icon: CalendarDays, soon: true },
-  { href: "/erp/birthdays/", text: { hi: "जन्मदिन", en: "Birthdays" }, icon: Cake, soon: true },
+  { href: "/erp/calendar/", text: { hi: "कैलेंडर", en: "Calendar" }, icon: CalendarDays },
+  { href: "/erp/birthdays/", text: { hi: "जन्मदिन", en: "Birthdays" }, icon: Cake },
 ];
 // Settings is not a tile: it sits at the foot of the side menu (user, 2026-10-16).
 
@@ -113,9 +113,9 @@ export default function HomePage() {
   // Every action shows from the start; "Show less" folds it to the first row.
   const [more, setMore] = useState(true);
 
-  // Scrolling: the teal band holds still while the top row sinks into the top edge and the rest
-  // slides up over it; once the Today card reaches where the banner was, the band scrolls away too.
-  const headRef = useRef<HTMLElement>(null);
+  // Scrolling, as in the Dhan app: the top row stays put on a solid teal strip and everything else slides
+  // up under it. The teal band holds still too, until the Today card reaches where the banner was.
+  const headRef = useRef<HTMLDivElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const todayRef = useRef<HTMLDivElement>(null);
   const ready = !!me && me.role !== "driver";
@@ -129,11 +129,8 @@ export default function HomePage() {
       const img = imgRef.current, today = todayRef.current, head = headRef.current;
       const stop = img && today ? today.offsetTop - img.offsetTop : 0;
       root.setProperty("--band-y", `${Math.min(y, stop)}px`);
-      if (head) {
-        const p = Math.min(1, y / 110);
-        head.style.opacity = String(1 - p);
-        head.style.transform = `translate3d(0,${-y * 0.25}px,0) scale(${1 - 0.08 * p})`;
-      }
+      // A soft edge under the strip once something has gone under it.
+      if (head) head.style.boxShadow = y > 4 ? "0 4px 12px rgba(15,47,60,0.18)" : "none";
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(paint);
@@ -181,8 +178,9 @@ export default function HomePage() {
 
   return (
     <div className={clsx("animate-fadeIn", calm && "calm")}>
-      <header ref={headRef} className="pt-safe origin-top px-4 will-change-transform">
-        {/* One row like the parent app: menu, search, then language, notices and the staff member. */}
+      {/* One row like the parent app: menu, search, then language, notices and the staff member.
+          It stays at the top on a solid teal strip; the page slides under it. */}
+      <div ref={headRef} className="pt-safe sticky top-0 z-20 bg-[#3099a4] px-4 pb-2 transition-shadow duration-300">
         <div className="enter flex items-center gap-1.5 pt-4" style={v(0)}>
           <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 mr-0.5 grid h-11 w-10 shrink-0 place-items-center rounded-full text-white active:bg-white/15">
             <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
@@ -212,8 +210,10 @@ export default function HomePage() {
             <Avatar name={me.name} url={me.photoUrl} size={38} tint={0} />
           </Link>
         </div>
+      </div>
 
-        <div className="mt-5">
+      <header className="px-4">
+        <div className="mt-3">
           <h1 className="truncate text-[clamp(21px,6.4vw,26px)] font-bold leading-tight text-white">
             <span className="reveal">
               <span style={v(0)}>{greet},</span>

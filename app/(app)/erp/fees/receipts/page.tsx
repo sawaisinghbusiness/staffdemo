@@ -85,7 +85,7 @@ export default function ErpReceiptsPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-4">
-      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4" role="tablist" aria-label={L({ hi: "तारीख", en: "Date range" })}>
+      <div className="no-scrollbar stick-chips flex gap-1.5 overflow-x-auto" role="tablist" aria-label={L({ hi: "तारीख", en: "Date range" })}>
         {RANGES.map(([k, t]) => (
           <button key={k} type="button" role="tab" aria-selected={range === k} onClick={() => setRange(k)} className={clsx("min-h-[38px] shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[13.5px] font-semibold", range === k ? "border-brand-600 bg-brand-50 text-brand-700" : "border-ink-200 bg-white text-ink-600")}>
             {L(t)}

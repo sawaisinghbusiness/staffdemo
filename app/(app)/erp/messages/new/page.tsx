@@ -63,6 +63,15 @@ export default function ErpNewMessagePage() {
   const [previewing, setPreviewing] = useState(false);
   const [busy, setBusy] = useState(false);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  // The school's own templates (Settings → Message templates); fine to be missing.
+  const own = useApi<{ data: { id: string; title: string; body: string; lang: Lang }[] }>("/erp/message-templates");
+  const applyOwn = (t: { id: string; title: string; body: string; lang: Lang }) => {
+    setTemplate(t.id);
+    setLang(t.lang);
+    setTitle(t.title);
+    setBody(t.body);
+    setTimeout(() => bodyRef.current?.focus(), 0);
+  };
 
   const audience: Audience = useMemo(() => (kind === "classes" ? { kind, classes: picked } : kind === "sections" ? { kind, sections: picked } : { kind }), [kind, picked]);
   const audienceReady = !((kind === "classes" || kind === "sections") && picked.length === 0);
@@ -204,6 +213,11 @@ export default function ErpNewMessagePage() {
           {TEMPLATES.map((t) => (
             <Chip key={t.key} on={template === t.key} onClick={() => applyTemplate(t.key)}>
               {lang === "hi" ? t.title.hi : t.label}
+            </Chip>
+          ))}
+          {(own.data?.data || []).map((t) => (
+            <Chip key={t.id} on={template === t.id} onClick={() => applyOwn(t)}>
+              {t.title}
             </Chip>
           ))}
         </div>

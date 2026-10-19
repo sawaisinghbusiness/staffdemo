@@ -40,6 +40,17 @@
   .teal-band {
     @apply pointer-events-none absolute inset-x-0 top-0 rounded-b-[28px] bg-[#3099a4];
   }
+  /* Every other screen, as in the Dhan app (2026-10-17): a soft grey page, not white, with a faint
+     teal haze rising from the tab bar. The haze stays put while the page scrolls. */
+  .app-page {
+    background-color: #ececec;
+  }
+  .app-page::before {
+    content: "";
+    @apply pointer-events-none fixed inset-x-0 bottom-0 mx-auto max-w-[560px];
+    height: 38vh;
+    background: linear-gradient(to top, rgba(48, 153, 164, 0.13), rgba(48, 153, 164, 0));
+  }
 
   /* ── Kit building blocks (same names in the parent and the staff app) ── */
 
@@ -93,6 +104,34 @@
   /* Two tabs with a 2px underline. */
   .tabs-line {
     @apply flex border-b border-ink-100;
+  }
+  /* On a screen's own list, the tabs stick right under the header while the list scrolls (Dhan's chips,
+     2026-10-17). The page grey is drawn out to both edges so rows don't show beside them. */
+  main .tabs-line {
+    @apply sticky z-[15] bg-[#ececec];
+    top: calc(env(safe-area-inset-top, 0px) + 56px);
+    box-shadow: -16px 0 0 #ececec, 16px 0 0 #ececec;
+  }
+  /* The tab bar with the raised middle button: a thin teal line along its top edge, like the hump's. */
+  /* The bottom tab bar, design C (user, 2026-10-19): a floating capsule of 50% glass, frosted, bright edge. */
+  .nav-capsule {
+    background: rgba(255, 255, 255, 0.5);
+    -webkit-backdrop-filter: blur(16px) saturate(170%);
+    backdrop-filter: blur(16px) saturate(170%);
+    border: 1px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.9),
+      0 8px 24px rgba(15, 30, 50, 0.14);
+  }
+  .nav-hump {
+    box-shadow:
+      0 -1.5px 0 #3099a4,
+      0 -6px 18px rgba(15, 47, 60, 0.06);
+  }
+  /* A sideways row of chips (class, date range) that sticks the same way. */
+  .stick-chips {
+    @apply sticky z-[15] -mx-4 bg-[#ececec] px-4 py-2;
+    top: calc(env(safe-area-inset-top, 0px) + 56px);
   }
   .tabs-line > button {
     @apply min-h-[44px] flex-1 text-center text-[15px] font-medium text-ink-400;

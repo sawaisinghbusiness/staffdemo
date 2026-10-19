@@ -245,7 +245,7 @@ export function CallOffice({ phone, className }: { phone?: string; className?: s
  * otherwise pin this "fixed" bar to the end of the list instead of the screen.
  */
 export function StickyBar({ children }: { children: React.ReactNode }) {
-  const bar = <div className="fixed inset-x-0 bottom-[calc(66px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
+  const bar = <div className="fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
   return typeof document === "undefined" ? bar : createPortal(bar, document.body);
 }
 

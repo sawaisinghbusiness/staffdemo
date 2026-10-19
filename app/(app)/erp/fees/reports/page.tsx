@@ -93,7 +93,7 @@ export default function ErpFeeReportsPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-4">
-      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4" role="radiogroup" aria-label={L({ hi: "तारीख", en: "Date range" })}>
+      <div className="no-scrollbar stick-chips flex gap-1.5 overflow-x-auto" role="radiogroup" aria-label={L({ hi: "तारीख", en: "Date range" })}>
         {PRESETS.map(([k, label]) => (
           <button key={k} type="button" role="radio" aria-checked={preset === k} onClick={() => pickPreset(k)} className={clsx("min-h-[38px] shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[13.5px] font-semibold", preset === k ? "border-brand-600 bg-brand-50 text-brand-700" : "border-ink-200 bg-white text-ink-600")}>
             {L(label)}
