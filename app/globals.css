@@ -68,6 +68,11 @@
     @apply glass-line block px-3.5 py-3;
     animation: card-in 0.42s var(--ease-out) both;
   }
+  /* A card with an open dropdown sits above the cards after it, so the list is never hidden behind them. */
+  .row-card:has([aria-expanded="true"]) {
+    position: relative;
+    z-index: 30;
+  }
   a.row-card,
   button.row-card {
     @apply w-full text-left;

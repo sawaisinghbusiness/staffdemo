@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import Link from "next/link";
 import clsx from "clsx";
 import { CalendarDays, Camera, Check, CheckCircle2, Plus, Search, X } from "lucide-react";
@@ -329,18 +328,27 @@ export default function ErpAdmissionPage() {
     setStep(Math.max(0, Math.min(STEPS.length - 1, i)));
     window.scrollTo(0, 0);
   };
-  /** Next: the step's own checks first; the first wrong box gets the focus. */
-  const next = () => {
-    const found = validate(stepKey, form, lookups.takenSr, L);
-    setTried((t) => new Set(t).add(stepKey));
-    setErrors((e) => ({ ...e, ...found }));
-    const firstBad = Object.keys(found)[0] as Key | undefined;
-    if (firstBad) {
-      document.getElementById(`adm-${firstBad}`)?.focus();
-      return toast(false, found[firstBad]!);
+  /**
+   * Moving forward (Next, or a step chip further on): every step on the way must pass its checks.
+   * The first step with a mistake opens instead and its first wrong box gets the focus. Going back is always free.
+   */
+  const goTo = (target: number) => {
+    if (target <= step) return go(target);
+    for (let i = step; i < target; i++) {
+      const key = STEPS[i].key;
+      const found = validate(key, form, lookups.takenSr, L);
+      setTried((t) => new Set(t).add(key));
+      setErrors((e) => ({ ...e, ...found }));
+      const firstBad = Object.keys(found)[0] as Key | undefined;
+      if (firstBad) {
+        if (i !== step) go(i);
+        setTimeout(() => document.getElementById(`adm-${firstBad}`)?.focus(), i !== step ? 350 : 0);
+        return toast(false, found[firstBad]!);
+      }
     }
-    go(step + 1);
+    go(target);
   };
+  const next = () => goTo(step + 1);
 
   async function pickPhoto(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -1071,7 +1079,7 @@ export default function ErpAdmissionPage() {
               <button
                 key={s.key}
                 type="button"
-                onClick={() => go(i)}
+                onClick={() => goTo(i)}
                 aria-current={on ? "step" : undefined}
                 data-step={i}
                 className={clsx(
@@ -1097,8 +1105,8 @@ export default function ErpAdmissionPage() {
         {VIEWS[stepKey]()}
       </div>
 
-      {/* Back / Next, above the tab bar. */}
-      <StepBar>
+      {/* Back / Next at the end of the step (not floating). */}
+      <div className="mt-4 flex gap-2.5">
         {step > 0 && (
           <button type="button" onClick={() => go(step - 1)} className="btn min-h-[50px] border-[1.5px] border-ink-900 bg-white px-5 text-ink-900">
             {L({ hi: "पीछे", en: "Back" })}
@@ -1115,7 +1123,7 @@ export default function ErpAdmissionPage() {
             </span>
           </button>
         )}
-      </StepBar>
+      </div>
 
       {findSibling && (
         <SiblingSheet
@@ -1131,14 +1139,6 @@ export default function ErpAdmissionPage() {
       )}
     </div>
   );
-}
-
-/** The fixed Back/Next bar, drawn on <body> like StickyBar (the page animation would pin a fixed bar to the page). */
-function StepBar({ children }: { children: React.ReactNode }) {
-  const [host, setHost] = useState<HTMLElement | null>(null);
-  useEffect(() => setHost(document.body), []);
-  const bar = <div className="fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-20 mx-auto flex max-w-[560px] gap-2.5 border-t border-ink-100 bg-[#f7f7f7]/95 px-4 py-2.5 backdrop-blur-sm">{children}</div>;
-  return host ? createPortal(bar, host) : null;
 }
 
 /** Find a brother or sister already in the school; the father's name is the first search. */
