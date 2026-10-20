@@ -46,6 +46,8 @@ const STEPS = [
   { key: "check", text: { hi: "जाँचें और सेव", en: "Check & save" } },
 ] as const;
 type StepKey = (typeof STEPS)[number]["key"];
+/** Steps with required boxes: their tick shows live, the moment those boxes are right. */
+const HAS_REQUIRED = new Set<StepKey>(["student", "class", "family", "address"]);
 
 const todayIso = () => {
   const d = new Date();
@@ -231,6 +233,7 @@ export default function ErpAdmissionPage() {
 
   const [form, setForm] = useState<Form | null>(null);
   const [step, setStep] = useState(0);
+  const [reached, setReached] = useState(0); // furthest step opened, for the ticks
   const [errors, setErrors] = useState<Errors>({});
   const [tried, setTried] = useState<Set<StepKey>>(new Set());
   const [busy, setBusy] = useState(false);
@@ -282,6 +285,7 @@ export default function ErpAdmissionPage() {
     setPhoto("");
     setScans({});
     setStep(0);
+    setReached(0);
     window.scrollTo(0, 0);
   };
   // Fill the form once what it needs has arrived: the student for an edit, the register for a new admission.
@@ -291,6 +295,7 @@ export default function ErpAdmissionPage() {
       if (editing) {
         setForm(fromStudent(editing));
         setSiblings(editing.siblings || []);
+        setReached(STEPS.length - 1); // a saved student: every filled step shows its tick
       }
     } else if (!enquiryId || enquiries.data) start();
   }, [editId, list.data, editing, enquiryId, enquiries.data]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -325,9 +330,12 @@ export default function ErpAdmissionPage() {
     });
 
   const go = (i: number) => {
-    setStep(Math.max(0, Math.min(STEPS.length - 1, i)));
+    const to = Math.max(0, Math.min(STEPS.length - 1, i));
+    setStep(to);
+    setReached((r) => Math.max(r, to));
     window.scrollTo(0, 0);
   };
+  const stepOk = STEPS.map((s) => Object.keys(validate(s.key, form, lookups.takenSr, L)).length === 0);
   /**
    * Moving forward (Next, or a step chip further on): every step on the way must pass its checks.
    * The first step with a mistake opens instead and its first wrong box gets the focus. Going back is always free.
@@ -1074,7 +1082,8 @@ export default function ErpAdmissionPage() {
         <nav ref={stepNav} className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none]" aria-label={L({ hi: "फ़ॉर्म के चरण", en: "Form steps" })}>
           {STEPS.map((s, i) => {
             const on = i === step;
-            const done = i < step;
+            // Ticked as soon as the step's details pass: live on steps with required boxes, once passed on the others.
+            const done = s.key !== "check" && stepOk[i] && (i < reached || (on && HAS_REQUIRED.has(s.key)));
             return (
               <button
                 key={s.key}
@@ -1083,12 +1092,12 @@ export default function ErpAdmissionPage() {
                 aria-current={on ? "step" : undefined}
                 data-step={i}
                 className={clsx(
-                  "flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 text-[13px] font-semibold",
+                  "flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 text-[13px] font-semibold transition-colors duration-200",
                   on ? "border-[#3099a4] bg-[#3099a4] text-white" : done ? "border-ink-900 bg-white text-ink-900" : "border-ink-200 bg-white text-ink-500"
                 )}
               >
-                <span className={clsx("grid h-6 w-6 place-items-center rounded-full text-[12px]", on ? "bg-white text-[#3099a4]" : done ? "bg-jade-600 text-white" : "bg-ink-100 text-ink-900")}>
-                  {done ? <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden /> : i + 1}
+                <span className={clsx("grid h-6 w-6 place-items-center rounded-full text-[12px] transition-colors duration-200", done ? "bg-jade-600 text-white" : on ? "bg-white text-[#3099a4]" : "bg-ink-100 text-ink-900")}>
+                  {done ? <Check className="step-tick h-3.5 w-3.5" strokeWidth={3} aria-hidden /> : i + 1}
                 </span>
                 {L(s.text)}
               </button>
@@ -1096,11 +1105,11 @@ export default function ErpAdmissionPage() {
           })}
         </nav>
         <div className="h-[3px] bg-ink-100">
-          <div className="h-full bg-[#3099a4] transition-[width] duration-300" style={{ width: `${((step + 1) / STEPS.length) * 100}%` }} />
+          <div className="h-full origin-left bg-[#3099a4] transition-transform duration-300 ease-out" style={{ transform: `scaleX(${(step + 1) / STEPS.length})` }} />
         </div>
       </div>
 
-      <div key={stepKey} className="animate-rise space-y-3 pt-3.5">
+      <div key={stepKey} className="form-flow animate-rise space-y-3 pt-3.5">
         {editing && <p className="text-[13px] text-ink-500">{L({ hi: "बदल रहे हैं:", en: "Editing:" })} {editing.name} · {editing.srNo}</p>}
         {VIEWS[stepKey]()}
       </div>

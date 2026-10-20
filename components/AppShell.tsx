@@ -186,6 +186,34 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (blocked) window.location.replace("/");
   }, [blocked]);
 
+  // While the page scrolls the tab bar glides down out of the way; once scrolling stops it glides back
+  // (user, 2026-10-20). State only flips at the start and end of a scroll, not on every scroll event.
+  const [navAway, setNavAway] = useState(false);
+  useEffect(() => {
+    let lastY = window.scrollY;
+    let away = false;
+    let timer = 0;
+    const onScroll = () => {
+      const y = window.scrollY;
+      if (Math.abs(y - lastY) > 3 && !away && y > 8) {
+        away = true;
+        setNavAway(true);
+      }
+      lastY = y;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        away = false;
+        setNavAway(false);
+      }, 260);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.clearTimeout(timer);
+    };
+  }, []);
+  useEffect(() => setNavAway(false), [path]);
+
   // Swipe right anywhere on the screen to open the side menu (not on a chat, whose screen is all typing,
   // not for drivers, and not when the swipe starts on something that scrolls sideways, like the lectures strip).
   const touch = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -277,7 +305,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <DriverNav path={path} />
       ) : (
       // Design C (user's pick, 2026-10-19): a floating 50% glass capsule; Report rises above it as a teal disc.
-      <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] px-2.5 pb-[calc(12px+env(safe-area-inset-bottom,0px))]" aria-label="Main">
+      <nav
+        className={clsx("nav-slide pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] px-2.5 pb-[calc(12px+env(safe-area-inset-bottom,0px))]", navAway && "nav-away")}
+        aria-label="Main"
+      >
         <ul className={clsx("nav-capsule pointer-events-auto relative grid h-16 rounded-3xl", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
           {/* No pill behind the lit tab (user, 2026-10-19): its icon is coloured and filled inside instead. */}
           {tabs.map(({ href, text, icon: Icon }, i) => {

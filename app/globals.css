@@ -31,11 +31,9 @@
   /* Every staff screen (not the driver's) Home sits on a pale teal page of small dots, under a teal band
      that the header and the first cards overlap (the "Teal band" pick, 2026-10-14). The band is
      teal #3099a4 at full strength (Home only), so Home's menu, bell and greeting are white. */
+  /* Plain: the dots were taken off on 2026-10-20 (user). */
   .teal-page {
     background-color: #eef6f6;
-    background-image: radial-gradient(rgba(48, 153, 164, 0.22) 1.2px, transparent 1.6px);
-    /* Sparse: one dot every 28px (16px looked too busy). */
-    background-size: 28px 28px;
   }
   .teal-band {
     @apply pointer-events-none absolute inset-x-0 top-0 rounded-b-[28px] bg-[#3099a4];
@@ -652,6 +650,44 @@
   color: #000;
   background: #ef4444;
   border: 1px solid #dc2626;
+}
+
+/* The tab bar slides down while the page scrolls and back up when it stops (transform only, so it stays smooth). */
+.nav-slide {
+  transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
+  will-change: transform;
+}
+.nav-slide.nav-away {
+  transform: translate3d(0, calc(100% + 28px), 0);
+  transition-duration: 0.24s;
+}
+
+/*
+ * Long forms (the admission form): the step slides in once as a whole. Cards inside don't each fade in,
+ * and they drop the backdrop blur, which is invisible on the plain page but costs every frame on phones.
+ */
+.form-flow .row-card {
+  animation: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  background: rgba(255, 255, 255, 0.72);
+}
+/* A step's tick fades and grows in as soon as its details are filled. */
+.step-tick {
+  animation: step-tick 0.22s var(--ease-out) both;
+}
+@keyframes step-tick {
+  from {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-slide,
+  .step-tick {
+    transition: none;
+    animation: none;
+  }
 }
 
 /* A dropdown's list box unfolds from its field. */
