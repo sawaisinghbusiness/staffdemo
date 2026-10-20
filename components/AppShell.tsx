@@ -24,7 +24,8 @@ interface PageInfo {
   title: Bi;
   back?: string;
   tab?: string;
-  action?: { href: string; text: Bi };
+  /** `badge` shows the words in a small outlined button instead of a bare "+". */
+  action?: { href: string; text: Bi; badge?: Bi };
   /** Only teachers have this screen; anyone else who opens it by link goes back to Home. */
   teacher?: boolean;
   /** The screen draws its own header (a chat). */
@@ -54,7 +55,7 @@ const PAGES: Record<string, PageInfo> = {
   "/messages/": { title: { hi: "अभिभावकों की पूछताछ", en: "Parent Enquiries" }, tab: "/", teacher: true },
   "/messages/chat/": { title: { hi: "संदेश", en: "Message" }, back: "/messages/", teacher: true, own: true, bare: true },
   // ERP login's own screens (the ERP website's modules, one by one).
-  "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" } } },
+  "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" }, badge: { hi: "बच्चा जोड़ें", en: "Add student" } } },
   "/erp/students/enquiries/": { title: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, tab: "/erp/students/", action: { href: "/erp/students/enquiries/new/", text: { hi: "नई पूछताछ", en: "New enquiry" } } },
   "/erp/students/enquiries/detail/": { title: { hi: "पूछताछ", en: "Enquiry" }, back: "/erp/students/enquiries/", tab: "/erp/students/" },
   "/erp/students/enquiries/new/": { title: { hi: "नई पूछताछ", en: "New Enquiry" }, back: "/erp/students/enquiries/", tab: "/erp/students/" },
@@ -238,8 +239,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               </button>
             )}
             <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold", band && "text-white")}>{page ? L(page.title) : ""}</h1>
-            <span className="flex justify-end">
-              {page?.action && (
+            <span className="relative flex justify-end">
+              {page?.action?.badge ? (
+                <Link
+                  href={page.action.href}
+                  className="absolute right-1 top-1/2 flex min-h-[36px] -translate-y-1/2 items-center gap-1 whitespace-nowrap rounded-full border-[1.5px] border-ink-900 bg-white pl-2 pr-3 text-[13px] font-semibold text-ink-900 active:scale-[.97]"
+                >
+                  <Plus className="h-4 w-4" strokeWidth={2.4} aria-hidden />
+                  {L(page.action.badge)}
+                </Link>
+              ) : page?.action && (
                 <Link href={page.action.href} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L(page.action.text)}>
                   <Plus className="h-6 w-6" aria-hidden />
                 </Link>

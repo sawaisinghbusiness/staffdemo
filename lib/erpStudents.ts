@@ -26,6 +26,70 @@ export interface ErpStudent {
   totalFee: number;
   paidFee: number;
   balanceFee: number;
+  busStop?: string;
+  siblingFamilyId?: string;
+}
+
+/**
+ * GET /api/students/:id adds the full admission form (backend migration 20261020). Aadhaar, Jan Aadhaar
+ * and bank fields come only to admin/accountant logins.
+ */
+export interface ErpStudentFull extends ErpStudent, Partial<StudentDetails> {
+  siblings?: { id: string; name: string; classSec: string; fatherName: string; srNo: string }[];
+}
+export interface StudentDetails {
+  nameHi: string;
+  birthPlace: string;
+  aadhaarNo: string;
+  religion: string;
+  caste: string;
+  nationality: string;
+  motherTongue: string;
+  bloodGroup: string;
+  healthNotes: string;
+  cwsn: boolean;
+  idMark: string;
+  medium: string;
+  admissionDate: string;
+  shalaDarpanId: string;
+  admissionType: string;
+  rte: boolean;
+  prevSchool: string;
+  prevBoard: string;
+  prevClass: string;
+  prevYear: string;
+  prevResult: string;
+  tcNo: string;
+  tcDate: string;
+  leavingReason: string;
+  fatherOccupation: string;
+  fatherEducation: string;
+  fatherAadhaar: string;
+  fatherEmail: string;
+  motherMobile: string;
+  motherOccupation: string;
+  motherEducation: string;
+  motherAadhaar: string;
+  whatsappTo: string;
+  familyIncome: string;
+  janAadhaar: string;
+  bpl: boolean;
+  guardianRelation: string;
+  guardianMobile: string;
+  city: string;
+  tehsil: string;
+  district: string;
+  pincode: string;
+  lettersAddress: string;
+  emergencyName: string;
+  emergencyRelation: string;
+  emergencyMobile: string;
+  documents: Record<string, boolean>;
+  /** Document keys that have a scan; the scans come from /api/student-documents (office only). */
+  documentScans: string[];
+  bankHolder: string;
+  bankAccount: string;
+  bankIfsc: string;
 }
 
 /** Same class order as the ERP's students page. */

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { CalendarCheck, ChevronRight, Gift, IndianRupee, Landmark, Plus, type LucideIcon } from "lucide-react";
+import { CalendarCheck, ChevronRight, Gift, IndianRupee, Landmark, type LucideIcon } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL, useLang, type Lang } from "@/lib/i18n";
 import { useStaff } from "@/lib/staff";
@@ -26,6 +26,9 @@ export default function ErpReportPage() {
   const data = res?.data;
   const f = data?.fees;
   const paidPct = f && f.sessionTotal > 0 ? Math.round((f.sessionPaid / f.sessionTotal) * 100) : 0;
+  const adm = data?.admissions;
+  const att = data?.attendance;
+  const maxClass = Math.max(1, ...(adm?.byClass.map((c) => c.total) || []));
 
   const hour = new Date().getHours();
   const hello = hour < 12 ? L({ hi: "सुप्रभात", en: "Good morning" }) : hour < 17 ? L({ hi: "नमस्ते", en: "Good afternoon" }) : L({ hi: "नमस्ते", en: "Good evening" });
@@ -39,13 +42,6 @@ export default function ErpReportPage() {
           {me?.name ? `, ${me.name.split(" ")[0]}` : ""}
         </h1>
         <p className="text-[13px] text-ink-500">{today}</p>
-      </div>
-
-      {/* The ERP's three quick actions. */}
-      <div className="grid grid-cols-3 gap-2">
-        <Quick href="/erp/attendance/mark/" icon={CalendarCheck} text={L({ hi: "हाज़िरी", en: "Attendance" })} />
-        <Quick href="/erp/students/admission/" icon={Plus} text={L({ hi: "नया प्रवेश", en: "Admission" })} />
-        <Quick href="/erp/fees/collect/" icon={IndianRupee} text={L({ hi: "फ़ीस जमा", en: "Collect fee" })} primary />
       </div>
 
       {error && !data && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}
@@ -137,6 +133,141 @@ export default function ErpReportPage() {
         )}
       </section>
 
+      {/* Admissions: new this month, enquiries, and how many children each class has. */}
+      <section className="row-card !p-0" aria-label={L({ hi: "प्रवेश रिपोर्ट", en: "Admission report" })}>
+        <div className="px-4 pb-2 pt-3.5">
+          <h2 className="text-[16px] font-bold">{L({ hi: "प्रवेश रिपोर्ट", en: "Admission report" })}</h2>
+          <p className="text-[13px] text-ink-500">{L({ hi: "सत्र 2026-27", en: "Session 2026-27" })}</p>
+        </div>
+        {!data ? (
+          <div className="px-4 pb-4">
+            <Skeleton className="h-32 w-full" />
+          </div>
+        ) : !adm ? (
+          <Missing />
+        ) : (
+          <ul className="border-t border-ink-100">
+            <GlanceRow href="/erp/students/admission/" title={L({ hi: "इस महीने नए प्रवेश", en: "New admissions this month" })} meta={L({ hi: "नया प्रवेश जोड़ें", en: "Add a new admission" })} value={fmt(adm.newThisMonth)} />
+            <GlanceRow
+              href="/erp/students/enquiries/"
+              title={L({ hi: "खुली पूछताछ", en: "Open enquiries" })}
+              meta={
+                adm.enquiries.followUpsDue
+                  ? L({ hi: `${adm.enquiries.followUpsDue} को आज फ़ोन करना है`, en: `${adm.enquiries.followUpsDue} to call today` })
+                  : L({ hi: `कुल ${adm.enquiries.total} पूछताछ`, en: `${adm.enquiries.total} enquiries in all` })
+              }
+              value={fmt(adm.enquiries.open)}
+            />
+            <GlanceRow
+              href="/erp/students/enquiries/"
+              title={L({ hi: "पूछताछ से प्रवेश हुआ", en: "Admitted from enquiries" })}
+              meta={L({ hi: `${adm.enquiries.dropped} ने रुचि नहीं दिखाई`, en: `${adm.enquiries.dropped} not interested` })}
+              value={fmt(adm.enquiries.admitted)}
+            />
+          </ul>
+        )}
+      </section>
+
+      <section className="row-card">
+        <h2 className="text-[16px] font-bold">{L({ hi: "कक्षा के हिसाब से बच्चे", en: "Students in each class" })}</h2>
+        <p className="text-[13px] text-ink-500">{L({ hi: "लड़के · लड़कियाँ", en: "Boys · girls" })}</p>
+        {!data ? (
+          <Skeleton className="mt-3 h-48 w-full" />
+        ) : !adm ? (
+          <Missing flat />
+        ) : (
+          <ul className="mt-3 space-y-2.5">
+            {adm.byClass.map((c) => (
+              <li key={c.class} className="grid grid-cols-[64px_minmax(0,1fr)_40px] items-center gap-2.5 text-[14px]" aria-label={`${c.class}: ${c.total} students, ${c.boys} boys, ${c.girls} girls`}>
+                <span className="truncate font-semibold">{c.class}</span>
+                <span className="min-w-0">
+                  <Bar pct={(c.total / maxClass) * 100} flat />
+                  <span className="tnum mt-0.5 block text-[12px] text-ink-500">
+                    {c.boys} · {c.girls}
+                  </span>
+                </span>
+                <span className="tnum text-right font-bold">{c.total}</span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {/* Attendance: today, this month, the last marked days, and each class this month. */}
+      <section className="row-card !p-0" aria-label={L({ hi: "हाज़िरी रिपोर्ट", en: "Attendance report" })}>
+        <div className="px-4 pb-3 pt-3.5">
+          <h2 className="text-[16px] font-bold">{L({ hi: "हाज़िरी रिपोर्ट", en: "Attendance report" })}</h2>
+          {!data ? (
+            <Skeleton className="mt-2 h-14 w-full" />
+          ) : !att ? null : att.today.marked ? (
+            <>
+              <p className="mt-1 text-[13px] font-medium text-ink-500">{L({ hi: "आज आए", en: "Present today" })}</p>
+              <p className="tnum text-[28px] font-extrabold leading-tight">{pct(att.today.present, att.today.marked)}%</p>
+              <p className="tnum text-[13px] text-ink-500">
+                {L({
+                  hi: `${att.today.present} आए · ${att.today.absent} नहीं आए · ${att.today.leave} छुट्टी पर`,
+                  en: `${att.today.present} present · ${att.today.absent} absent · ${att.today.leave} on leave`,
+                })}
+              </p>
+            </>
+          ) : (
+            <p className="mt-1 text-[14px] text-ink-500">{L({ hi: "आज अभी किसी की हाज़िरी नहीं लगी।", en: "No attendance marked yet today." })}</p>
+          )}
+        </div>
+        {data && !att && <Missing />}
+        {att && (
+          <ul className="border-t border-ink-100">
+            <GlanceRow
+              href="/erp/attendance/register/"
+              title={L({ hi: "इस महीने औसत हाज़िरी", en: "Average attendance this month" })}
+              meta={L({ hi: `${att.month.days} दिन हाज़िरी लगी`, en: `Marked on ${att.month.days} days` })}
+              value={att.month.marked ? `${pct(att.month.present, att.month.marked)}%` : "—"}
+            />
+            <GlanceRow href="/erp/attendance/today/" title={L({ hi: "आज कौन नहीं आया", en: "Who is absent today" })} meta={L({ hi: "नाम और कक्षा", en: "Names and classes" })} value={fmt(att.today.absent)} bad={att.today.absent > 0} />
+          </ul>
+        )}
+      </section>
+
+      {att && (
+        <section className="row-card">
+          <h2 className="text-[16px] font-bold">{L({ hi: "हर दिन की हाज़िरी", en: "Attendance by day" })}</h2>
+          <p className="text-[13px] text-ink-500">{L({ hi: "पिछले 30 दिन में जिन दिनों हाज़िरी लगी", en: "Days marked in the last 30 days" })}</p>
+          {att.byDay.length ? (
+            <ul className="mt-3 space-y-2.5">
+              {att.byDay.map((d) => (
+                <li key={d.date} className="grid grid-cols-[64px_minmax(0,1fr)_44px] items-center gap-2.5 text-[14px]" aria-label={`${d.date}: ${pct(d.present, d.marked)}% present`}>
+                  <span className="font-semibold">{new Date(d.date + "T00:00:00").toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { day: "numeric", month: "short" })}</span>
+                  <Bar pct={pct(d.present, d.marked)} flat />
+                  <span className="tnum text-right font-bold">{pct(d.present, d.marked)}%</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-[14px] text-ink-500">{L({ hi: "पिछले 30 दिन में कोई हाज़िरी नहीं लगी।", en: "No attendance marked in the last 30 days." })}</p>
+          )}
+        </section>
+      )}
+
+      {att && (
+        <section className="row-card">
+          <h2 className="text-[16px] font-bold">{L({ hi: "कक्षा के हिसाब से हाज़िरी", en: "Attendance by class" })}</h2>
+          <p className="text-[13px] text-ink-500">{L({ hi: "इस महीने", en: "This month" })}</p>
+          {att.byClass.length ? (
+            <ul className="mt-3 space-y-2.5">
+              {att.byClass.map((c) => (
+                <li key={c.class} className="grid grid-cols-[64px_minmax(0,1fr)_44px] items-center gap-2.5 text-[14px]" aria-label={`${c.class}: ${pct(c.present, c.marked)}% present`}>
+                  <span className="truncate font-semibold">{c.class}</span>
+                  <Bar pct={pct(c.present, c.marked)} flat />
+                  <span className="tnum text-right font-bold">{pct(c.present, c.marked)}%</span>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="mt-3 text-[14px] text-ink-500">{L({ hi: "इस महीने किसी कक्षा की हाज़िरी नहीं लगी।", en: "No class has marked attendance this month." })}</p>
+          )}
+        </section>
+      )}
+
       <section className="row-card !pb-1">
         <h2 className="text-[16px] font-bold">{L({ hi: "आज ध्यान दें", en: "Needs attention today" })}</h2>
         {data ? (
@@ -202,19 +333,12 @@ export default function ErpReportPage() {
   );
 }
 
-function Quick({ href, icon: Icon, text, primary }: { href: string; icon: LucideIcon; text: string; primary?: boolean }) {
-  return (
-    <Link
-      href={href}
-      className={clsx(
-        "flex min-h-[64px] flex-col items-center justify-center gap-1 rounded-2xl border-[1.5px] px-1 text-[13px] font-semibold active:scale-[.98]",
-        primary ? "border-[#3099a4] bg-[#3099a4] text-white" : "border-ink-900 bg-white text-ink-900"
-      )}
-    >
-      <Icon className="h-[19px] w-[19px]" aria-hidden />
-      <span className="truncate">{text}</span>
-    </Link>
-  );
+const pct = (part: number, whole: number) => (whole > 0 ? Math.round((part / whole) * 100) : 0);
+
+/** The backend is older than this page and sent no admission/attendance figures. */
+function Missing({ flat }: { flat?: boolean }) {
+  const L = useL();
+  return <p className={clsx("text-[14px] text-ink-500", flat ? "mt-3" : "px-4 pb-4")}>{L({ hi: "यह जानकारी अभी सर्वर से नहीं आई।", en: "The server hasn't sent this yet." })}</p>;
 }
 
 function GlanceRow({ href, title, meta, value, bad, children }: { href: string; title: string; meta: string; value: string; bad?: boolean; children?: React.ReactNode }) {

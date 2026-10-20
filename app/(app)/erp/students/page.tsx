@@ -158,29 +158,25 @@ export default function ErpStudentsPage() {
         </>
       ) : (
         <>
-          <div className="flex items-center justify-between">
-            <p className="mlabel tnum">
-              {list.length.toLocaleString("en-IN")} {L({ hi: "बच्चे", en: "students" })}
-            </p>
-            {filtersOn && (
+          {filtersOn && (
+            <div className="flex justify-end">
               <button type="button" onClick={reset} className="min-h-[36px] px-1 text-[13.5px] font-semibold text-brand-600">
                 {L({ hi: "फ़िल्टर हटाएँ", en: "Clear filters" })}
               </button>
-            )}
-          </div>
-          <ul>
+            </div>
+          )}
+          <ul className="space-y-2">
             {list.slice(0, shown).map((s) => (
               <li key={s.id}>
-                <Link href={`/erp/students/detail/?id=${encodeURIComponent(s.id)}`} className="flex min-h-[64px] items-center gap-3 border-b border-ink-100 active:bg-ink-50">
+                <Link href={`/erp/students/detail/?id=${encodeURIComponent(s.id)}`} className="row-card flex min-h-[64px] items-center gap-2.5 !pr-2">
                   <Avatar name={s.name} url={s.photoUrl || null} size={40} />
                   <span className="min-w-0 flex-1">
-                    <span className="block truncate text-[15.5px] font-medium">
-                      {s.name}
-                      {s.status === "Inactive" && <span className="ml-1.5 text-[12px] font-normal text-ink-400">({L({ hi: "छोड़ गया", en: "Left" })})</span>}
+                    <span className="flex min-w-0 items-baseline gap-1 text-[15.5px] font-medium">
+                      <span className="truncate">{s.name}</span>
+                      <span className="shrink-0 text-[12.5px] font-normal text-ink-500">({s.class} {s.section})</span>
+                      {s.status === "Inactive" && <span className="shrink-0 text-[12px] font-normal text-ink-400">({L({ hi: "छोड़ गया", en: "Left" })})</span>}
                     </span>
-                    <span className="block truncate text-[12.5px] text-ink-400">
-                      {s.classSec} · {parentLine(s)}
-                    </span>
+                    <span className="block truncate text-[12.5px] text-ink-400">{parentLine(s)}</span>
                   </span>
                   {s.balanceFee > 0 ? <Status tone="bad">{rupees(s.balanceFee)}</Status> : <Status tone="ok">{L({ hi: "पूरी", en: "Paid" })}</Status>}
                   <ChevronRight className="h-[18px] w-[18px] shrink-0 text-ink-300" aria-hidden />
@@ -190,7 +186,7 @@ export default function ErpStudentsPage() {
           </ul>
           {list.length > shown && (
             <button type="button" onClick={() => setShown((k) => k + STEP * 2)} className="btn-line w-full">
-              {L({ hi: "और दिखाएँ", en: "Show more" })} ({(list.length - shown).toLocaleString("en-IN")})
+              {L({ hi: "और लोड करें", en: "Load more" })}
             </button>
           )}
         </>

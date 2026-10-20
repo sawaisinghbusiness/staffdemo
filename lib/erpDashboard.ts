@@ -16,6 +16,18 @@ export interface Dashboard {
     topDueClasses: { class: string; due: number }[];
   };
   today: { receipts: number; amount: number };
+  /** Added 2026-10-20 for the app's Report page; an older backend leaves these out. */
+  admissions?: {
+    newThisMonth: number;
+    enquiries: { total: number; open: number; admitted: number; dropped: number; followUpsDue: number };
+    byClass: { class: string; total: number; boys: number; girls: number }[];
+  };
+  attendance?: {
+    today: { marked: number; present: number; absent: number; leave: number };
+    month: { days: number; marked: number; present: number };
+    byDay: { date: string; marked: number; present: number }[];
+    byClass: { class: string; marked: number; present: number }[];
+  };
   attention: {
     chequesThisWeek: { count: number; amount: number };
     birthdaysToday: { name: string; classSec: string }[];
