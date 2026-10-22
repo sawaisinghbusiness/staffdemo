@@ -22,6 +22,8 @@ export interface ChatMessage {
   from: "parent" | "teacher";
   text: string;
   at: string;
+  /** Shown at once while it is still on its way to the server. */
+  pending?: boolean;
   meeting: { date: string; time: string; minutes: number; place: "school" | "call" | "online"; placeText: string; status: "waiting" | "yes" | "other"; meetingId: string | null } | null;
 }
 export interface Thread {

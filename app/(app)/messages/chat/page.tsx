@@ -3,14 +3,14 @@
 import { Fragment, useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { CalendarPlus, CheckCheck, ChevronLeft, Phone, School, SendHorizontal, Video, X } from "lucide-react";
+import { CalendarPlus, CheckCheck, ChevronLeft, Clock3, Phone, School, SendHorizontal, Video, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL, useLang, type Lang } from "@/lib/i18n";
 import { ampm, clockOf, dayLine, type ChatMessage, type SchoolDay, type Thread } from "@/lib/messages";
 import { Avatar, ErrorCard, Skeleton } from "@/components/ui";
 
 /** New messages show without a refresh: the chat is asked again this often while it is on screen. */
-const POLL_MS = 8000;
+const POLL_MS = 3000;
 
 /** One parent conversation, laid out like the parent app's chat, with "send a meeting time" by the reply box. */
 export default function MessageChatPage() {
@@ -25,6 +25,10 @@ export default function MessageChatPage() {
   const [sheet, setSheet] = useState(false);
   const end = useRef<HTMLDivElement>(null);
   const count = useRef(0);
+  // While a reply is on its way, a poll answer (made before it arrived) must not wipe it off the screen.
+  const sending = useRef(false);
+  // Bumped on every send, so an older poll that comes back late is thrown away.
+  const gen = useRef(0);
 
   useEffect(() => {
     setChatId(new URLSearchParams(window.location.search).get("id") || "");
@@ -33,7 +37,9 @@ export default function MessageChatPage() {
   const load = useCallback(async () => {
     if (!chatId) return;
     try {
-      setData(await api<Thread>(`/chats/${encodeURIComponent(chatId)}`));
+      const g = gen.current;
+      const fresh = await api<Thread>(`/chats/${encodeURIComponent(chatId)}`);
+      if (!sending.current && g === gen.current) setData(fresh);
       setError(null);
     } catch (e) {
       const err = e instanceof ApiError ? e : new ApiError(0, "offline");
@@ -69,9 +75,22 @@ export default function MessageChatPage() {
     }
   }
 
+  /** The reply shows at once (with a clock) and the box empties; if it can't be sent, it comes back. */
   async function send() {
     const msg = text.trim();
-    if (msg && (await post("/send", { text: msg }))) setText("");
+    if (!msg || busy) return;
+    const tmp: ChatMessage = { id: `tmp-${Date.now()}`, from: "teacher", text: msg, at: new Date().toISOString(), pending: true, meeting: null };
+    setData((d) => d && { ...d, messages: [...d.messages, tmp] });
+    setText("");
+    sending.current = true;
+    gen.current++;
+    const ok = await post("/send", { text: msg });
+    sending.current = false;
+    gen.current++;
+    if (!ok) {
+      setData((d) => d && { ...d, messages: d.messages.filter((m) => m.id !== tmp.id) });
+      setText(msg);
+    }
   }
 
   const s = data?.student;
@@ -180,7 +199,7 @@ function Bubble({ m, lang }: { m: ChatMessage; lang: Lang }) {
       <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.text}</p>
       <p className={clsx("mt-0.5 flex items-center justify-end gap-1 text-[11px]", mine ? "text-white/70" : "text-ink-400")}>
         {clockOf(m.at, lang)}
-        {mine && <CheckCheck className="h-3.5 w-3.5" aria-hidden />}
+        {mine && (m.pending ? <Clock3 className="h-3 w-3" aria-label="Sending" /> : <CheckCheck className="h-3.5 w-3.5" aria-hidden />)}
       </p>
     </div>
   );

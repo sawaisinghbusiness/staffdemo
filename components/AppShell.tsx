@@ -54,6 +54,7 @@ const PAGES: Record<string, PageInfo> = {
   "/trip/history/": { title: { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, back: "/" },
   "/messages/": { title: { hi: "अभिभावकों की पूछताछ", en: "Parent Enquiries" }, tab: "/", teacher: true },
   "/messages/chat/": { title: { hi: "संदेश", en: "Message" }, back: "/messages/", teacher: true, own: true, bare: true },
+  "/assistant/": { title: { hi: "स्कूल सहायक", en: "School Sahayak" }, back: "/", own: true, bare: true },
   // ERP login's own screens (the ERP website's modules, one by one).
   "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" }, badge: { hi: "बच्चा जोड़ें", en: "Add student" } } },
   "/erp/students/enquiries/": { title: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, tab: "/erp/students/", action: { href: "/erp/students/enquiries/new/", text: { hi: "नई पूछताछ", en: "New enquiry" } } },
@@ -300,6 +301,17 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           </div>
         )}
       </main>
+
+      {/* School Sahayak (the AI chat): a round button floating above the tab bar, on every tab screen. Not for drivers or the ERP login. */}
+      {!page?.bare && !driver && !erp && (
+        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(92px+env(safe-area-inset-bottom,0px))] z-20 mx-auto flex max-w-[560px] justify-end px-4">
+          <Link href="/assistant/" aria-label={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} className="sahayak-orb sahayak-float pointer-events-auto flex h-14 w-14 items-center justify-center gap-2 rounded-full border-[3px] border-white transition-transform duration-200 active:scale-90">
+            {/* The same purple orb as on the chat screen, small. */}
+            <span className="sahayak-eye h-3 w-[6px] rounded-full bg-white" aria-hidden />
+            <span className="sahayak-eye h-3 w-[6px] rounded-full bg-white" aria-hidden />
+          </Link>
+        </div>
+      )}
 
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />

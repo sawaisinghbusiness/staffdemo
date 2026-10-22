@@ -339,6 +339,18 @@ export async function demoApi(path: string, method: string, body: any): Promise<
       }
     }
 
+    if (p === "/assistant") {
+      // School Sahayak in demo: no AI, a few set answers from the sample school.
+      const turns = Array.isArray(body?.messages) ? body.messages : [];
+      const ask = String(turns[turns.length - 1]?.content || "").toLowerCase();
+      const first = me.name.split(" ")[0];
+      let reply = `${first} ji, main aapki classes ki hazri, timetable, chhutti aur notice ke baare mein bata sakta hoon.`;
+      if (/absent|hazri|attendance|हाज़िरी|kaun/.test(ask)) reply = isTeacher ? `Aaj ${SECTIONS[0].classSec} mein 3 bacche absent hain:\nRohit Sharma (Roll 12)\nPooja Kumari (Roll 21)\nMahesh Singh (Roll 27)` : "Aapki koi class nahi hai, isliye bacchon ki hazri yahan nahi dikhti.";
+      else if (/timetable|period|class|टाइम/.test(ask)) reply = isTeacher ? `Aaj aapke 4 period hain. Agla: 10:20 – ${SECTIONS[0].classSec} Maths.` : "Aapka koi timetable nahi hai.";
+      else if (/leave|chhutti|छुट्टी/.test(ask)) reply = "Is session mein aapki 8 casual leave bachi hain.";
+      return { reply };
+    }
+
     if (p.startsWith("/bus/")) {
       if (s.role !== "driver") throw new DemoError(403, "Only the bus driver can open this.");
       const trip = s.bus.trip && s.bus.trip.startedAt.slice(0, 10) === new Date().toISOString().slice(0, 10) ? s.bus.trip : null;
