@@ -178,7 +178,7 @@ export default function AssistantPage() {
             <p className="mt-1 text-[21px] font-medium leading-snug text-[#3E3670]">{L({ hi: "आज क्या जानना है?", en: "What would you like to know?" })}</p>
           </div>
           <div className="flex flex-1 flex-col items-center justify-center gap-5 py-6">
-            <SahayakOwl size={170} intro mood={listening ? "listen" : undefined} />
+            <SahayakOwl size={170} intro alive mood={listening ? "listen" : undefined} />
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             {QUESTIONS.slice(0, 4).map(({ text: q, icon: Icon }) => (

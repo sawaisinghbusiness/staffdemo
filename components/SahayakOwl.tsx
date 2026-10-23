@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useEffect, useId, useState } from "react";
 import clsx from "clsx";
 
 /**
@@ -10,16 +10,49 @@ import clsx from "clsx";
  * `crop` trims the empty space around it for small spots (header, floating button).
  * `intro`: when the chat opens it runs in too fast, skids past its spot, looks back and tiptoes back
  * ("brake fail", the user's pick of three, 2026-10-23; globals.css owl-in-c).
+ * `alive`: every few seconds it does something by itself so it feels alive (the user's ask, 2026-10-23):
+ * waves hello, scratches its head, looks around, tilts its head or turns shy. Still no bouncing.
  */
 
-export function SahayakOwl({ size, mood, crop, intro, className }: { size: number; mood?: "listen" | "think"; crop?: boolean; intro?: boolean; className?: string }) {
+const MOVES = ["wave", "scratch", "look", "tilt", "shy"] as const;
+const MOVE_MS = 1800;
+
+/** Picks a move every 4-8s (never the same twice running), and none while the app is in the background. */
+function useIdle(on: boolean, firstAfter: number) {
+  const [move, setMove] = useState("");
+  useEffect(() => {
+    if (!on || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    let last = "";
+    let timer: ReturnType<typeof setTimeout>;
+    const next = (wait: number) => {
+      timer = setTimeout(() => {
+        if (!document.hidden) {
+          const pool = MOVES.filter((m) => m !== last);
+          last = pool[Math.floor(Math.random() * pool.length)];
+          setMove(last);
+          timer = setTimeout(() => {
+            setMove("");
+            next(4000 + Math.random() * 4000);
+          }, MOVE_MS);
+        } else next(2000);
+      }, wait);
+    };
+    next(firstAfter);
+    return () => clearTimeout(timer);
+  }, [on, firstAfter]);
+  return move;
+}
+
+export function SahayakOwl({ size, mood, crop, intro, alive, className }: { size: number; mood?: "listen" | "think"; crop?: boolean; intro?: boolean; alive?: boolean; className?: string }) {
   const body = `owl-${useId().replace(/:/g, "")}`;
+  // After the entrance (4s) when there is one; never while listening or thinking.
+  const move = useIdle(!!alive && !mood, intro ? 6000 : 2500);
   return (
     <svg
       width={size}
       height={Math.round(size * (crop ? 190 / 160 : 220 / 200))}
       viewBox={crop ? "20 18 160 190" : "0 0 200 220"}
-      className={clsx("sahayak-owl shrink-0 overflow-visible", intro && "owl-in-c", mood === "listen" && "owl-listen", mood === "think" && "owl-think", className)}
+      className={clsx("sahayak-owl shrink-0 overflow-visible", intro && "owl-in-c", move && `owl-do-${move}`, mood === "listen" && "owl-listen", mood === "think" && "owl-think", className)}
       aria-hidden
     >
       <defs>

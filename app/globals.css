@@ -1044,3 +1044,37 @@ form.sahayak-glass:focus-within {
 @media (prefers-reduced-motion: reduce) {
   .sahayak-float, .sahayak-shadow, .sahayak-eye, .sahayak-shine { animation: none; }
 }
+
+/* The owl doing things by itself (SahayakOwl alive, 2026-10-23), one move at a time for 1.8s. Kept after the
+   entrance rules so these win on the same parts. No bouncing. */
+.sahayak-owl .o-wr { transform-box: view-box; transform-origin: 146px 108px; }
+.sahayak-owl .o-wl { transform-box: view-box; transform-origin: 54px 108px; }
+.owl-do-wave .o-wr { animation: owl-wave 1.8s ease-in-out both; }
+.owl-do-scratch .o-wl { animation: owl-scratch 1.8s ease-in-out both; }
+.owl-do-scratch .o-capin { animation: owl-capwiggle 1.8s ease-in-out both; transform-box: view-box; transform-origin: 100px 40px; }
+.owl-do-look .o-pup { animation: owl-lookabout 1.8s ease-in-out both; }
+.owl-do-tilt .o-body, .owl-do-tilt .o-cap { animation: owl-headtilt 1.8s ease-in-out both; transform-box: view-box; transform-origin: 100px 200px; }
+.owl-do-shy .o-cheek { animation: owl-blushing 1.8s ease-in-out both; }
+.owl-do-shy .o-pup { animation: owl-lookdown 1.8s ease-in-out both; }
+@keyframes owl-wave {
+  0%, 100% { transform: rotate(0); }
+  20% { transform: rotate(-115deg); }
+  35% { transform: rotate(-140deg); }
+  50% { transform: rotate(-110deg); }
+  65% { transform: rotate(-140deg); }
+  80% { transform: rotate(-115deg); }
+}
+@keyframes owl-scratch {
+  0%, 100% { transform: rotate(0); }
+  22%, 78% { transform: rotate(125deg); }
+  34%, 58% { transform: rotate(115deg); }
+  46%, 70% { transform: rotate(132deg); }
+}
+@keyframes owl-capwiggle { 0%, 25%, 80%, 100% { transform: rotate(0); } 40% { transform: rotate(-5deg); } 60% { transform: rotate(4deg); } }
+@keyframes owl-lookabout { 0%, 100% { transform: translate(0, 0); } 25%, 40% { transform: translate(-7px, -2px); } 60%, 80% { transform: translate(7px, -2px); } }
+@keyframes owl-headtilt { 0%, 100% { transform: rotate(0); } 30%, 70% { transform: rotate(-9deg); } }
+@keyframes owl-blushing { 0%, 100% { opacity: 0.5; } 25%, 75% { opacity: 1; } }
+@keyframes owl-lookdown { 0%, 100% { transform: translate(0, 0); } 25%, 75% { transform: translate(2px, 5px); } }
+@media (prefers-reduced-motion: reduce) {
+  [class*="owl-do-"] * { animation: none !important; }
+}

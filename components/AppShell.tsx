@@ -308,7 +308,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <div className="pointer-events-none fixed inset-x-0 bottom-[calc(92px+env(safe-area-inset-bottom,0px))] z-20 mx-auto flex max-w-[560px] justify-end px-4">
           <Link href="/assistant/" aria-label={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} className="pointer-events-auto grid h-14 w-14 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-[#FFF4E4] shadow-[0_8px_20px_rgba(226,97,27,0.35)] transition-transform duration-200 active:scale-90">
             {/* The same owl as on the chat screen, small and still (no bouncing). */}
-            <SahayakOwl size={40} crop />
+            <SahayakOwl size={40} crop alive />
           </Link>
         </div>
       )}
