@@ -14,7 +14,7 @@ export class ApiError extends Error {
 const TIMEOUT_MS = 15_000;
 
 /** Calls the backend through this site's own /api (same domain, so the sign-in cookie just works). */
-export async function api<T>(path: string, init?: { method?: string; body?: unknown }): Promise<T> {
+export async function api<T>(path: string, init?: { method?: string; body?: unknown; timeoutMs?: number }): Promise<T> {
   const method = init?.method || (init?.body ? "POST" : "GET");
   // ERP login: the teacher app's screens, empty (see lib/erpMode.ts). Sign-in itself still goes to staff-app.
   if (isErpMode() && path !== "/otp" && path !== "/verify") {
@@ -33,7 +33,7 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
   }
 
   const ctrl = new AbortController();
-  const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
+  const timer = setTimeout(() => ctrl.abort(), init?.timeoutMs ?? TIMEOUT_MS);
   let res: Response;
   try {
     res = await fetch(`/api/staff-app${path}`, {
@@ -45,7 +45,8 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
       signal: ctrl.signal,
     });
   } catch {
-    throw new ApiError(0, "offline");
+    // Our own timer firing means the server was slow, not that the phone is offline.
+    throw new ApiError(0, ctrl.signal.aborted ? "timeout" : "offline");
   } finally {
     clearTimeout(timer);
   }
