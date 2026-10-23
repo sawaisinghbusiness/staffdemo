@@ -957,6 +957,59 @@ li.row-card:nth-child(n + 8),
 .sahayak-bg {
   background: linear-gradient(180deg, #eef0ff 0%, #f4eeff 45%, #fbeffa 100%);
 }
+/* The owl (components/SahayakOwl.tsx): blinks, the tassel sways, a ring while listening, eyes look around while thinking. No bouncing. */
+.owl-blink { animation: owl-blink 4.6s infinite; transform-box: fill-box; transform-origin: center; }
+.owl-tassel { animation: owl-swing 2.6s ease-in-out infinite; transform-box: view-box; transform-origin: 100px 37px; }
+.owl-ring { opacity: 0; transform-box: fill-box; transform-origin: center; }
+.owl-listen .owl-ring { animation: owl-ring 1.4s ease-out infinite; }
+.owl-think .owl-pupils { animation: owl-look 2s ease-in-out infinite; }
+@keyframes owl-blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.08); } }
+@keyframes owl-swing { 0%, 100% { transform: rotate(-8deg); } 50% { transform: rotate(10deg); } }
+@keyframes owl-ring { 0% { opacity: 0.6; transform: scale(0.9); } 100% { opacity: 0; transform: scale(1.35); } }
+@keyframes owl-look { 0%, 100% { transform: translate(0, 0); } 25% { transform: translate(-5px, -3px); } 75% { transform: translate(5px, -3px); } }
+@media (prefers-reduced-motion: reduce) {
+  .owl-blink, .owl-tassel, .owl-listen .owl-ring, .owl-think .owl-pupils { animation: none; }
+}
+/* The owl's entrance when the chat opens (SahayakOwl intro, "brake fail"): runs in too fast, skids past
+   its spot, looks back, tiptoes back, fixes its cap and blushes. 4s, then it just stands. */
+.sahayak-owl .o-skid, .sahayak-owl .o-smoke { opacity: 0; }
+.sahayak-owl [class^="o-"] { animation-duration: 4s; animation-fill-mode: both; animation-timing-function: ease-out; }
+.sahayak-owl .o-body, .sahayak-owl .o-cap { transform-box: view-box; }
+/* 0–24% run in · 24–37% overshoot and skid · 37–46% look back · 46–70% tiptoe back · 70–88% fix the cap, blush */
+.owl-in-c .o-body,.owl-in-c .o-cap{animation-name:owl-c-body;transform-origin:100px 202px}
+.owl-in-c .o-run{animation:owl-o-run .14s ease-in-out 7 both}
+.owl-in-c .o-fl{animation:owl-o-step .14s ease-in-out 7 both}
+.owl-in-c .o-fr{animation:owl-o-step .14s ease-in-out .07s 7 both}
+.owl-in-c .o-shadow{animation-name:owl-c-shadow}
+.owl-in-c .o-skid{animation-name:owl-c-skid}
+.owl-in-c .o-smoke{animation-name:owl-c-smoke;transform-box:view-box;transform-origin:30px 196px}
+.owl-in-c .o-pup{animation-name:owl-c-look}
+.owl-in-c .o-cheek{animation-name:owl-c-blush}
+.owl-in-c .o-wl{animation-name:owl-c-wing;transform-box:view-box;transform-origin:54px 108px}
+.owl-in-c .o-capin{animation-name:owl-c-capfix;transform-box:view-box;transform-origin:100px 40px}
+@keyframes owl-c-body{
+  0%{transform:translate(300px,0) rotate(-12deg)}
+  24%{transform:translate(-80px,0) rotate(-12deg)}
+  33%{transform:translate(-115px,0) rotate(14deg)}
+  37%{transform:translate(-113px,0) rotate(-4deg)}
+  40%,46%{transform:translate(-113px,0) rotate(0)}
+  50%{transform:translate(-90px,-7px)}54%{transform:translate(-68px,0)}58%{transform:translate(-46px,-7px)}62%{transform:translate(-24px,0)}66%{transform:translate(-6px,-6px)}
+  70%,100%{transform:translate(0,0) rotate(0)}
+}
+@keyframes owl-c-shadow{0%{transform:translateX(300px)}24%{transform:translateX(-80px)}33%,46%{transform:translateX(-113px)}70%,100%{transform:none}}
+@keyframes owl-c-skid{0%,25%{opacity:0}30%,52%{opacity:.7}64%,100%{opacity:0}}
+@keyframes owl-c-smoke{0%,25%{opacity:0;transform:scale(.4)}30%{opacity:.9;transform:scale(1)}44%,100%{opacity:0;transform:scale(1.6) translateX(20px)}}
+@keyframes owl-c-look{0%,36%{transform:translateX(0)}39%,46%{transform:translateX(8px)}49%,100%{transform:translateX(0)}}
+@keyframes owl-c-blush{0%,68%{opacity:.5}74%,94%{opacity:1}100%{opacity:.5}}
+@keyframes owl-c-wing{0%,70%{transform:rotate(0)}74%,84%{transform:rotate(125deg)}88%,100%{transform:rotate(0)}}
+@keyframes owl-c-capfix{0%,72%{transform:rotate(0)}75%{transform:rotate(-16deg)}78%{transform:rotate(8deg)}81%{transform:rotate(-6deg)}84%,100%{transform:rotate(0)}}
+
+/* Shared */
+@keyframes owl-o-run{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes owl-o-step{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@media (prefers-reduced-motion: reduce) {
+  .sahayak-owl [class^="o-"], .sahayak-owl [class^="o-"] * { animation: none !important; }
+}
 /* Liquid glass for the chat bar, its chips and the question list: frosted white over the soft shapes, a bright top edge. */
 .sahayak-glass {
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.78) 0%, rgba(255, 255, 255, 0.5) 100%);

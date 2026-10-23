@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { CalendarCheck, ChevronLeft, History, Home, LayoutDashboard, Menu as MenuIcon, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
 import { useStaff } from "@/lib/staff";
+import { SahayakOwl } from "./SahayakOwl";
 import { useL, type Bi } from "@/lib/i18n";
 import { MenuContext } from "@/lib/menu";
 import { isErpMode } from "@/lib/erpMode";
@@ -305,10 +306,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* School Sahayak (the AI chat): a round button floating above the tab bar, on every tab screen. Not for drivers or the ERP login. */}
       {!page?.bare && !driver && !erp && (
         <div className="pointer-events-none fixed inset-x-0 bottom-[calc(92px+env(safe-area-inset-bottom,0px))] z-20 mx-auto flex max-w-[560px] justify-end px-4">
-          <Link href="/assistant/" aria-label={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} className="sahayak-orb sahayak-float pointer-events-auto flex h-14 w-14 items-center justify-center gap-2 rounded-full border-[3px] border-white transition-transform duration-200 active:scale-90">
-            {/* The same purple orb as on the chat screen, small. */}
-            <span className="sahayak-eye h-3 w-[6px] rounded-full bg-white" aria-hidden />
-            <span className="sahayak-eye h-3 w-[6px] rounded-full bg-white" aria-hidden />
+          <Link href="/assistant/" aria-label={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} className="pointer-events-auto grid h-14 w-14 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-[#FFF4E4] shadow-[0_8px_20px_rgba(226,97,27,0.35)] transition-transform duration-200 active:scale-90">
+            {/* The same owl as on the chat screen, small and still (no bouncing). */}
+            <SahayakOwl size={40} crop />
           </Link>
         </div>
       )}
