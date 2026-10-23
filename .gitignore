@@ -6,3 +6,5 @@ next-env.d.ts
 .env*.local
 .next-test
 .next-demo
+# Extra build folders (NEXT_DIST_DIR), never source
+.next-*/

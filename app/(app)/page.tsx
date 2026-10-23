@@ -34,6 +34,23 @@ interface Home {
 }
 
 type Tile = { href: string; text: Bi; icon: LucideIcon; soon?: boolean };
+// Soft tinted icon backgrounds, phone-app style (as in the parent app); full class strings so Tailwind keeps them.
+const BLUE = "bg-[#E8F0FE] text-[#1A56C4]";
+const GREEN = "bg-[#E6F6EC] text-[#138A43]";
+const ORANGE = "bg-[#FFF0E0] text-[#C2610C]";
+const PURPLE = "bg-[#F1EBFD] text-[#6D3FC9]";
+const TEAL = "bg-[#E2F5F4] text-[#0F7C77]";
+const PINK = "bg-[#FDEBEE] text-[#C4314B]";
+const TONE: Record<string, string> = {
+  "/attendance/": GREEN, "/homework/": BLUE, "/students/": PURPLE, "/messages/": TEAL, "/marks/": ORANGE,
+  "/timetable/": PINK, "/leave/": ORANGE, "/notes/": BLUE, "/notice/": TEAL,
+  "/my-attendance/": GREEN, "/salary/": PURPLE,
+  "/erp/report/": BLUE, "/erp/students/": PURPLE, "/erp/fees/collect/": ORANGE, "/erp/attendance/mark/": GREEN,
+  "/erp/students/enquiries/": TEAL, "/erp/messages/": BLUE, "/erp/meetings/": PINK, "/erp/parent-chats/": TEAL,
+  "/erp/exams/marks/": ORANGE, "/erp/timetable/": PINK, "/erp/homework/": BLUE, "/erp/syllabus/": GREEN,
+  "/erp/copy-check/": PURPLE, "/erp/staff/": BLUE, "/erp/staff/payroll/": PURPLE, "/erp/transport/": TEAL,
+  "/erp/students/certificates/": GREEN, "/erp/students/id-cards/": PURPLE, "/erp/calendar/": PINK, "/erp/birthdays/": ORANGE,
+};
 const TEACHER_GRID: Tile[] = [
   { href: "/attendance/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
   { href: "/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: BookOpen },
@@ -252,21 +269,21 @@ export default function HomePage() {
             )}
           </div>
           {/* Four to a row; folded, only the first row shows. */}
-          <div className="grid grid-cols-4 gap-2">
+          <div className="grid grid-cols-4 gap-x-1 gap-y-3">
             {(more ? grid : grid.slice(0, 4)).map(({ href, text, icon: Icon, soon }, k) =>
               soon ? (
                 // Not built yet in the app: drawn muted, a tap says so.
                 <button key={href} type="button" onPointerDown={ripple} onClick={() => toast(false, `${L(text)}: ${L({ hi: "जल्द आ रहा है", en: "coming soon" })}`)} className="quick-tile pop-in !text-ink-400" style={v(k)}>
-                  <span className="relative !text-ink-400">
+                  <span className="relative bg-ink-100 !text-ink-400">
                     <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
                   </span>
                   {L(text)}
                 </button>
               ) : (
               <Link key={href} href={href} onPointerDown={ripple} className="quick-tile pop-in" style={v(k)}>
-                <span className="relative">
+                <span className={clsx("relative", TONE[href] || BLUE)}>
                   <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
-                  {tileCount[href]?.n > 0 && <CountBadge n={tileCount[href].n} label={`${tileCount[href].n} ${L(tileCount[href].label)}`} className="absolute -right-3.5 -top-2.5" />}
+                  {tileCount[href]?.n > 0 && <CountBadge n={tileCount[href].n} label={`${tileCount[href].n} ${L(tileCount[href].label)}`} className="absolute -right-2 -top-2" />}
                 </span>
                 {L(text)}
               </Link>
@@ -319,7 +336,7 @@ export default function HomePage() {
 const todayText = (iso: string, lang: "hi" | "en") =>
   new Date(iso + "T00:00:00").toLocaleDateString(lang === "hi" ? "hi-IN" : "en-GB", lang === "hi" ? { weekday: "long", day: "numeric", month: "long" } : { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
 
-const plainIcon = (Icon: LucideIcon) => <Icon className="h-6 w-6 text-ink-900" strokeWidth={1.8} aria-hidden />;
+const plainIcon = (Icon: LucideIcon) => <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />;
 
 /** What the staff member checks every morning, each a row that opens its screen (the parent app's Today card). */
 function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) {
@@ -343,13 +360,13 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
   const m = data.myMark;
   const mine =
     m === "P"
-      ? { icon: <Mark className="bg-jade-600" icon={Check} draw />, note: L({ hi: "आज उपस्थित", en: "Present today" }) }
+      ? { icon: <Mark className="bg-jade-600" icon={Check} draw />, tone: GREEN, note: L({ hi: "आज उपस्थित", en: "Present today" }) }
       : m === "A"
-        ? { icon: <Mark className="bg-rose-600" icon={X} />, note: L({ hi: "आज अनुपस्थित", en: "Absent today" }) }
+        ? { icon: <Mark className="bg-rose-600" icon={X} />, tone: PINK, note: L({ hi: "आज अनुपस्थित", en: "Absent today" }) }
         : m === "L" || m === "H"
-          ? { icon: <Mark className="bg-marigold-500" icon={Check} />, note: m === "L" ? L({ hi: "आज छुट्टी पर", en: "On leave today" }) : L({ hi: "आज आधा दिन", en: "Half day today" }) }
-          : { icon: plainIcon(Clock3), note: L({ hi: "अभी हाज़िरी नहीं लगी", en: "Not marked yet" }) };
-  const myRow = (i: number) => <TodayRow i={i} href="/my-attendance/" icon={mine.icon} title={L({ hi: "मेरी हाज़िरी", en: "My attendance" })} note={mine.note} />;
+          ? { icon: <Mark className="bg-marigold-500" icon={Check} />, tone: ORANGE, note: m === "L" ? L({ hi: "आज छुट्टी पर", en: "On leave today" }) : L({ hi: "आज आधा दिन", en: "Half day today" }) }
+          : { icon: plainIcon(Clock3), tone: GREEN, note: L({ hi: "अभी हाज़िरी नहीं लगी", en: "Not marked yet" }) };
+  const myRow = (i: number) => <TodayRow i={i} href="/my-attendance/" tone={mine.tone} icon={mine.icon} title={L({ hi: "मेरी हाज़िरी", en: "My attendance" })} note={mine.note} />;
 
   const open = data.attendanceToMark[0];
   const rows = teacher ? (
@@ -357,6 +374,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={4}
         href={open ? `/attendance/?id=${open.id}` : "/attendance/"}
+        tone={GREEN}
         icon={open ? plainIcon(CalendarCheck) : <Mark className="bg-jade-600" icon={Check} draw />}
         title={L({ hi: "हाज़िरी", en: "Attendance" })}
         note={open ? L({ hi: `${open.classSec} की बाकी है`, en: `${open.classSec} not marked` }) : L({ hi: "सब लग गई", en: "All marked" })}
@@ -365,6 +383,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={5}
         href="/leave/?tab=requests"
+        tone={ORANGE}
         icon={plainIcon(CalendarX2)}
         title={L({ hi: "छुट्टी की अर्ज़ियाँ", en: "Leave requests" })}
         note={data.pendingLeaves ? L({ hi: `${data.pendingLeaves} जवाब बाकी`, en: `${data.pendingLeaves} waiting` }) : L({ hi: "कोई अर्ज़ी नहीं", en: "None waiting" })}
@@ -378,6 +397,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={5}
         href="/leave/"
+        tone={ORANGE}
         icon={plainIcon(CalendarX2)}
         title={L({ hi: "छुट्टी", en: "Leave" })}
         note={L({ hi: "अर्ज़ी दें या देखें", en: "Apply or check" })}
@@ -386,6 +406,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={6}
         href="/salary/"
+        tone={PURPLE}
         icon={plainIcon(Banknote)}
         title={L({ hi: "सैलरी", en: "Salary" })}
         note={L({ hi: "सैलरी स्लिप", en: "Salary slips" })}
@@ -414,11 +435,11 @@ function Mark({ className, icon: Icon, draw }: { className: string; icon: Lucide
   );
 }
 
-function TodayRow({ i, href, icon, title, note, end }: { i: number; href: string; icon: React.ReactNode; title: string; note: string; end?: React.ReactNode }) {
+function TodayRow({ i, href, tone, icon, title, note, end }: { i: number; href: string; tone: string; icon: React.ReactNode; title: string; note: string; end?: React.ReactNode }) {
   return (
     <li className="enter border-b border-ink-100 last:border-0" style={v(i)}>
       <Link href={href} onPointerDown={ripple} className="relative -mx-4 flex min-h-[72px] items-center gap-3.5 overflow-hidden px-4 py-3">
-        <span className="grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-ink-200 bg-white">{icon}</span>
+        <span className={clsx("grid h-12 w-12 shrink-0 place-items-center rounded-2xl", tone)}>{icon}</span>
         <span className="min-w-0 flex-1">
           <span className="block text-[16px] font-semibold text-ink-900">{title}</span>
           <span className="block truncate text-[13px] text-ink-500">{note}</span>
