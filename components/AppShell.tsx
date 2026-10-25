@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import clsx from "clsx";
 import { CalendarCheck, ChevronLeft, History, Home, LayoutDashboard, Menu as MenuIcon, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
 import { useStaff } from "@/lib/staff";
-import { SahayakOwl } from "./SahayakOwl";
+import { SahayakButton } from "./SahayakButton";
 import { useL, type Bi } from "@/lib/i18n";
 import { MenuContext } from "@/lib/menu";
 import { isErpMode } from "@/lib/erpMode";
@@ -173,9 +173,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const driver = me?.role === "driver";
   const [erp] = useState(isErpMode);
   const tabs = erp ? ERP_TABS : teacher ? TEACHER_TABS : OTHER_TABS;
-  // Home sits on the teal band (the user's pick, 2026-10-14), so its header buttons are white.
-  const band = !driver && isHome;
-  const onBand = band ? "text-white active:bg-white/15" : "text-ink-900 active:bg-ink-100";
+  // Home sits on the parent app's pale page (no teal band since 2026-10-24); header buttons are dark everywhere.
+  const home = !driver && isHome;
+  const onBand = "text-ink-900 active:bg-ink-100";
   const blocked = !!me && me.role !== "teacher" && !!page?.teacher;
   const lit = isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
   const litIndex = tabs.findIndex((t) => t.href === lit);
@@ -188,34 +188,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (blocked) window.location.replace("/");
   }, [blocked]);
 
-  // While the page scrolls the tab bar glides down out of the way; once scrolling stops it glides back
-  // (user, 2026-10-20). State only flips at the start and end of a scroll, not on every scroll event.
-  const [navAway, setNavAway] = useState(false);
-  useEffect(() => {
-    let lastY = window.scrollY;
-    let away = false;
-    let timer = 0;
-    const onScroll = () => {
-      const y = window.scrollY;
-      if (Math.abs(y - lastY) > 3 && !away && y > 8) {
-        away = true;
-        setNavAway(true);
-      }
-      lastY = y;
-      window.clearTimeout(timer);
-      timer = window.setTimeout(() => {
-        away = false;
-        setNavAway(false);
-      }, 260);
-    };
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.removeEventListener("scroll", onScroll);
-      window.clearTimeout(timer);
-    };
-  }, []);
-  useEffect(() => setNavAway(false), [path]);
-
   // Swipe right anywhere on the screen to open the side menu (not on a chat, whose screen is all typing,
   // not for drivers, and not when the swipe starts on something that scrolls sideways, like the lectures strip).
   const touch = useRef<{ x: number; y: number; t: number } | null>(null);
@@ -223,6 +195,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (page?.bare || driver) return;
     const sideways = (el: Element | null) => {
       for (let n = el; n && n !== document.body; n = n.parentElement) {
+        if (n.hasAttribute("data-swipe")) return true;
         const o = getComputedStyle(n).overflowX;
         if ((o === "auto" || o === "scroll") && n.scrollWidth > n.clientWidth + 2) return true;
       }
@@ -251,11 +224,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : band ? "teal-page" : "app-page")}>
-      {/* The teal band, on Home only for now: under the header, down to the middle of the banner. */}
-      {band && <div aria-hidden className="teal-band" style={{ height: "calc(env(safe-area-inset-top, 0px) + 220px)", transform: "translate3d(0,var(--band-y,0px),0)", willChange: "transform" }} />}
+    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? "bg-[#e3ecec]" : "app-page")}>
       {!isHome && !own && (
-        <header className="pt-safe sticky top-0 z-20 bg-[#f7f7f7]/95 shadow-[0_1px_0_rgba(0,0,0,0.06)] backdrop-blur-sm">
+        <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">
             {page?.back ? (
               <Link href={page.back} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L({ hi: "वापस", en: "Back" })}>
@@ -268,7 +239,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
               </button>
             )}
-            <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold", band && "text-white")}>{page ? L(page.title) : ""}</h1>
+            <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold")}>{page ? L(page.title) : ""}</h1>
             <span className="relative flex justify-end">
               {page?.action?.badge ? (
                 <Link
@@ -303,37 +274,33 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </main>
 
-      {/* School Sahayak (the AI chat): a round button floating above the tab bar, on every tab screen. Not for drivers or the ERP login. */}
-      {!page?.bare && !driver && !erp && (
-        <div className="pointer-events-none fixed inset-x-0 bottom-[calc(92px+env(safe-area-inset-bottom,0px))] z-20 mx-auto flex max-w-[560px] justify-end px-4">
-          <Link href="/assistant/" aria-label={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} className="pointer-events-auto grid h-14 w-14 place-items-center overflow-hidden rounded-full border-[3px] border-white bg-[#FFF4E4] shadow-[0_8px_20px_rgba(226,97,27,0.35)] transition-transform duration-200 active:scale-90">
-            {/* The same owl as on the chat screen, small and still (no bouncing). */}
-            <SahayakOwl size={40} crop alive />
-          </Link>
-        </div>
-      )}
+      {/* School Sahayak (the AI chat): the parent app's round button, draggable to either side. Not for drivers or the ERP login. */}
+      {!page?.bare && !driver && !erp && <SahayakButton />}
 
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />
       ) : (
-      // Design C (user's pick, 2026-10-19): a floating 50% glass capsule; Report rises above it as a teal disc.
-      <nav
-        className={clsx("nav-slide pointer-events-none fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] px-2.5 pb-[calc(12px+env(safe-area-inset-bottom,0px))]", navAway && "nav-away")}
-        aria-label="Main"
-      >
-        <ul className={clsx("nav-capsule pointer-events-auto relative grid h-16 rounded-3xl", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
-          {/* No pill behind the lit tab (user, 2026-10-19): its icon is coloured and filled inside instead. */}
+      // Docked to the bottom edge, as on the parent app (user, 2026-10-24): solid white, no pill behind the lit
+      // tab (its icon is filled inside instead), and the middle button rising above it as the green disc.
+      <nav className="nav-dock fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] pb-[env(safe-area-inset-bottom,0px)]" aria-label="Main">
+        <ul className={clsx("relative grid h-16", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
           {tabs.map(({ href, text, icon: Icon }, i) => {
             const on = lit === href;
             return (
               <Fragment key={href}>
                 {mid && i === 2 && (
                   <li className="relative">
-                    <Link href={mid.href} aria-current={midOn ? "page" : undefined} className={clsx("flex h-16 flex-col items-center justify-end pb-[9px] text-[11px] text-[#3099a4]", midOn ? "font-semibold" : "font-medium")}>
-                      <span className={clsx("absolute -top-[22px] left-1/2 grid h-[54px] w-[54px] -translate-x-1/2 place-items-center rounded-full border-4 bg-[#3099a4] text-white shadow-[0_6px_16px_rgba(48,153,164,0.35)] transition-transform duration-200 active:scale-95", band ? "border-[#eef6f6]" : "border-[#ececec]")}>
+                    <Link href={mid.href} aria-current={midOn ? "page" : undefined} className="flex h-16 flex-col items-center justify-end pb-[9px] text-[11px]">
+                      <span
+                        className={clsx(
+                          "absolute -top-[22px] left-1/2 grid h-[54px] w-[54px] -translate-x-1/2 place-items-center rounded-full border-4 text-white transition-transform duration-200 active:scale-95",
+                          home ? "border-[#e3ecec]" : "border-[#ececec]",
+                          midOn ? "bg-[#33a811] shadow-[0_6px_16px_rgba(57,188,19,.45)]" : "bg-[#39bc13] shadow-[0_4px_12px_rgba(57,188,19,.35)]"
+                        )}
+                      >
                         <LayoutDashboard className="h-[25px] w-[25px]" strokeWidth={2} aria-hidden />
                       </span>
-                      {L(mid.text)}
+                      <span className={clsx("font-semibold", midOn ? "text-[#2c9010]" : "text-[#2f9c10]")}>{L(mid.text)}</span>
                     </Link>
                   </li>
                 )}

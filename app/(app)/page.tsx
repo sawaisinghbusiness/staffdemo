@@ -3,12 +3,13 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Banknote, Bell, BookOpen, Briefcase, Bus, Cake, CalendarCheck, CalendarClock, CalendarDays, CalendarX2, Check, ChevronRight, Clock3, FileText, IdCard, IndianRupee, LayoutDashboard, ListChecks, Megaphone, Menu as MenuIcon, MessageCircle, MessageSquareText, MessagesSquare, NotebookPen, Search, Table2, TrendingUp, Trophy, UserPlus, Users, X, type LucideIcon } from "lucide-react";
+import { Bell, ChevronRight, Clock3, Menu as MenuIcon, Search } from "lucide-react";
 import { isErpMode } from "@/lib/erpMode";
 import { toast } from "@/lib/toast";
 import { useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang, type Bi } from "@/lib/i18n";
+import { QuickIcon, type QuickIconName } from "@/components/QuickIcons";
 import { useMenu } from "@/lib/menu";
 import { ripple } from "@/lib/motion";
 import { clock } from "@/lib/format";
@@ -33,63 +34,47 @@ interface Home {
   noticeCount?: number;
 }
 
-type Tile = { href: string; text: Bi; icon: LucideIcon; soon?: boolean };
-// Soft tinted icon backgrounds, phone-app style (as in the parent app); full class strings so Tailwind keeps them.
-const BLUE = "bg-[#E8F0FE] text-[#1A56C4]";
-const GREEN = "bg-[#E6F6EC] text-[#138A43]";
-const ORANGE = "bg-[#FFF0E0] text-[#C2610C]";
-const PURPLE = "bg-[#F1EBFD] text-[#6D3FC9]";
-const TEAL = "bg-[#E2F5F4] text-[#0F7C77]";
-const PINK = "bg-[#FDEBEE] text-[#C4314B]";
-const TONE: Record<string, string> = {
-  "/attendance/": GREEN, "/homework/": BLUE, "/students/": PURPLE, "/messages/": TEAL, "/marks/": ORANGE,
-  "/timetable/": PINK, "/leave/": ORANGE, "/notes/": BLUE, "/notice/": TEAL,
-  "/my-attendance/": GREEN, "/salary/": PURPLE,
-  "/erp/report/": BLUE, "/erp/students/": PURPLE, "/erp/fees/collect/": ORANGE, "/erp/attendance/mark/": GREEN,
-  "/erp/students/enquiries/": TEAL, "/erp/messages/": BLUE, "/erp/meetings/": PINK, "/erp/parent-chats/": TEAL,
-  "/erp/exams/marks/": ORANGE, "/erp/timetable/": PINK, "/erp/homework/": BLUE, "/erp/syllabus/": GREEN,
-  "/erp/copy-check/": PURPLE, "/erp/staff/": BLUE, "/erp/staff/payroll/": PURPLE, "/erp/transport/": TEAL,
-  "/erp/students/certificates/": GREEN, "/erp/students/id-cards/": PURPLE, "/erp/calendar/": PINK, "/erp/birthdays/": ORANGE,
-};
+// Each tile's icon is one of the orange family (components/QuickIcons), as on the parent app (user, 2026-10-24).
+type Tile = { href: string; text: Bi; icon: QuickIconName; soon?: boolean };
 const TEACHER_GRID: Tile[] = [
-  { href: "/attendance/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
-  { href: "/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: BookOpen },
-  { href: "/students/", text: { hi: "बच्चे", en: "Students" }, icon: Users },
-  { href: "/messages/", text: { hi: "पूछताछ", en: "Enquiries" }, icon: MessageCircle },
-  { href: "/marks/", text: { hi: "अंक", en: "Marks" }, icon: TrendingUp },
-  { href: "/timetable/", text: { hi: "टाइम टेबल", en: "Time Table" }, icon: Table2 },
-  { href: "/leave/", text: { hi: "छुट्टी", en: "Leave" }, icon: CalendarX2 },
-  { href: "/notes/", text: { hi: "टीचर नोट", en: "Teacher's Note" }, icon: NotebookPen },
-  { href: "/notice/", text: { hi: "सूचना", en: "Notice" }, icon: Megaphone },
+  { href: "/attendance/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: "attendance" },
+  { href: "/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: "homework" },
+  { href: "/students/", text: { hi: "बच्चे", en: "Students" }, icon: "students" },
+  { href: "/messages/", text: { hi: "पूछताछ", en: "Enquiries" }, icon: "askTeacher" },
+  { href: "/marks/", text: { hi: "अंक", en: "Marks" }, icon: "marks" },
+  { href: "/timetable/", text: { hi: "टाइम टेबल", en: "Time Table" }, icon: "timetable" },
+  { href: "/leave/", text: { hi: "छुट्टी", en: "Leave" }, icon: "leave" },
+  { href: "/notes/", text: { hi: "टीचर नोट", en: "Teacher's Note" }, icon: "notes" },
+  { href: "/notice/", text: { hi: "सूचना", en: "Notice" }, icon: "notice" },
 ];
 const OTHER_GRID: Tile[] = [
-  { href: "/my-attendance/", text: { hi: "मेरी हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
-  { href: "/leave/", text: { hi: "छुट्टी", en: "Leave" }, icon: CalendarX2 },
-  { href: "/salary/", text: { hi: "सैलरी", en: "Salary" }, icon: Banknote },
-  { href: "/notice/", text: { hi: "सूचना", en: "Notice" }, icon: Megaphone },
+  { href: "/my-attendance/", text: { hi: "मेरी हाज़िरी", en: "Attendance" }, icon: "myAttendance" },
+  { href: "/leave/", text: { hi: "छुट्टी", en: "Leave" }, icon: "leave" },
+  { href: "/salary/", text: { hi: "सैलरी", en: "Salary" }, icon: "salary" },
+  { href: "/notice/", text: { hi: "सूचना", en: "Notice" }, icon: "notice" },
 ];
 /** ERP login: every module of the ERP website's menu. `soon` until that module is built here, one by one. */
 const ERP_GRID: Tile[] = [
-  { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" }, icon: LayoutDashboard },
-  { href: "/erp/students/", text: { hi: "बच्चे", en: "Students" }, icon: Users },
-  { href: "/erp/fees/collect/", text: { hi: "फ़ीस", en: "Fees" }, icon: IndianRupee },
-  { href: "/erp/attendance/mark/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: CalendarCheck },
-  { href: "/erp/students/enquiries/", text: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, icon: UserPlus },
-  { href: "/erp/messages/", text: { hi: "मैसेज", en: "Messages" }, icon: MessageSquareText },
-  { href: "/erp/meetings/", text: { hi: "मीटिंग", en: "Meetings" }, icon: CalendarClock },
-  { href: "/erp/parent-chats/", text: { hi: "अभिभावक चैट", en: "Parent Chats" }, icon: MessagesSquare },
-  { href: "/erp/exams/marks/", text: { hi: "परीक्षा", en: "Exams" }, icon: Trophy },
-  { href: "/erp/timetable/", text: { hi: "टाइम टेबल", en: "Time Table" }, icon: Table2 },
-  { href: "/erp/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: BookOpen },
-  { href: "/erp/syllabus/", text: { hi: "सिलेबस", en: "Syllabus" }, icon: ListChecks },
-  { href: "/erp/copy-check/", text: { hi: "कॉपी जाँच", en: "Copy Check" }, icon: NotebookPen },
-  { href: "/erp/staff/", text: { hi: "स्टाफ़", en: "Staff" }, icon: Briefcase },
-  { href: "/erp/staff/payroll/", text: { hi: "सैलरी", en: "Payroll" }, icon: Banknote },
-  { href: "/erp/transport/", text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus },
-  { href: "/erp/students/certificates/", text: { hi: "सर्टिफ़िकेट", en: "Certificates" }, icon: FileText },
-  { href: "/erp/students/id-cards/", text: { hi: "आईडी कार्ड", en: "ID Cards" }, icon: IdCard },
-  { href: "/erp/calendar/", text: { hi: "कैलेंडर", en: "Calendar" }, icon: CalendarDays },
-  { href: "/erp/birthdays/", text: { hi: "जन्मदिन", en: "Birthdays" }, icon: Cake },
+  { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" }, icon: "report" },
+  { href: "/erp/students/", text: { hi: "बच्चे", en: "Students" }, icon: "students" },
+  { href: "/erp/fees/collect/", text: { hi: "फ़ीस", en: "Fees" }, icon: "fees" },
+  { href: "/erp/attendance/mark/", text: { hi: "हाज़िरी", en: "Attendance" }, icon: "attendance" },
+  { href: "/erp/students/enquiries/", text: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, icon: "admission" },
+  { href: "/erp/messages/", text: { hi: "मैसेज", en: "Messages" }, icon: "messages" },
+  { href: "/erp/meetings/", text: { hi: "मीटिंग", en: "Meetings" }, icon: "meetings" },
+  { href: "/erp/parent-chats/", text: { hi: "अभिभावक चैट", en: "Parent Chats" }, icon: "parentChats" },
+  { href: "/erp/exams/marks/", text: { hi: "परीक्षा", en: "Exams" }, icon: "exam" },
+  { href: "/erp/timetable/", text: { hi: "टाइम टेबल", en: "Time Table" }, icon: "timetable" },
+  { href: "/erp/homework/", text: { hi: "होमवर्क", en: "Homework" }, icon: "homework" },
+  { href: "/erp/syllabus/", text: { hi: "सिलेबस", en: "Syllabus" }, icon: "syllabus" },
+  { href: "/erp/copy-check/", text: { hi: "कॉपी जाँच", en: "Copy Check" }, icon: "copyCheck" },
+  { href: "/erp/staff/", text: { hi: "स्टाफ़", en: "Staff" }, icon: "staff" },
+  { href: "/erp/staff/payroll/", text: { hi: "सैलरी", en: "Payroll" }, icon: "salary" },
+  { href: "/erp/transport/", text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: "bus" },
+  { href: "/erp/students/certificates/", text: { hi: "सर्टिफ़िकेट", en: "Certificates" }, icon: "certificate" },
+  { href: "/erp/students/id-cards/", text: { hi: "आईडी कार्ड", en: "ID Cards" }, icon: "idCard" },
+  { href: "/erp/calendar/", text: { hi: "कैलेंडर", en: "Calendar" }, icon: "calendar" },
+  { href: "/erp/birthdays/", text: { hi: "जन्मदिन", en: "Birthdays" }, icon: "birthday" },
 ];
 // Settings is not a tile: it sits at the foot of the side menu (user, 2026-10-16).
 
@@ -115,7 +100,6 @@ export default function HomePage() {
   const unreadChats = chats?.unread || 0;
   const unread = useUnseenNotices();
   const L = useL();
-  const { lang, setLang } = useLang();
   const { openMenu } = useMenu();
   const [now, setNow] = useState(nowHHMM);
   useEffect(() => {
@@ -130,36 +114,25 @@ export default function HomePage() {
   // Every action shows from the start; "Show less" folds it to the first row.
   const [more, setMore] = useState(true);
 
-  // Scrolling, as in the Dhan app: the top row stays put on a solid teal strip and everything else slides
-  // up under it. The teal band holds still too, until the Today card reaches where the banner was.
+  // The top row stays put on a white strip, as on the parent app (user, 2026-10-24); a soft edge shows under
+  // it once something has gone under it.
   const headRef = useRef<HTMLDivElement>(null);
-  const imgRef = useRef<HTMLImageElement>(null);
-  const todayRef = useRef<HTMLDivElement>(null);
   const ready = !!me && me.role !== "driver";
   useEffect(() => {
     if (!ready) return;
-    const root = document.documentElement.style;
     let frame = 0;
     const paint = () => {
       frame = 0;
-      const y = Math.max(0, window.scrollY);
-      const img = imgRef.current, today = todayRef.current, head = headRef.current;
-      const stop = img && today ? today.offsetTop - img.offsetTop : 0;
-      root.setProperty("--band-y", `${Math.min(y, stop)}px`);
-      // A soft edge under the strip once something has gone under it.
-      if (head) head.style.boxShadow = y > 4 ? "0 4px 12px rgba(15,47,60,0.18)" : "none";
+      if (headRef.current) headRef.current.style.boxShadow = window.scrollY > 4 ? "0 4px 12px rgba(15,47,60,0.12)" : "none";
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(paint);
     };
     paint();
     window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", onScroll);
     return () => {
       window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", onScroll);
       if (frame) cancelAnimationFrame(frame);
-      root.removeProperty("--band-y");
     };
   }, [ready]);
 
@@ -195,43 +168,14 @@ export default function HomePage() {
 
   return (
     <div className={clsx("animate-fadeIn", calm && "calm")}>
-      {/* One row like the parent app: menu, search, then language, notices and the staff member.
-          It stays at the top on a solid teal strip; the page slides under it. */}
-      <div ref={headRef} className="pt-safe sticky top-0 z-20 bg-[#3099a4] px-4 pb-2 transition-shadow duration-300">
-        <div className="enter flex items-center gap-1.5 pt-4" style={v(0)}>
-          <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 mr-0.5 grid h-11 w-10 shrink-0 place-items-center rounded-full text-white active:bg-white/15">
+      {/* The top row on a white strip, as on the parent app: menu, the greeting, then notices and the staff
+          member. Language is in the side menu and Profile. */}
+      <div ref={headRef} className="pt-safe sticky top-0 z-20 bg-white px-4 pb-2 transition-shadow duration-300">
+        <div className="enter flex items-center gap-1.5 pt-3" style={v(0)}>
+          <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 grid h-11 w-10 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100">
             <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
           </button>
-          {/* Search fills the room between the menu and the language switch. */}
-          {teacher ? (
-            <Link href={isErpMode() ? "/erp/students/?search=1" : "/students/?search=1"} className="glass-search ml-1 mr-0.5 flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full px-3 text-ink-500" aria-label={L({ hi: "बच्चे खोजें", en: "Search students" })}>
-              <Search className="h-[18px] w-[18px] shrink-0 text-brand-800" strokeWidth={2.2} aria-hidden />
-              <span className="truncate text-[14px]">{L({ hi: "खोजें", en: "Search" })}</span>
-            </Link>
-          ) : (
-            <span className="flex-1" />
-          )}
-          <div className="relative flex shrink-0 rounded-full border border-ink-200 bg-white p-0.5" role="group" aria-label={L({ hi: "भाषा", en: "Language" })}>
-            <span aria-hidden className="slide-pill absolute left-0.5 top-0.5 h-7 w-[30px] rounded-full bg-brand-600" style={{ transform: lang === "hi" ? "translateX(30px)" : "none" }} />
-            {(["en", "hi"] as const).map((k) => (
-              <button key={k} onClick={() => setLang(k)} aria-pressed={lang === k} className={clsx("relative h-7 w-[30px] rounded-full text-[12px] font-semibold transition-colors duration-300", lang === k ? "text-white" : "text-ink-500")}>
-                {k === "en" ? "EN" : "हि"}
-              </button>
-            ))}
-          </div>
-          <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-white active:bg-white/15" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
-            <Bell className={clsx("h-[21px] w-[21px]", unread > 0 && "bell-ring")} strokeWidth={2} aria-hidden />
-            {unread > 0 && <CountBadge n={unread} className="absolute -right-1.5 -top-0.5" />}
-          </Link>
-          <Link href="/profile/" className="shrink-0 rounded-full ring-2 ring-white transition-transform duration-300 active:scale-90" aria-label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}>
-            <Avatar name={me.name} url={me.photoUrl} size={38} tint={0} />
-          </Link>
-        </div>
-      </div>
-
-      <header className="px-4">
-        <div className="mt-3">
-          <h1 className="truncate text-[clamp(21px,6.4vw,26px)] font-bold leading-tight text-white">
+          <h1 className="min-w-0 flex-1 truncate text-[19px] font-bold leading-tight text-ink-900">
             <span className="reveal">
               <span style={v(0)}>{greet},</span>
             </span>{" "}
@@ -239,22 +183,36 @@ export default function HomePage() {
               <span style={v(1)}>{first}</span>
             </span>
           </h1>
+          <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
+            <Bell className={clsx("h-[21px] w-[21px]", unread > 0 && "bell-ring")} strokeWidth={2} aria-hidden />
+            {unread > 0 && <CountBadge n={unread} className="absolute -right-1.5 -top-0.5" />}
+          </Link>
+          <Link href="/profile/" className="shrink-0 rounded-full ring-2 ring-white shadow-sm transition-transform duration-300 active:scale-90" aria-label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}>
+            <Avatar name={me.name} url={me.photoUrl} size={38} tint={0} />
+          </Link>
         </div>
-      </header>
+      </div>
+
+      <div className="px-4 pt-4">
+        {/* The school's banner, then search under it (as on the parent app). */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={isErpMode() ? "/home-top-erp.jpg" : "/home-top.jpeg"}
+          alt={isErpMode() ? L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" }) : L({ hi: "स्टाफ पोर्टल – सेंट पॉल स्कूल", en: "Staff portal – St. Paul School" })}
+          className="enter aspect-[1366/768] w-full rounded-2xl border border-ink-100 bg-ink-100 object-cover" style={v(3)} />
+        {teacher && (
+          <Link href={isErpMode() ? "/erp/students/?search=1" : "/students/?search=1"} className="enter mt-3.5 flex h-12 items-center gap-2.5 rounded-xl border border-ink-100 bg-white px-4 text-ink-500 shadow-sm" style={v(3)} aria-label={L({ hi: "बच्चे खोजें", en: "Search students" })}>
+            <Search className="h-[18px] w-[18px] shrink-0 text-ink-700" strokeWidth={2.2} aria-hidden />
+            <span className="truncate text-[14.5px]">{L({ hi: "बच्चे का नाम या SR नंबर खोजें", en: "Search a student by name or SR no." })}</span>
+          </Link>
+        )}
+      </div>
 
       <div className="space-y-6 px-4 pt-4">
         <OfflineNote show={stale && !!me} />
         {error && error.status !== 401 && !data && <ErrorCard offline={error.status === 0} onRetry={reload} />}
 
-        {/* The school's banner, right under the greeting. */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          ref={imgRef}
-          src={isErpMode() ? "/home-top-erp.jpg" : "/home-top.jpeg"}
-          alt={isErpMode() ? L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" }) : L({ hi: "स्टाफ पोर्टल – सेंट पॉल स्कूल", en: "Staff portal – St. Paul School" })}
-          className="enter aspect-[1366/768] w-full rounded-2xl border border-ink-100 bg-ink-100 object-cover" style={v(3)} />
-
-        <div ref={todayRef}>
+        <div>
           <Today data={data} teacher={teacher} />
         </div>
 
@@ -270,19 +228,19 @@ export default function HomePage() {
           </div>
           {/* Four to a row; folded, only the first row shows. */}
           <div className="grid grid-cols-4 gap-x-1 gap-y-3">
-            {(more ? grid : grid.slice(0, 4)).map(({ href, text, icon: Icon, soon }, k) =>
+            {(more ? grid : grid.slice(0, 4)).map(({ href, text, icon, soon }, k) =>
               soon ? (
                 // Not built yet in the app: drawn muted, a tap says so.
                 <button key={href} type="button" onPointerDown={ripple} onClick={() => toast(false, `${L(text)}: ${L({ hi: "जल्द आ रहा है", en: "coming soon" })}`)} className="quick-tile pop-in !text-ink-400" style={v(k)}>
-                  <span className="relative bg-ink-100 !text-ink-400">
-                    <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
+                  <span className="relative opacity-40 grayscale">
+                    <QuickIcon name={icon} size={48} />
                   </span>
                   {L(text)}
                 </button>
               ) : (
               <Link key={href} href={href} onPointerDown={ripple} className="quick-tile pop-in" style={v(k)}>
-                <span className={clsx("relative", TONE[href] || BLUE)}>
-                  <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />
+                <span className="relative">
+                  <QuickIcon name={icon} size={48} />
                   {tileCount[href]?.n > 0 && <CountBadge n={tileCount[href].n} label={`${tileCount[href].n} ${L(tileCount[href].label)}`} className="absolute -right-2 -top-2" />}
                 </span>
                 {L(text)}
@@ -336,8 +294,6 @@ export default function HomePage() {
 const todayText = (iso: string, lang: "hi" | "en") =>
   new Date(iso + "T00:00:00").toLocaleDateString(lang === "hi" ? "hi-IN" : "en-GB", lang === "hi" ? { weekday: "long", day: "numeric", month: "long" } : { weekday: "short", day: "2-digit", month: "short", year: "numeric" });
 
-const plainIcon = (Icon: LucideIcon) => <Icon className="h-6 w-6" strokeWidth={1.8} aria-hidden />;
-
 /** What the staff member checks every morning, each a row that opens its screen (the parent app's Today card). */
 function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) {
   const L = useL();
@@ -345,7 +301,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
 
   if (!data)
     return (
-      <section className="today-card space-y-3 border-black pb-4">
+      <section className="today-card space-y-3 pb-4">
         <Skeleton className="h-6 w-24" />
         {[0, 1, 2].map((k) => (
           <div key={k} className="flex items-center gap-3.5">
@@ -356,17 +312,21 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       </section>
     );
 
-  // Their own attendance, marked by the office.
+  // Their own attendance, marked by the office. The icon stays the same every day (as on the parent app);
+  // the state is told in the words.
   const m = data.myMark;
-  const mine =
+  const myNote =
     m === "P"
-      ? { icon: <Mark className="bg-jade-600" icon={Check} draw />, tone: GREEN, note: L({ hi: "आज उपस्थित", en: "Present today" }) }
+      ? L({ hi: "आज उपस्थित", en: "Present today" })
       : m === "A"
-        ? { icon: <Mark className="bg-rose-600" icon={X} />, tone: PINK, note: L({ hi: "आज अनुपस्थित", en: "Absent today" }) }
-        : m === "L" || m === "H"
-          ? { icon: <Mark className="bg-marigold-500" icon={Check} />, tone: ORANGE, note: m === "L" ? L({ hi: "आज छुट्टी पर", en: "On leave today" }) : L({ hi: "आज आधा दिन", en: "Half day today" }) }
-          : { icon: plainIcon(Clock3), tone: GREEN, note: L({ hi: "अभी हाज़िरी नहीं लगी", en: "Not marked yet" }) };
-  const myRow = (i: number) => <TodayRow i={i} href="/my-attendance/" tone={mine.tone} icon={mine.icon} title={L({ hi: "मेरी हाज़िरी", en: "My attendance" })} note={mine.note} />;
+        ? L({ hi: "आज अनुपस्थित", en: "Absent today" })
+        : m === "L"
+          ? L({ hi: "आज छुट्टी पर", en: "On leave today" })
+          : m === "H"
+            ? L({ hi: "आज आधा दिन", en: "Half day today" })
+            : L({ hi: "अभी हाज़िरी नहीं लगी", en: "Not marked yet" });
+  const blue = (name: QuickIconName) => <QuickIcon name={name} tone="blue" size={48} />;
+  const myRow = (i: number) => <TodayRow i={i} href="/my-attendance/" icon={blue("myAttendance")} title={L({ hi: "मेरी हाज़िरी", en: "My attendance" })} note={myNote} />;
 
   const open = data.attendanceToMark[0];
   const rows = teacher ? (
@@ -374,8 +334,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={4}
         href={open ? `/attendance/?id=${open.id}` : "/attendance/"}
-        tone={GREEN}
-        icon={open ? plainIcon(CalendarCheck) : <Mark className="bg-jade-600" icon={Check} draw />}
+        icon={blue("attendance")}
         title={L({ hi: "हाज़िरी", en: "Attendance" })}
         note={open ? L({ hi: `${open.classSec} की बाकी है`, en: `${open.classSec} not marked` }) : L({ hi: "सब लग गई", en: "All marked" })}
         end={open ? <span className="pay-pulse rounded-full bg-[#b01003] px-3.5 py-2 text-[13.5px] font-semibold text-white">{L({ hi: "अभी लगाएँ", en: "Mark now" })}</span> : null}
@@ -383,8 +342,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={5}
         href="/leave/?tab=requests"
-        tone={ORANGE}
-        icon={plainIcon(CalendarX2)}
+        icon={blue("leave")}
         title={L({ hi: "छुट्टी की अर्ज़ियाँ", en: "Leave requests" })}
         note={data.pendingLeaves ? L({ hi: `${data.pendingLeaves} जवाब बाकी`, en: `${data.pendingLeaves} waiting` }) : L({ hi: "कोई अर्ज़ी नहीं", en: "None waiting" })}
         end={data.pendingLeaves ? <CountBadge n={data.pendingLeaves} label={L({ hi: `${data.pendingLeaves} अर्ज़ियाँ बाकी`, en: `${data.pendingLeaves} waiting` })} /> : null}
@@ -397,8 +355,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={5}
         href="/leave/"
-        tone={ORANGE}
-        icon={plainIcon(CalendarX2)}
+        icon={blue("leave")}
         title={L({ hi: "छुट्टी", en: "Leave" })}
         note={L({ hi: "अर्ज़ी दें या देखें", en: "Apply or check" })}
         end={<span className="text-[14.5px] font-semibold text-brand-600">{L({ hi: "देखें", en: "View" })}</span>}
@@ -406,8 +363,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
       <TodayRow
         i={6}
         href="/salary/"
-        tone={PURPLE}
-        icon={plainIcon(Banknote)}
+        icon={blue("salary")}
         title={L({ hi: "सैलरी", en: "Salary" })}
         note={L({ hi: "सैलरी स्लिप", en: "Salary slips" })}
         end={<span className="text-[14.5px] font-semibold text-brand-600">{L({ hi: "देखें", en: "View" })}</span>}
@@ -416,7 +372,7 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
   );
 
   return (
-    <section className="today-card enter border-black" style={v(3)}>
+    <section className="today-card enter" style={v(3)}>
       <div className="flex items-baseline justify-between gap-2">
         <h2 className="text-[20px] font-bold text-brand-800">{L({ hi: "आज", en: "Today" })}</h2>
         <span className="truncate text-[13.5px] text-ink-500">{todayText(data.date, lang)}</span>
@@ -426,20 +382,11 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
   );
 }
 
-/** A round status mark that pops in; with `draw` its tick draws itself. */
-function Mark({ className, icon: Icon, draw }: { className: string; icon: LucideIcon; draw?: boolean }) {
-  return (
-    <span className={clsx("tick-pop grid h-7 w-7 place-items-center rounded-full text-white", className)}>
-      <Icon className={clsx("h-4 w-4", draw && "tick-draw")} strokeWidth={3} aria-hidden />
-    </span>
-  );
-}
-
-function TodayRow({ i, href, tone, icon, title, note, end }: { i: number; href: string; tone: string; icon: React.ReactNode; title: string; note: string; end?: React.ReactNode }) {
+function TodayRow({ i, href, icon, title, note, end }: { i: number; href: string; icon: React.ReactNode; title: string; note: string; end?: React.ReactNode }) {
   return (
     <li className="enter border-b border-ink-100 last:border-0" style={v(i)}>
       <Link href={href} onPointerDown={ripple} className="relative -mx-4 flex min-h-[72px] items-center gap-3.5 overflow-hidden px-4 py-3">
-        <span className={clsx("grid h-12 w-12 shrink-0 place-items-center rounded-2xl", tone)}>{icon}</span>
+        <span className="h-12 w-12 shrink-0">{icon}</span>
         <span className="min-w-0 flex-1">
           <span className="block text-[16px] font-semibold text-ink-900">{title}</span>
           <span className="block truncate text-[13px] text-ink-500">{note}</span>

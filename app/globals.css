@@ -653,6 +653,14 @@
 }
 
 /* The tab bar slides down while the page scrolls and back up when it stops (transform only, so it stays smooth). */
+/* The bottom tab bar, docked to the screen's bottom edge as on the parent app (user, 2026-10-24): solid
+   white, a hairline and a soft shadow on top, white under the phone's home bar too. */
+.nav-dock {
+  background: #ffffff;
+  border-top: 1px solid rgba(15, 30, 50, 0.08);
+  box-shadow: 0 -6px 18px rgba(15, 30, 50, 0.07);
+}
+
 .nav-slide {
   transition: transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1);
   will-change: transform;
