@@ -5,11 +5,11 @@ import Link from "next/link";
 import { Search, X } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
-import { Empty, ErrorCard, ListSkeleton } from "@/components/ui";
+import { Avatar, Empty, ErrorCard, LineTabs, ListSkeleton } from "@/components/ui";
 
 /*
- * ERP login → Parent–teacher chats: the ERP's page (GET /api/teacher-chats). What parents ask teachers in the
- * parent app. The office can read every chat; only the teacher (staff app) and the family (parent app) write.
+ * ERP login → Parent–teacher chats: the ERP's page (GET /api/teacher-chats), drawn like a WhatsApp chat list
+ * (user, 2026-10-26). The office can read every chat; only the teacher (staff app) and the family (parent app) write.
  */
 
 interface Row {
@@ -19,23 +19,33 @@ interface Row {
   teacher: string;
   last: { from: "parent" | "teacher"; text: string; at: string } | null;
 }
-const stamp = (iso: string) => new Date(iso).toLocaleString("en-IN", { day: "numeric", month: "short", hour: "numeric", minute: "2-digit" });
+/** WhatsApp-style time: "10:42 am" today, "Yesterday", else "20 Oct". */
+function when(iso: string, yesterday: string) {
+  const d = new Date(iso);
+  const day = (x: Date) => x.toDateString();
+  const now = new Date();
+  if (day(d) === day(now)) return d.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
+  if (day(d) === day(new Date(now.getTime() - 864e5))) return yesterday;
+  return d.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+}
 
 export default function ErpParentChatsPage() {
   const L = useL();
   const { data, error, reload } = useApi<{ setupNeeded: boolean; data: Row[] }>("/erp/teacher-chats");
   const [q, setQ] = useState("");
+  const [tab, setTab] = useState<"all" | "waiting">("all");
   const rows = data?.data;
+  // Waiting: the parent wrote last, the teacher hasn't answered yet.
+  const waiting = useMemo(() => (rows || []).filter((r) => r.last?.from === "parent").length, [rows]);
   const shown = useMemo(() => {
     const s = q.trim().toLowerCase();
-    return (rows || []).filter((r) => !s || `${r.student} ${r.classSec} ${r.teacher}`.toLowerCase().includes(s));
-  }, [rows, q]);
+    return (rows || []).filter((r) => (tab === "all" || r.last?.from === "parent") && (!s || `${r.student} ${r.classSec} ${r.teacher}`.toLowerCase().includes(s)));
+  }, [rows, q, tab]);
 
   if (data?.setupNeeded) return <Empty>{L({ hi: "चैट के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261013_teacher_chat.sql)।", en: "Parent–teacher chats need a one-time database setup (20261013_teacher_chat.sql)." })}</Empty>;
 
   return (
     <div className="animate-rise space-y-3 pb-4">
-      <p className="text-[13px] text-ink-500">{L({ hi: "माता-पिता ऐप में टीचर से क्या पूछते हैं। आप हर चैट पढ़ सकते हैं; लिखते सिर्फ़ टीचर और परिवार हैं।", en: "What parents ask teachers in the app. You can read every chat; only the teacher and the family can write." })}</p>
       <label className="field-box min-h-[48px]">
         <Search aria-hidden />
         <input id="pc-search" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={L({ hi: "बच्चा, कक्षा या टीचर", en: "Student, class or teacher" })} autoComplete="off" />
@@ -45,30 +55,43 @@ export default function ErpParentChatsPage() {
           </button>
         )}
       </label>
+      <LineTabs
+        label={L({ hi: "चैट", en: "Chats" })}
+        value={tab}
+        onChange={setTab}
+        options={[
+          { key: "all", text: `${L({ hi: "सभी", en: "All" })}${rows ? ` ${rows.length}` : ""}` },
+          { key: "waiting", text: `${L({ hi: "जवाब बाकी", en: "Reply pending" })}${rows ? ` ${waiting}` : ""}` },
+        ]}
+      />
       {!rows ? (
         error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : shown.length === 0 ? (
         <Empty>{rows.length ? L({ hi: "इस खोज से कोई चैट नहीं मिली।", en: "No chat matches this search." }) : L({ hi: "अभी किसी माता-पिता ने टीचर को नहीं लिखा।", en: "No parent has written to a teacher yet." })}</Empty>
       ) : (
-        <ul>
+        <ul className="-mx-4 bg-white pl-4">
           {shown.map((r) => (
             <li key={r.id}>
-              <Link href={`/erp/parent-chats/chat/?id=${encodeURIComponent(r.id)}`} className="block border-b border-ink-100 py-2.5 active:bg-ink-50">
-                <span className="flex items-baseline justify-between gap-2">
-                  <span className="truncate text-[15px] font-medium">
-                    {r.student} <span className="font-normal text-ink-500">· {r.classSec}</span>
+              <Link href={`/erp/parent-chats/chat/?id=${encodeURIComponent(r.id)}`} className="flex items-center gap-3 border-b border-ink-100 py-3 pr-4 active:bg-ink-50">
+                <Avatar name={r.student} size={46} />
+                <span className="min-w-0 flex-1">
+                  <span className="flex items-baseline gap-2">
+                    <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold">{r.student}</span>
+                    {r.last && <span className={r.last.from === "parent" ? "shrink-0 text-[12px] font-semibold text-[#1f6f78]" : "shrink-0 text-[12px] text-ink-500"}>{when(r.last.at, L({ hi: "कल", en: "Yesterday" }))}</span>}
                   </span>
-                  {r.last && <span className="shrink-0 text-[12px] text-ink-400">{stamp(r.last.at)}</span>}
-                </span>
-                <span className="block text-[12.5px] text-ink-500">
-                  {L({ hi: "टीचर:", en: "with" })} {r.teacher}
-                </span>
-                {r.last && (
-                  <span className="mt-0.5 block truncate text-[13px] text-ink-600">
-                    {r.last.from === "teacher" ? L({ hi: "टीचर: ", en: "Teacher: " }) : L({ hi: "माता-पिता: ", en: "Parent: " })}
-                    {r.last.text}
+                  <span className="block truncate text-[12.5px] text-ink-500">
+                    {r.classSec} · {r.teacher}
                   </span>
-                )}
+                  {r.last && (
+                    <span className="flex items-center gap-1.5">
+                      {r.last.from === "parent" && <i className="h-2 w-2 shrink-0 rounded-full bg-[#3099a4]" aria-label={L({ hi: "जवाब बाकी", en: "Reply pending" })} />}
+                      <span className={r.last.from === "parent" ? "truncate text-[14px] text-ink-900" : "truncate text-[14px] text-ink-600"}>
+                        {r.last.from === "teacher" ? L({ hi: "टीचर: ", en: "Teacher: " }) : ""}
+                        {r.last.text}
+                      </span>
+                    </span>
+                  )}
+                </span>
               </Link>
             </li>
           ))}

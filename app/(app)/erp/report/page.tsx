@@ -147,9 +147,9 @@ export default function ErpReportPage() {
           <Missing />
         ) : (
           <ul className="border-t border-ink-100">
-            <GlanceRow href="/erp/students/admission/" title={L({ hi: "इस महीने नए प्रवेश", en: "New admissions this month" })} meta={L({ hi: "नया प्रवेश जोड़ें", en: "Add a new admission" })} value={fmt(adm.newThisMonth)} />
+            <GlanceRow href="/erp/students/?new=month" title={L({ hi: "इस महीने नए प्रवेश", en: "New admissions this month" })} meta={L({ hi: "नाम और कक्षा देखें", en: "See names and classes" })} value={fmt(adm.newThisMonth)} />
             <GlanceRow
-              href="/erp/students/enquiries/"
+              href={adm.enquiries.followUpsDue ? "/erp/students/enquiries/?view=due" : "/erp/students/enquiries/"}
               title={L({ hi: "खुली पूछताछ", en: "Open enquiries" })}
               meta={
                 adm.enquiries.followUpsDue
@@ -159,7 +159,7 @@ export default function ErpReportPage() {
               value={fmt(adm.enquiries.open)}
             />
             <GlanceRow
-              href="/erp/students/enquiries/"
+              href="/erp/students/enquiries/?view=admitted"
               title={L({ hi: "पूछताछ से प्रवेश हुआ", en: "Admitted from enquiries" })}
               meta={L({ hi: `${adm.enquiries.dropped} ने रुचि नहीं दिखाई`, en: `${adm.enquiries.dropped} not interested` })}
               value={fmt(adm.enquiries.admitted)}

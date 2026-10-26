@@ -38,6 +38,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
+        {/* ERP login: zoom the page out before the first paint (see applyErpScale in lib/erpMode.ts). */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `try{if(localStorage.getItem("sa:erp")==="1"){var m=document.querySelector('meta[name="viewport"]');m&&m.setAttribute("content","width=device-width, initial-scale=0.88, viewport-fit=cover")}}catch(e){}`,
+          }}
+        />
         <LangProvider>
           {children}
           <Toaster />

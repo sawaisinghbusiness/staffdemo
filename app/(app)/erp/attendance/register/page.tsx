@@ -77,7 +77,6 @@ export default function ErpRegisterPage() {
   const marked = reg ? reg.students.filter((s) => s.workingDays > 0) : [];
   const absentDays = marked.reduce((t, s) => t + s.absent, 0);
   const leaveDays = marked.reduce((t, s) => t + s.leave, 0);
-  const halfDays = marked.reduce((t, s) => t + s.half, 0);
   const belowHere = marked.filter((s) => s.percent !== null && s.percent < BELOW).length;
   const avg = reg?.totals.averagePercent ?? null;
   const classSec = reg?.classSec || sections.data?.find((s) => secKey(s) === sec)?.classSec || "";
@@ -104,12 +103,38 @@ export default function ErpRegisterPage() {
       </div>
       {sections.error && !sections.data && sections.error.status !== 401 && <ErrorCard offline={sections.error.status === 0} onRetry={sections.reload} />}
 
-      <div className="grid grid-cols-2 gap-2">
-        <Figure label={L({ hi: "हाज़िरी के दिन", en: "Days marked" })} value={reg ? num(wd) : "…"} note={reg ? `${L({ hi: "कुल", en: "of" })} ${schoolDaysSoFar} ${L({ hi: "स्कूल के दिन", en: "school days" })}` : ""} dot="bg-brand-500" />
-        <Figure label={L({ hi: "हाज़िरी", en: "Attendance" })} value={reg ? (avg === null ? "—" : `${avg}%`) : "…"} note={reg ? (wd ? `${num(marked.length)} ${L({ hi: "बच्चों का औसत", en: "students' average" })}` : L({ hi: "अभी कुछ नहीं लगी", en: "Nothing marked yet" })) : ""} dot="bg-jade-500" />
-        <Figure label={L({ hi: "अनुपस्थित दिन", en: "Absent days" })} value={reg ? num(absentDays) : "…"} note={reg ? `${num(leaveDays)} ${L({ hi: "छुट्टी", en: "leave" })} · ${num(halfDays)} ${L({ hi: "आधा", en: "half" })}` : ""} dot="bg-rose-500" />
-        <Figure label={`${L({ hi: "से कम", en: "Below" })} ${BELOW}%`} value={reg ? num(belowHere) : "…"} note={low ? `${num(low.students.length)} ${L({ hi: "पूरे स्कूल में", en: "across the school" })}` : ""} dot="bg-marigold-400" />
-      </div>
+      {/* One summary card (user, 2026-10-26: the four boxes were hard to read). */}
+      <section className="rounded-2xl border border-ink-100 bg-white px-4 py-3.5" aria-label={L({ hi: "इस महीने की हाज़िरी", en: "Attendance this month" })}>
+        <span className="text-[13px] font-medium text-ink-600">{L({ hi: "इस महीने की हाज़िरी", en: "Attendance this month" })}</span>
+        <div className="mt-0.5 flex items-baseline gap-2">
+          <span className="tnum text-[32px] font-extrabold leading-tight">{reg ? (avg === null ? "—" : `${avg}%`) : "…"}</span>
+          {avg !== null && reg && (
+            <span className={clsx("text-[13px] font-semibold", avg < BELOW ? "text-rose-700" : avg < 90 ? "text-marigold-700" : "text-jade-700")}>
+              {avg < BELOW ? L({ hi: "कम", en: "Low" }) : avg < 90 ? L({ hi: "ठीक", en: "Fair" }) : L({ hi: "अच्छी", en: "Good" })}
+            </span>
+          )}
+        </div>
+        <span className="mb-3 mt-2 block h-1.5 overflow-hidden rounded-full bg-ink-100" aria-hidden>
+          <span className={clsx("block h-full rounded-full", avg !== null && avg < BELOW ? "bg-rose-500" : avg !== null && avg < 90 ? "bg-marigold-400" : "bg-jade-500")} style={{ width: `${avg ?? 0}%` }} />
+        </span>
+        <p className="text-[14px] leading-relaxed text-ink-700">
+          {reg
+            ? wd
+              ? L({
+                  hi: `${schoolDaysSoFar} में से ${num(wd)} दिन हाज़िरी लगी। कुल ${num(absentDays)} दिन अनुपस्थित${leaveDays ? `, ${num(leaveDays)} छुट्टी` : ""}।`,
+                  en: `Marked on ${num(wd)} of ${schoolDaysSoFar} school days. ${num(absentDays)} absent days in all${leaveDays ? `, ${num(leaveDays)} on leave` : ""}.`,
+                })
+              : L({ hi: "इस महीने अभी हाज़िरी नहीं लगी।", en: "Nothing marked this month yet." })
+            : "…"}
+        </p>
+        {reg && belowHere > 0 && (
+          <button type="button" onClick={() => setTab("low")} className="mt-2.5 flex min-h-[44px] w-full items-center gap-2 border-t border-ink-100 pt-1 text-left">
+            <i className="h-2 w-2 shrink-0 rounded-full bg-rose-500" aria-hidden />
+            <span className="flex-1 text-[14px] font-semibold">{L({ hi: `${num(belowHere)} बच्चे ${BELOW}% से कम`, en: `${num(belowHere)} ${belowHere === 1 ? "child" : "children"} below ${BELOW}%` })}</span>
+            <ChevronRight className="h-[18px] w-[18px] text-ink-400" aria-hidden />
+          </button>
+        )}
+      </section>
 
       <LineTabs
         label={L({ hi: "रजिस्टर", en: "Register" })}
@@ -158,7 +183,6 @@ export default function ErpRegisterPage() {
                 </li>
               ))}
             </ul>
-            <DailyRow reg={reg} />
           </>
         )
       ) : !low ? (
@@ -204,18 +228,6 @@ export default function ErpRegisterPage() {
   );
 }
 
-function Figure({ label, value, note, dot }: { label: string; value: string; note: string; dot: string }) {
-  return (
-    <div className="rounded-2xl border border-ink-100 bg-white px-3 py-2.5">
-      <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink-500">
-        <i className={clsx("h-2 w-2 shrink-0 rounded-full", dot)} />
-        <span className="truncate">{label}</span>
-      </span>
-      <span className="tnum mt-0.5 block text-[22px] font-extrabold">{value}</span>
-      <span className="block truncate text-[12px] text-ink-400">{note}</span>
-    </div>
-  );
-}
 
 function Meter({ percent }: { percent: number | null }) {
   return (
@@ -225,29 +237,6 @@ function Meter({ percent }: { percent: number | null }) {
         <span className={clsx("block h-full rounded-full", percent !== null && percent < BELOW ? "bg-rose-500" : percent !== null && percent < 90 ? "bg-marigold-400" : "bg-jade-500")} style={{ width: `${percent ?? 0}%` }} />
       </span>
     </span>
-  );
-}
-
-/** How many were present on each marked day, as a small strip (the ERP grid's "Present each day" row). */
-function DailyRow({ reg }: { reg: MonthRegister }) {
-  const L = useL();
-  const days = reg.days.filter((d) => d.marked);
-  if (!days.length) return null;
-  return (
-    <section className="space-y-1.5 pt-2">
-      <h2 className="text-[14px] font-semibold">{L({ hi: "हर दिन उपस्थित", en: "Present each day" })}</h2>
-      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
-        {days.map((d) => (
-          <span key={d.date} className="min-w-[46px] shrink-0 rounded-lg border border-ink-100 bg-white px-1.5 py-1 text-center">
-            <span className="block text-[11px] text-ink-400">
-              {d.weekday.slice(0, 2)} {Number(d.date.slice(8))}
-            </span>
-            <span className="tnum block text-[14px] font-semibold">{d.present + d.half}</span>
-            {d.absent ? <span className="tnum block text-[11px] font-semibold text-rose-600">−{d.absent}</span> : <span className="block text-[11px] text-transparent">0</span>}
-          </span>
-        ))}
-      </div>
-    </section>
   );
 }
 

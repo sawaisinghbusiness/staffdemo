@@ -137,7 +137,7 @@
     top: calc(env(safe-area-inset-top, 0px) + 56px);
   }
   .tabs-line > button {
-    @apply min-h-[44px] flex-1 text-center text-[15px] font-medium text-ink-400;
+    @apply min-h-[44px] flex-1 whitespace-nowrap px-1 text-center text-[14px] font-medium text-ink-400;
     transition: color 0.25s var(--ease-out);
   }
   .tabs-line > [aria-selected="true"] {

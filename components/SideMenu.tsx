@@ -179,6 +179,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
           <Link href={item.href} onClick={close} aria-current={path === item.href ? "page" : undefined} className={clsx(rowCls, path === item.href ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-800")}>
             {icon}
             {label}
+            {item.preview && <span className="shrink-0 text-[12px] font-medium text-ink-400">{L({ hi: "जल्द", en: "Soon" })}</span>}
           </Link>
         )}
       </li>

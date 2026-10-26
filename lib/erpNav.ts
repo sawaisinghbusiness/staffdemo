@@ -20,6 +20,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import type { Bi } from "./i18n";
+import { SOON_MODULES } from "./erpSoon";
 
 /**
  * ERP login's side menu: every screen of the ERP website (its navConfig plus the pages outside it),
@@ -35,6 +36,8 @@ export interface ErpItem {
   icon: LucideIcon;
   href?: string;
   soon?: boolean;
+  /** Opens a "what it will do" page; the row shows a small "Soon". */
+  preview?: boolean;
   children?: ErpSub[];
 }
 export interface ErpGroup {
@@ -67,6 +70,7 @@ export const ERP_MENU: ErpGroup[] = [
           { text: { hi: "सर्टिफ़िकेट", en: "Certificates" }, href: "/erp/students/certificates/" },
           { text: { hi: "फ़ोटो", en: "Photos" }, href: "/erp/students/photos/" },
           { text: { hi: "आईडी कार्ड", en: "ID cards" }, href: "/erp/students/id-cards/" },
+          a("Excel से भरें", "Excel import / export", "/erp/students/excel/"),
         ],
       },
       {
@@ -117,6 +121,7 @@ export const ERP_MENU: ErpGroup[] = [
         children: [
           a("स्टाफ़ लिस्ट", "Directory", "/erp/staff/"),
           a("नया स्टाफ़", "Add staff", "/erp/staff/new/"),
+          a("Excel से भरें", "Excel import / export", "/erp/staff/excel/"),
           a("विषय बँटवारा", "Allocation", "/erp/staff/allocation/"),
           a("स्टाफ़ हाज़िरी", "Staff attendance", "/erp/staff/attendance/"),
           a("स्टाफ़ छुट्टी", "Staff leave", "/erp/staff/attendance/?tab=leave"),
@@ -125,6 +130,11 @@ export const ERP_MENU: ErpGroup[] = [
       },
       { text: { hi: "ट्रांसपोर्ट", en: "Transport" }, icon: Bus, children: [a("रूट और बस", "Routes & buses", "/erp/transport/"), a("बस के बच्चे", "Bus students", "/erp/transport/students/")] },
     ],
+  },
+  {
+    // Each opens a page saying what it will do (lib/erpSoon.ts); the menu marks them "Soon".
+    title: { hi: "जल्द आ रहा है", en: "Coming soon" },
+    items: SOON_MODULES.map((m) => ({ text: m.text, icon: m.icon, href: `/erp/soon/?m=${m.key}`, preview: true })),
   },
 ];
 

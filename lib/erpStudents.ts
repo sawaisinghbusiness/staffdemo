@@ -28,6 +28,8 @@ export interface ErpStudent {
   balanceFee: number;
   busStop?: string;
   siblingFamilyId?: string;
+  /** When the record was made; "new admissions this month" go by it. */
+  createdAt?: string;
 }
 
 /**

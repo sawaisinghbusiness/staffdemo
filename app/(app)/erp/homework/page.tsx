@@ -9,6 +9,7 @@ import { toast } from "@/lib/toast";
 import { dayMonth } from "@/lib/format";
 import { todayIso, addDays } from "@/lib/timetable";
 import { Empty, ErrorCard, ListSkeleton, SelectBox, Sheet } from "@/components/ui";
+import { HomeworkFileLinks, HomeworkFilePicker, type HomeworkFile } from "@/components/HomeworkFiles";
 
 /*
  * ERP login → Homework: the ERP's page (GET /api/homework/options, /api/homework?section=&subject=). Look at any
@@ -41,6 +42,7 @@ interface Homework {
   dueDate: string | null;
   canEdit: boolean;
   by: string;
+  files?: HomeworkFile[];
 }
 
 export default function ErpHomeworkPage() {
@@ -176,6 +178,7 @@ export default function ErpHomeworkPage() {
                     </div>
                     <p className="mt-1.5 text-[15px] font-semibold leading-snug text-ink-900">{h.title}</p>
                     {h.details && <p className={clsx("mt-0.5 whitespace-pre-wrap text-[14px] text-ink-600", !expanded && "line-clamp-2")}>{h.details}</p>}
+                    <HomeworkFileLinks files={h.files} />
                     {long && (
                       <button
                         type="button"
@@ -260,6 +263,7 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
   const [title, setTitle] = useState(editing?.title || "");
   const [details, setDetails] = useState(editing?.details || "");
   const [due, setDue] = useState(editing?.dueDate || "");
+  const [files, setFiles] = useState<HomeworkFile[]>(editing?.files || []);
   const [busy, setBusy] = useState(false);
 
   const opt = options.find((o) => o.sectionId === sec);
@@ -274,7 +278,7 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
 
   const save = async () => {
     setBusy(true);
-    const body = { sectionId: sec, subject: name, title, details, dueDate: due };
+    const body = { sectionId: sec, subject: name, title, details, dueDate: due, files };
     try {
       await api(editing ? `/erp/homework/${editing.id}` : "/erp/homework", { method: editing ? "PATCH" : "POST", body });
       onSaved();
@@ -327,6 +331,7 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
           <input type="date" value={due} min={todayIso()} onChange={(e) => setDue(e.target.value)} />
           <CalendarDays aria-hidden />
         </label>
+        <HomeworkFilePicker files={files} onChange={setFiles} uploadPath="/erp/homework/files" />
         <button type="button" onClick={save} disabled={busy || !sec || name.length < 2 || title.trim().length < 2} className="btn-primary w-full">
           {busy ? "…" : editing ? L({ hi: "सेव करें", en: "Save" }) : L({ hi: "होमवर्क भेजें", en: "Post homework" })}
         </button>

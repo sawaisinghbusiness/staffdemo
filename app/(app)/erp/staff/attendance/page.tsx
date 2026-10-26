@@ -471,37 +471,12 @@ function RegisterTab() {
               </li>
             ))}
           </ul>
-          <DailyRow reg={reg} />
         </>
       )}
 
       {person && reg && <PersonMonth s={person} reg={reg} today={today} onClose={() => setPerson(null)} />}
       {printing && reg && <PrintStaffRegister data={reg} today={today} title={title} onDone={() => setPrinting(false)} />}
     </div>
-  );
-}
-
-/** The ERP grid's "Present each day" row, as a sideways strip. */
-function DailyRow({ reg }: { reg: StaffRegister }) {
-  const L = useL();
-  const days = reg.days.filter((d) => d.marked);
-  if (!days.length) return null;
-  return (
-    <section className="space-y-1.5 pt-2">
-      <h2 className="text-[14px] font-semibold">{L({ hi: "हर दिन उपस्थित", en: "Present each day" })}</h2>
-      <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1">
-        {days.map((d) => (
-          <span key={d.date} className="min-w-[46px] shrink-0 rounded-lg border border-ink-100 bg-white px-1.5 py-1 text-center">
-            <span className="block text-[11px] text-ink-400">
-              {d.weekday.slice(0, 2)} {Number(d.date.slice(8))}
-            </span>
-            <span className="tnum block text-[14px] font-semibold">{d.present + d.half}</span>
-            {d.absent ? <span className="tnum block text-[11px] font-semibold text-rose-600">−{d.absent}</span> : <span className="block text-[11px] text-transparent">0</span>}
-          </span>
-        ))}
-      </div>
-      <p className="text-[12px] text-ink-500">{L({ hi: "आधे दिन भी गिने जाते हैं", en: "Present each day counts half days" })}</p>
-    </section>
   );
 }
 

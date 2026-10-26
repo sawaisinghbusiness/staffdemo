@@ -3,8 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { CalendarCheck, CalendarX2, ChevronLeft, Megaphone, Mic, Plus, SendHorizontal, Table2, UserX, X, type LucideIcon } from "lucide-react";
+import { CalendarCheck, CalendarX2, ChevronLeft, IndianRupee, Megaphone, Mic, Plus, SendHorizontal, Table2, UserPlus, UserX, X, type LucideIcon } from "lucide-react";
 import { api } from "@/lib/api";
+import { isErpMode } from "@/lib/erpMode";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang, type Bi } from "@/lib/i18n";
 import { Thinking, Thought, TypeOut } from "@/components/SahayakThinking";
@@ -26,6 +27,15 @@ const OTHER: Question[] = [
   { text: { hi: "मेरी इस महीने की हाज़िरी?", en: "My attendance this month?" }, icon: CalendarCheck },
   { text: { hi: "मेरी कितनी छुट्टी बची?", en: "How much leave do I have?" }, icon: CalendarX2 },
   { text: { hi: "नई सूचनाएँ?", en: "Any new notices?" }, icon: Megaphone },
+];
+
+/** ERP login: the office asks about the whole school (backend /api/dashboard/assistant). */
+const OFFICE: Question[] = [
+  { text: { hi: "आज कितने बच्चे absent हैं?", en: "How many are absent today?" }, icon: UserX },
+  { text: { hi: "इस महीने कितनी फ़ीस आई?", en: "Fees collected this month?" }, icon: IndianRupee },
+  { text: { hi: "किन सेक्शन की हाज़िरी बाकी है?", en: "Which sections haven't marked attendance?" }, icon: CalendarCheck },
+  { text: { hi: "इस महीने कितने नए प्रवेश?", en: "New admissions this month?" }, icon: UserPlus },
+  { text: { hi: "सबसे ज़्यादा फ़ीस किस कक्षा की बाकी?", en: "Which class has the most fees due?" }, icon: IndianRupee },
 ];
 
 /** What the "thinking" lines say, from the question's topic. They move on a timer (see SahayakThinking). */
@@ -51,7 +61,8 @@ export default function AssistantPage() {
   const { me } = useStaff();
   const L = useL();
   const { lang } = useLang();
-  const QUESTIONS = me?.role === "teacher" ? TEACHER : OTHER;
+  const [erp] = useState(isErpMode);
+  const QUESTIONS = erp ? OFFICE : me?.role === "teacher" ? TEACHER : OTHER;
   const [turns, setTurns] = useState<Turn[]>([]);
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);

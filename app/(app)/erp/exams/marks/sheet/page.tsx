@@ -2,10 +2,11 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
-import { Lock } from "lucide-react";
+import { Download, Lock, Upload } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
+import { downloadCsv, parseCsv } from "@/lib/csv";
 import { gradeFor, markProblem, totalOf } from "@/lib/erpGrading";
 import type { Sheet } from "@/lib/erpExams";
 import { Empty, ErrorCard, ListSkeleton, StickyBar } from "@/components/ui";
@@ -14,6 +15,8 @@ import { Empty, ErrorCard, ListSkeleton, StickyBar } from "@/components/ui";
  * ERP login → one subject's marks for one section: the ERP's MarkSheetDrawer down a phone screen. Type the marks
  * ("a" = absent), Next on the keyboard moves down; grades and the out-of-range check are the ERP's own
  * (lib/erpGrading). PUT /api/exams/:id/sheet saves. A locked exam is view only.
+ * Excel (2026-10-26): download this sheet as CSV, fill it, upload it: the marks land in the boxes on screen (matched
+ * by roll no., else name) and are saved only with Save, after the usual checks.
  */
 
 interface Row {
@@ -44,6 +47,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
   const [saved, setSaved] = useState("");
   const [busy, setBusy] = useState(false);
   const list = useRef<HTMLUListElement>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!sheet) return;
@@ -121,6 +125,51 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
 
   const unit = sheet.exam.scope?.[section.split(" - ")[0]]?.units?.[subject];
 
+  const head = () => ["Roll No", "Name", ...parts.map((p) => `${p.name} (/${p.max})`), "Absent (Yes/No)"];
+  function downloadSheet() {
+    downloadCsv(
+      `marks-${subject}-${section}.csv`.replace(/[^\w.-]+/g, "-"),
+      head(),
+      rows.map((r) => [r.rollNo, r.name, ...parts.map((p) => (r.absent ? "" : r.values[p.key] || "")), r.absent ? "Yes" : ""])
+    );
+  }
+  /** Fills the boxes from the uploaded sheet; nothing is saved until Save. */
+  async function fillFromFile(f: File | undefined) {
+    if (!f) return;
+    if (/\.xlsx?$/i.test(f.name)) return toast(false, L({ hi: "Excel में File → Save As → CSV चुनकर सेव करें, फिर वह फ़ाइल डालें।", en: "In Excel use File → Save As → CSV, then pick that file." }));
+    const table = parseCsv(await f.text()).filter((r) => r.some((c) => c));
+    const h = (table[0] || []).map((x) => x.toLowerCase());
+    const rollAt = h.findIndex((x) => x.startsWith("roll"));
+    const nameAt = h.findIndex((x) => x === "name");
+    const absAt = h.findIndex((x) => x.startsWith("absent"));
+    const partAt = parts.map((p) => h.findIndex((x) => x.startsWith(p.name.toLowerCase())));
+    if (nameAt < 0 || partAt.some((x) => x < 0)) return toast(false, L({ hi: "कॉलम नहीं मिले। इसी पेज से डाउनलोड की गई फ़ाइल भरें।", en: "Columns not found. Fill the file downloaded from this page." }));
+    const norm = (v: string) => v.trim().toLowerCase().replace(/\s+/g, " ");
+    let hit = 0;
+    let miss = 0;
+    const next = rows.map((r) => ({ ...r, values: { ...r.values } }));
+    for (const line of table.slice(1)) {
+      const roll = rollAt >= 0 ? (line[rollAt] || "").trim() : "";
+      const name = norm(line[nameAt] || "");
+      const row = next.find((r) => roll && r.rollNo && r.rollNo.replace(/^0+/, "") === roll.replace(/^0+/, "") && (!name || norm(r.name) === name)) || next.find((r) => name && norm(r.name) === name);
+      if (!row) {
+        miss++;
+        continue;
+      }
+      const absent = absAt >= 0 && /^(yes|y|a|haan|ab|absent)$/i.test((line[absAt] || "").trim());
+      row.absent = absent;
+      parts.forEach((p, k) => (row.values[p.key] = absent ? "" : (line[partAt[k]] || "").trim()));
+      hit++;
+    }
+    setRows(next);
+    toast(
+      hit > 0,
+      hit
+        ? L({ hi: `${hit} बच्चों के अंक भरे${miss ? `, ${miss} लाइन नहीं मिलीं` : ""}। देखकर सेव दबाएँ।`, en: `Filled ${hit} students${miss ? `, ${miss} lines not matched` : ""}. Check, then press Save.` })
+        : L({ hi: "फ़ाइल में इस सेक्शन का कोई बच्चा नहीं मिला।", en: "No student of this section found in the file." })
+    );
+  }
+
   return (
     <div className="animate-rise space-y-3 pb-20">
       <div>
@@ -138,7 +187,29 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
           <Lock className="h-4 w-4 shrink-0" aria-hidden /> {L({ hi: "एडमिन ने बंद किया है: सिर्फ़ देख सकते हैं", en: "Locked by the admin: view only" })}
         </p>
       ) : (
-        <p className="text-[12.5px] text-ink-500">{L({ hi: "कीबोर्ड पर आगे दबाएँ तो अगला बच्चा · a लिखें = अनुपस्थित", en: "Next on the keyboard moves down · type a for absent" })}</p>
+        <>
+          <p className="text-[12.5px] text-ink-500">{L({ hi: "कीबोर्ड पर आगे दबाएँ तो अगला बच्चा · a लिखें = अनुपस्थित", en: "Next on the keyboard moves down · type a for absent" })}</p>
+          {rows.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              <button type="button" onClick={downloadSheet} className="btn-line min-h-[44px] text-[13.5px]">
+                <Download className="h-4 w-4" aria-hidden /> {L({ hi: "Excel डाउनलोड", en: "Download Excel" })}
+              </button>
+              <button type="button" onClick={() => fileInput.current?.click()} className="btn-line min-h-[44px] text-[13.5px]">
+                <Upload className="h-4 w-4" aria-hidden /> {L({ hi: "Excel से भरें", en: "Fill from Excel" })}
+              </button>
+              <input
+                ref={fileInput}
+                type="file"
+                accept=".csv,text/csv,.xlsx,.xls"
+                hidden
+                onChange={(e) => {
+                  fillFromFile(e.target.files?.[0]);
+                  e.target.value = "";
+                }}
+              />
+            </div>
+          )}
+        </>
       )}
 
       {rows.length === 0 ? (

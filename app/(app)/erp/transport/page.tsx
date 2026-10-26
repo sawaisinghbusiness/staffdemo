@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import clsx from "clsx";
-import { ChevronRight, Plus, RotateCw } from "lucide-react";
+import { Bus, ChevronRight, Plus, RotateCw } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { fmtPhone, splitName, type TransportList } from "@/lib/erpTransport";
 import { Empty, ErrorCard, ListSkeleton } from "@/components/ui";
 
 /*
- * ERP login → Transport → Routes & buses: the ERP's page (GET /api/transport). Four figures, then every
- * route with its bus, driver and how full it is. Tap a route for its students and details (the ERP's
+ * ERP login → Transport → Routes & buses: the ERP's page (GET /api/transport). One strip of three figures,
+ * then every route as a list row (user, 2026-10-26) with its bus, driver and how full it is. Tap a route for its students and details (the ERP's
  * RouteDrawer, here /erp/transport/route/). Only the admin adds routes, as in the ERP.
  */
 export default function ErpTransportPage() {
@@ -33,17 +33,24 @@ export default function ErpTransportPage() {
 
   const routes = data?.routes;
   const seats = (routes || []).reduce((t, r) => t + (r.capacity || 0), 0);
-  const noBus = (routes || []).filter((r) => !r.vehicle_no || !r.driver_name).length;
   const addHref = "/erp/transport/route/?id=new";
 
   return (
     <div className="animate-rise space-y-3 pb-4">
-      <div className="grid grid-cols-2 gap-2">
-        <Figure label={L({ hi: "बस वाले बच्चे", en: "Students on bus" })} value={data ? data.total.toLocaleString("en-IN") : "…"} dot="bg-brand-500" />
-        <Figure label={L({ hi: "रूट", en: "Routes" })} value={routes ? String(routes.length) : "…"} dot="bg-ink-300" />
-        <Figure label={L({ hi: "सीटें", en: "Seats" })} value={routes ? (seats ? seats.toLocaleString("en-IN") : "—") : "…"} dot="bg-jade-500" />
-        <Figure label={L({ hi: "बिना रूट के", en: "Without a route" })} value={data ? String(data.unassigned) : "…"} dot="bg-rose-500" href={data?.unassigned ? "/erp/transport/route/?id=unassigned" : undefined} />
-      </div>
+      <section className="grid grid-cols-3 gap-1.5 rounded-2xl border border-ink-100 bg-white px-4 py-3.5">
+        <span className="flex flex-col">
+          <b className="tnum text-[22px] font-extrabold leading-tight">{data ? data.total.toLocaleString("en-IN") : "…"}</b>
+          <span className="text-[12.5px] text-ink-600">{L({ hi: "बस से आते", en: "on bus" })}</span>
+        </span>
+        <span className="flex flex-col">
+          <b className="tnum text-[22px] font-extrabold leading-tight">{routes ? routes.length : "…"}</b>
+          <span className="text-[12.5px] text-ink-600">{seats ? L({ hi: `रूट · ${seats} सीट`, en: `routes · ${seats} seats` }) : L({ hi: "रूट", en: "routes" })}</span>
+        </span>
+        <span className="flex flex-col">
+          <b className={clsx("tnum text-[22px] font-extrabold leading-tight", data?.unassigned ? "text-rose-700" : "")}>{data ? data.unassigned : "…"}</b>
+          <span className="text-[12.5px] text-ink-600">{L({ hi: "बिना रूट", en: "no route yet" })}</span>
+        </span>
+      </section>
 
       {!routes ? (
         error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
@@ -58,40 +65,45 @@ export default function ErpTransportPage() {
         </>
       ) : (
         <>
-          {noBus > 0 && (
-            <p className="flex items-start gap-2 text-[13px] text-ink-600">
-              <i className="dot mt-1.5 h-2 w-2 bg-marigold-500" aria-hidden />
-              {noBus === routes.length
-                ? L({ hi: "हर रूट में बस नंबर और ड्राइवर जोड़ें।", en: "Add the bus number and driver to each route." })
-                : L({ hi: `${noBus} रूट में अभी बस नंबर या ड्राइवर नहीं है।`, en: `${noBus} routes still need a bus number or driver.` })}
-            </p>
-          )}
-          <ul className="space-y-2">
+          <h2 className="-mb-1 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{L({ hi: "रूट", en: "Routes" })}</h2>
+          <ul className="-mx-4 border-y border-ink-100 bg-white pl-4">
             {routes.map((r) => {
               const [no, area] = splitName(r.name);
               const full = r.capacity ? Math.round((r.students / r.capacity) * 100) : null;
               const over = r.capacity !== null && r.students > r.capacity;
               const phone = fmtPhone(r.driver_mobile);
+              const missing = !r.vehicle_no ? L({ hi: "बस नहीं जोड़ी", en: "No bus added" }) : !r.driver_name ? L({ hi: "ड्राइवर नहीं जोड़ा", en: "No driver added" }) : "";
               return (
                 <li key={r.id}>
-                  <Link href={`/erp/transport/route/?id=${encodeURIComponent(r.id)}`} className="row-card flex items-center gap-3 active:bg-ink-50">
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-[15.5px] font-semibold">{no}</span>
-                      <span className="block truncate text-[12.5px] text-ink-500">{area || L({ hi: `${r.stops.length} स्टॉप`, en: `${r.stops.length} stops` })}</span>
-                      <span className={clsx("mt-1 block truncate text-[13px]", r.vehicle_no ? "font-medium text-ink-800" : "text-ink-400")}>
-                        {r.vehicle_no || L({ hi: "बस नहीं जोड़ी", en: "No bus added" })}
-                        <span className="font-normal text-ink-500"> · {r.driver_name ? `${r.driver_name}${phone !== "—" ? ` · ${phone}` : ""}` : L({ hi: "ड्राइवर नहीं", en: "No driver" })}</span>
-                      </span>
+                  <Link href={`/erp/transport/route/?id=${encodeURIComponent(r.id)}`} className="flex items-center gap-3 border-b border-ink-100 py-3 pr-4 active:bg-ink-50">
+                    <span className={clsx("grid h-10 w-10 shrink-0 place-items-center rounded-xl", missing ? "bg-ink-100 text-ink-500" : "bg-[#fff4cc] text-[#7a5a00]")}>
+                      <Bus className="h-5 w-5" strokeWidth={1.9} aria-hidden />
                     </span>
-                    <span className="shrink-0 text-right">
-                      <span className="tnum block text-[14px] text-ink-600">
-                        <b className="text-[15.5px] font-bold text-ink-900">{r.students}</b>
-                        {r.capacity ? ` / ${r.capacity}` : ""}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline gap-2">
+                        <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold">
+                          {no}
+                          {area ? <span className="font-normal text-ink-600"> · {area}</span> : null}
+                        </span>
+                        <span className={clsx("tnum shrink-0 text-[13px] font-semibold", over && "text-rose-700")}>
+                          {r.students}
+                          {r.capacity ? `/${r.capacity}` : ""}
+                        </span>
                       </span>
-                      <span className="block text-[12px] text-ink-400">{r.capacity ? L({ hi: "सीटें", en: "seats" }) : L({ hi: "बच्चे", en: "students" })}</span>
+                      {missing ? (
+                        <span className="flex items-center gap-1.5 text-[12.5px] text-ink-600">
+                          <i className="h-[7px] w-[7px] shrink-0 rounded-full bg-rose-500" aria-hidden />
+                          {missing}
+                        </span>
+                      ) : (
+                        <span className="block truncate text-[12.5px] text-ink-600">
+                          {r.vehicle_no} · {r.driver_name}
+                          {phone !== "—" ? ` · ${phone}` : ""}
+                        </span>
+                      )}
                       {full !== null && (
-                        <span className="mt-1 block h-1.5 w-16 overflow-hidden rounded-full bg-ink-100">
-                          <span className={clsx("block h-full rounded-full", over ? "bg-rose-500" : "bg-brand-500")} style={{ width: `${Math.min(100, full)}%` }} />
+                        <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-ink-100" aria-hidden>
+                          <span className={clsx("block h-full rounded-full", over ? "bg-rose-500" : full >= 85 ? "bg-marigold-400" : "bg-[#3099a4]")} style={{ width: `${Math.min(100, full)}%` }} />
                         </span>
                       )}
                     </span>
@@ -101,6 +113,13 @@ export default function ErpTransportPage() {
               );
             })}
           </ul>
+          {data && data.unassigned > 0 && (
+            <Link href="/erp/transport/route/?id=unassigned" className="flex min-h-[52px] items-center gap-2.5 rounded-2xl border border-ink-100 bg-white px-3.5 active:bg-ink-50">
+              <i className="h-2 w-2 shrink-0 rounded-full bg-rose-500" aria-hidden />
+              <span className="flex-1 text-[14.5px] font-semibold">{L({ hi: `${data.unassigned} बस वाले बच्चों का रूट नहीं`, en: `${data.unassigned} bus students have no route` })}</span>
+              <ChevronRight className="h-[18px] w-[18px] text-ink-400" aria-hidden />
+            </Link>
+          )}
           {isAdmin && (
             <Link href={addHref} className="btn-line w-full">
               <Plus className="h-4 w-4" aria-hidden /> {L({ hi: "रूट जोड़ें", en: "Add route" })}
@@ -109,26 +128,5 @@ export default function ErpTransportPage() {
         </>
       )}
     </div>
-  );
-}
-
-function Figure({ label, value, dot, href }: { label: string; value: string; dot: string; href?: string }) {
-  const inner = (
-    <>
-      <span className="flex items-center gap-1.5 text-[12px] font-medium text-ink-500">
-        <i className={clsx("h-2 w-2 shrink-0 rounded-full", dot)} />
-        <span className="truncate">{label}</span>
-        {href && <ChevronRight className="ml-auto h-3.5 w-3.5 shrink-0 text-ink-300" aria-hidden />}
-      </span>
-      <span className="tnum mt-0.5 block text-[20px] font-extrabold">{value}</span>
-    </>
-  );
-  const cls = "block rounded-2xl border border-ink-100 bg-white px-3 py-2.5";
-  return href ? (
-    <Link href={href} className={clsx(cls, "active:bg-ink-50")}>
-      {inner}
-    </Link>
-  ) : (
-    <div className={cls}>{inner}</div>
   );
 }

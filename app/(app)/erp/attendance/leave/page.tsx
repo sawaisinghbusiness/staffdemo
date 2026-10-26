@@ -81,7 +81,6 @@ export default function ErpLeaveRequestsPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-4">
-      <p className="text-[13px] text-ink-500">{L({ hi: "माता-पिता पेरेंट ऐप से भेजते हैं। मंज़ूर करने से हाज़िरी नहीं लगती; रजिस्टर में उस दिन L हमेशा की तरह लगाएँ।", en: "Sent by parents from the parent app. Approving does not mark attendance; mark the day as Leave in the register as usual." })}</p>
       <LineTabs
         label={L({ hi: "दिखाएँ", en: "Show" })}
         value={filter}

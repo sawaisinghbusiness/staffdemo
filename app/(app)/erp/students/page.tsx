@@ -13,7 +13,7 @@ type View = "all" | "due" | "paid" | "bus";
 const STEP = 30;
 
 /**
- * ERP login → All students: the ERP website's students list (views, search, class/section/gender/category
+ * ERP login → All students: the ERP website's students list (views, search, class/section
  * filters, fee due per student) drawn with the staff app's own parts.
  */
 export default function ErpStudentsPage() {
@@ -24,17 +24,24 @@ export default function ErpStudentsPage() {
   const [term, setTerm] = useState("");
   const [cls, setCls] = useState("all");
   const [section, setSection] = useState("all");
-  const [gender, setGender] = useState("all");
-  const [category, setCategory] = useState("all");
   const [shown, setShown] = useState(STEP);
   const [focus, setFocus] = useState(false);
+  // ?new=month (from Report → New admissions): only children admitted this month.
+  const [newMonth, setNewMonth] = useState("");
 
-  useEffect(() => setFocus(new URLSearchParams(window.location.search).get("search") === "1"), []);
+  useEffect(() => {
+    const qs = new URLSearchParams(window.location.search);
+    setFocus(qs.get("search") === "1");
+    if (qs.get("new") === "month") {
+      const d = new Date();
+      setNewMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`);
+    }
+  }, []);
   useEffect(() => {
     const t = setTimeout(() => setTerm(q.trim().toLowerCase()), 180);
     return () => clearTimeout(t);
   }, [q]);
-  useEffect(() => setShown(STEP), [view, term, cls, section, gender, category]);
+  useEffect(() => setShown(STEP), [view, term, cls, section, newMonth]);
 
   const all = useMemo(() => data?.data || [], [data]);
   const classes = useMemo(() => Array.from(new Set(all.map((s) => s.class))).sort((a, b) => classRank(a) - classRank(b)), [all]);
@@ -54,21 +61,19 @@ export default function ErpStudentsPage() {
           if (term && !matchesStudent(s, term)) return false;
           if (cls !== "all" && s.class !== cls) return false;
           if (section !== "all" && s.section !== section) return false;
-          if (gender !== "all" && s.gender !== gender) return false;
-          if (category !== "all" && s.category !== category) return false;
+          if (newMonth && (s.createdAt || "").slice(0, 7) !== newMonth) return false;
           return true;
         })
         .sort((a, b) => classRank(a.class) - classRank(b.class) || a.section.localeCompare(b.section) || (a.rollNo || "").localeCompare(b.rollNo || "", undefined, { numeric: true }) || a.name.localeCompare(b.name)),
-    [all, view, term, cls, section, gender, category]
+    [all, view, term, cls, section, newMonth]
   );
 
-  const filtersOn = !!term || cls !== "all" || section !== "all" || gender !== "all" || category !== "all";
+  const filtersOn = !!term || cls !== "all" || section !== "all" || !!newMonth;
   const reset = () => {
     setQ("");
     setCls("all");
     setSection("all");
-    setGender("all");
-    setCategory("all");
+    setNewMonth("");
   };
   const any = L({ hi: "सभी", en: "All" });
   const n = (k: number) => (data ? ` ${k.toLocaleString("en-IN")}` : "");
@@ -86,6 +91,15 @@ export default function ErpStudentsPage() {
           { key: "bus", text: `${L({ hi: "बस", en: "Bus" })}${n(counts.bus)}` },
         ]}
       />
+
+      {newMonth && (
+        <div className="flex items-center gap-2 text-[14px]">
+          <span className="flex-1 font-semibold">{L({ hi: "इस महीने नए प्रवेश", en: "New admissions this month" })}</span>
+          <button type="button" onClick={() => setNewMonth("")} className="min-h-[40px] px-1 text-[13.5px] font-semibold text-brand-600">
+            {L({ hi: "सभी बच्चे दिखाएँ", en: "Show all students" })}
+          </button>
+        </div>
+      )}
 
       <label className="field-box min-h-[48px]">
         <Search aria-hidden />
@@ -130,19 +144,6 @@ export default function ErpStudentsPage() {
             </option>
           ))}
         </SelectBox>
-        <SelectBox label={L({ hi: "लड़का / लड़की", en: "Gender" })} value={gender} onChange={setGender}>
-          <option value="all">{any}</option>
-          <option value="Male">{L({ hi: "लड़के", en: "Boys" })}</option>
-          <option value="Female">{L({ hi: "लड़कियाँ", en: "Girls" })}</option>
-        </SelectBox>
-        <SelectBox label={L({ hi: "श्रेणी", en: "Category" })} value={category} onChange={setCategory}>
-          <option value="all">{any}</option>
-          {["General", "OBC", "SC", "ST"].map((c) => (
-            <option key={c} value={c}>
-              {c}
-            </option>
-          ))}
-        </SelectBox>
       </div>
 
       {!data ? (
@@ -171,12 +172,17 @@ export default function ErpStudentsPage() {
                 <Link href={`/erp/students/detail/?id=${encodeURIComponent(s.id)}`} className="row-card flex min-h-[64px] items-center gap-2.5 !pr-2">
                   <Avatar name={s.name} url={s.photoUrl || null} size={40} />
                   <span className="min-w-0 flex-1">
+                    {/* Name alone on the first line so it shows in full on a 360px phone; class moves under it. */}
                     <span className="flex min-w-0 items-baseline gap-1 text-[15.5px] font-medium">
                       <span className="truncate">{s.name}</span>
-                      <span className="shrink-0 text-[12.5px] font-normal text-ink-500">({s.class} {s.section})</span>
                       {s.status === "Inactive" && <span className="shrink-0 text-[12px] font-normal text-ink-400">({L({ hi: "छोड़ गया", en: "Left" })})</span>}
                     </span>
-                    <span className="block truncate text-[12.5px] text-ink-400">{parentLine(s)}</span>
+                    <span className="block truncate text-[12.5px] text-ink-400">
+                      <span className="font-medium text-ink-600">
+                        {s.class} {s.section}
+                      </span>{" "}
+                      · {parentLine(s)}
+                    </span>
                   </span>
                   {s.balanceFee > 0 ? <Status tone="bad">{rupees(s.balanceFee)}</Status> : <Status tone="ok">{L({ hi: "पूरी", en: "Paid" })}</Status>}
                   <ChevronRight className="h-[18px] w-[18px] shrink-0 text-ink-300" aria-hidden />

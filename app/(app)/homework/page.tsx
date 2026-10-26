@@ -9,6 +9,7 @@ import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { dayMonth } from "@/lib/format";
 import { Avatar, Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
+import { HomeworkFileLinks, HomeworkFilePicker, type HomeworkFile } from "@/components/HomeworkFiles";
 
 interface Options {
   sections: { id: string; classSec: string; subjects: string[] }[];
@@ -24,6 +25,7 @@ interface Item {
   dueDate: string | null;
   /** False for homework someone else (or the office) posted: only its poster may delete it. */
   mine?: boolean;
+  files?: HomeworkFile[];
 }
 interface Subs {
   homework: Item;
@@ -68,6 +70,7 @@ function Create() {
   const [title, setTitle] = useState("");
   const [details, setDetails] = useState("");
   const [dueDate, setDueDate] = useState("");
+  const [files, setFiles] = useState<HomeworkFile[]>([]);
   const [busy, setBusy] = useState(false);
   const setMsg = useToastMsg();
 
@@ -92,10 +95,11 @@ function Create() {
     setBusy(true);
     setMsg(null);
     try {
-      await api("/homework", { body: { sectionId, subject, title, details, dueDate: dueDate || undefined } });
+      await api("/homework", { body: { sectionId, subject, title, details, dueDate: dueDate || undefined, files } });
       setTitle("");
       setDetails("");
       setDueDate("");
+      setFiles([]);
       setMsg({ ok: true, text: L({ hi: "होमवर्क भेज दिया। माता-पिता के ऐप में दिखेगा।", en: "Homework posted. Parents will see it in their app." }) });
       list.reload();
     } catch (err) {
@@ -145,6 +149,7 @@ function Create() {
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
           <CalendarDays aria-hidden />
         </label>
+        <HomeworkFilePicker files={files} onChange={setFiles} uploadPath="/homework/files" />
         <button type="submit" disabled={busy} className="btn-go w-full">
           {busy ? "…" : L({ hi: "होमवर्क भेजें", en: "Send homework" })}
         </button>
@@ -177,6 +182,7 @@ function Create() {
                   <div className="min-w-0">
                     <p className="text-[15px] font-semibold leading-snug text-ink-900">{h.title}</p>
                     {h.details && <p className="mt-0.5 line-clamp-2 text-[14px] text-ink-600">{h.details}</p>}
+                    <HomeworkFileLinks files={h.files} />
                   </div>
                   {h.dueDate && (
                     <span className="inline-flex shrink-0 items-center gap-1 text-[13.5px] font-bold text-ink-900">

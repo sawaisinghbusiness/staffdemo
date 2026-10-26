@@ -58,6 +58,7 @@ const PAGES: Record<string, PageInfo> = {
   "/assistant/": { title: { hi: "स्कूल सहायक", en: "School Sahayak" }, back: "/", own: true, bare: true },
   // ERP login's own screens (the ERP website's modules, one by one).
   "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" }, badge: { hi: "बच्चा जोड़ें", en: "Add student" } } },
+  "/erp/students/excel/": { title: { hi: "Excel से भरें", en: "Students in Excel" }, back: "/erp/students/", tab: "/erp/students/" },
   "/erp/students/enquiries/": { title: { hi: "प्रवेश पूछताछ", en: "Admission Enquiries" }, tab: "/erp/students/", action: { href: "/erp/students/enquiries/new/", text: { hi: "नई पूछताछ", en: "New enquiry" } } },
   "/erp/students/enquiries/detail/": { title: { hi: "पूछताछ", en: "Enquiry" }, back: "/erp/students/enquiries/", tab: "/erp/students/" },
   "/erp/students/enquiries/new/": { title: { hi: "नई पूछताछ", en: "New Enquiry" }, back: "/erp/students/enquiries/", tab: "/erp/students/" },
@@ -81,26 +82,29 @@ const PAGES: Record<string, PageInfo> = {
   "/erp/homework/": { title: { hi: "होमवर्क", en: "Homework" }, tab: "/" },
   "/erp/parent-chats/": { title: { hi: "अभिभावक-टीचर चैट", en: "Parent–Teacher Chats" }, tab: "/" },
   "/erp/parent-chats/chat/": { title: { hi: "चैट", en: "Chat" }, back: "/erp/parent-chats/", tab: "/" },
-  "/erp/meetings/": { title: { hi: "मीटिंग और PTM", en: "Meetings & PTM" }, tab: "/", action: { href: "/erp/meetings/new/", text: { hi: "नई मीटिंग", en: "New meeting" } } },
+  "/erp/meetings/": { title: { hi: "मीटिंग और PTM", en: "Meetings & PTM" }, tab: "/", action: { href: "/erp/meetings/new/", text: { hi: "नई मीटिंग", en: "New meeting" }, badge: { hi: "नई", en: "New" } } },
   "/erp/meetings/new/": { title: { hi: "नई मीटिंग", en: "New Meeting" }, back: "/erp/meetings/", tab: "/" },
-  "/erp/messages/": { title: { hi: "मैसेज", en: "Messages" }, tab: "/", action: { href: "/erp/messages/new/", text: { hi: "नया मैसेज", en: "New message" } } },
+  "/erp/messages/": { title: { hi: "मैसेज", en: "Messages" }, tab: "/", action: { href: "/erp/messages/new/", text: { hi: "नया मैसेज", en: "New message" }, badge: { hi: "नया", en: "New" } } },
   "/erp/messages/new/": { title: { hi: "नया मैसेज", en: "New Message" }, back: "/erp/messages/", tab: "/" },
   "/erp/messages/detail/": { title: { hi: "मैसेज भेजें", en: "Send Message" }, back: "/erp/messages/", tab: "/" },
   "/erp/settings/templates/": { title: { hi: "मैसेज टेम्पलेट", en: "Message Templates" }, tab: "/" },
   "/erp/copy-check/": { title: { hi: "कॉपी जाँच", en: "Copy Check" }, tab: "/" },
   "/erp/copy-check/sheet/": { title: { hi: "कॉपी जाँच", en: "Copy Check" }, back: "/erp/copy-check/", tab: "/" },
-  "/erp/syllabus/": { title: { hi: "सिलेबस", en: "Syllabus" }, tab: "/" },
+  "/erp/syllabus/": { title: { hi: "सिलेबस", en: "Syllabus" }, tab: "/", action: { href: "/erp/syllabus/excel/", text: { hi: "Excel से भरें", en: "Excel import / export" }, badge: { hi: "Excel", en: "Excel" } } },
+  "/erp/syllabus/excel/": { title: { hi: "सिलेबस Excel से", en: "Syllabus in Excel" }, back: "/erp/syllabus/", tab: "/" },
   "/erp/syllabus/plan/": { title: { hi: "अध्याय प्लान", en: "Chapter Plan" }, back: "/erp/syllabus/", tab: "/" },
   "/erp/staff/allocation/": { title: { hi: "विषय बँटवारा", en: "Subject Allocation" }, tab: "/" },
   "/erp/calendar/": { title: { hi: "कैलेंडर", en: "Calendar" }, tab: "/" },
   "/erp/birthdays/": { title: { hi: "जन्मदिन", en: "Birthdays" }, tab: "/" },
+  "/erp/soon/": { title: { hi: "जल्द आ रहा है", en: "Coming soon" }, tab: "/" },
   "/erp/attendance/today/": { title: { hi: "आज की हाज़िरी", en: "Today's Attendance" }, tab: "/erp/attendance/mark/" },
   "/erp/attendance/leave/": { title: { hi: "छुट्टी की अर्ज़ियाँ", en: "Leave Requests" }, tab: "/erp/attendance/mark/" },
   "/erp/attendance/register/": { title: { hi: "हाज़िरी रजिस्टर", en: "Attendance Register" }, tab: "/erp/attendance/mark/" },
   "/erp/fees/setup/": { title: { hi: "फ़ीस सेटअप", en: "Fee Setup" }, tab: "/" },
   "/erp/fees/collect/": { title: { hi: "फ़ीस जमा करें", en: "Collect Fee" }, tab: "/" },
   "/erp/students/admission/": { title: { hi: "प्रवेश फ़ॉर्म", en: "Admission form" }, back: "/erp/students/", tab: "/erp/students/" },
-  "/erp/staff/": { title: { hi: "स्टाफ़ लिस्ट", en: "Staff Directory" }, tab: "/" },
+  "/erp/staff/": { title: { hi: "स्टाफ़ लिस्ट", en: "Staff Directory" }, tab: "/", action: { href: "/erp/staff/excel/", text: { hi: "Excel से भरें", en: "Excel import / export" }, badge: { hi: "Excel", en: "Excel" } } },
+  "/erp/staff/excel/": { title: { hi: "स्टाफ़ Excel से", en: "Staff in Excel" }, back: "/erp/staff/", tab: "/" },
   "/erp/staff/detail/": { title: { hi: "स्टाफ़", en: "Staff" }, back: "/erp/staff/", tab: "/" },
   "/erp/staff/new/": { title: { hi: "नया स्टाफ़", en: "Add Staff" }, back: "/erp/staff/", tab: "/" },
   "/erp/staff/class-teachers/": { title: { hi: "क्लास टीचर", en: "Class Teachers" }, back: "/erp/staff/", tab: "/" },
@@ -227,7 +231,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? "bg-[#e3ecec]" : "app-page")}>
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
-          <div className="grid h-14 grid-cols-[48px_1fr_48px] items-center px-1.5">
+          {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
+          <div className={clsx("grid h-14 items-center gap-1 px-1.5", page?.action?.badge ? "grid-cols-[48px_1fr_auto]" : "grid-cols-[48px_1fr_48px]")}>
             {page?.back ? (
               <Link href={page.back} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L({ hi: "वापस", en: "Back" })}>
                 <ChevronLeft className="h-6 w-6" aria-hidden />
@@ -239,12 +244,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
               </button>
             )}
-            <h1 className={clsx("truncate text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold")}>{page ? L(page.title) : ""}</h1>
+            <h1 className={clsx("truncate", page?.action?.badge ? "text-left" : "text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold")}>{page ? L(page.title) : ""}</h1>
             <span className="relative flex justify-end">
               {page?.action?.badge ? (
                 <Link
                   href={page.action.href}
-                  className="absolute right-1 top-1/2 flex min-h-[36px] -translate-y-1/2 items-center gap-1 whitespace-nowrap rounded-full border-[1.5px] border-ink-900 bg-white pl-2 pr-3 text-[13px] font-semibold text-ink-900 active:scale-[.97]"
+                  className="mr-1 flex min-h-[36px] items-center gap-1 whitespace-nowrap rounded-full border-[1.5px] border-ink-900 bg-white pl-2 pr-3 text-[13px] font-semibold text-ink-900 active:scale-[.97]"
                 >
                   <Plus className="h-4 w-4" strokeWidth={2.4} aria-hidden />
                   {L(page.action.badge)}
@@ -275,7 +280,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       </main>
 
       {/* School Sahayak (the AI chat): the parent app's round button, draggable to either side. Not for drivers or the ERP login. */}
-      {!page?.bare && !driver && !erp && <SahayakButton />}
+      {!page?.bare && !driver && <SahayakButton />}
 
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />

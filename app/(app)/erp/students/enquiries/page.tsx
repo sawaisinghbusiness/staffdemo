@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { ChevronRight, Search, X } from "lucide-react";
@@ -17,6 +17,11 @@ export default function ErpEnquiriesPage() {
   const { lang } = useLang();
   const { data, error, reload } = useApi<{ data: Enquiry[] }>("/erp/enquiries");
   const [view, setView] = useState<View>("open");
+  // ?view=admitted etc. (from Report) opens that tab.
+  useEffect(() => {
+    const v = new URLSearchParams(window.location.search).get("view");
+    if (v === "due" || v === "open" || v === "admitted" || v === "dropped") setView(v);
+  }, []);
   const [q, setQ] = useState("");
   const all = useMemo(() => data?.data || [], [data]);
 

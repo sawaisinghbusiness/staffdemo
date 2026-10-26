@@ -558,6 +558,8 @@ export async function demoApi(path: string, method: string, body: any): Promise<
     }
 
     if (p === "/homework/options") return { sections: SECTIONS.map((x) => ({ id: x.id, classSec: x.classSec, subjects: x.subjects })) };
+    // Files are stored by the real backend only.
+    if (p === "/homework/files") throw new DemoError(400, "डेमो में फ़ाइल नहीं लगती। असली लॉगिन में लगेगी।");
     if (p === "/homework") {
       if (method === "POST") {
         const sec = SECTIONS.find((x) => x.id === body?.sectionId);

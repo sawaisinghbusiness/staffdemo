@@ -71,7 +71,6 @@ export default function ErpOnlinePaymentsPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-4">
-      <p className="text-[13px] text-ink-500">{L({ hi: "माता-पिता ने पेरेंट ऐप से UPI से जो फ़ीस भेजी। बैंक स्टेटमेंट में UTR मिलाएँ, फिर पक्का करें।", en: "UPI payments parents reported in the parent app. Find the UTR in the bank statement, then verify." })}</p>
       <button type="button" onClick={() => setSettingsOpen(true)} className="btn-line w-full">
         <Settings2 className="h-4 w-4" aria-hidden /> {L({ hi: "UPI सेटिंग", en: "UPI settings" })}
         {s?.upiId ? <span className="truncate font-normal text-ink-500">· {s.upiId}</span> : null}

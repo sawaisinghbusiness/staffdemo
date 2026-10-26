@@ -10,6 +10,8 @@ import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { phoneText } from "@/lib/format";
 import { Avatar, Skeleton } from "@/components/ui";
+import { isErpMode } from "@/lib/erpMode";
+import { ErpProfile } from "@/components/erp/ErpProfile";
 
 function Row({ icon: Icon, text, value, href }: { icon: LucideIcon; text: string; value?: string; href: string }) {
   const cls = "flex min-h-[54px] w-full items-center gap-3 border-b border-ink-100 px-0.5 active:bg-ink-50";
@@ -38,6 +40,7 @@ export default function ProfilePage() {
   const L = useL();
   const { lang, setLang } = useLang();
   const [leaving, setLeaving] = useState(false);
+  const [erp] = useState(isErpMode);
 
   async function logout() {
     setLeaving(true);
@@ -46,6 +49,9 @@ export default function ProfilePage() {
     markSignedIn(false);
     window.location.replace("/login/");
   }
+
+  // ERP login has its own profile (school, users, password), not a staff member's.
+  if (erp) return <ErpProfile />;
 
   if (!me) {
     return (

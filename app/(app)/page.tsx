@@ -29,7 +29,7 @@ interface Home {
   date: string;
   myMark: "P" | "A" | "L" | "H" | null;
   lessons: Lesson[];
-  attendanceToMark: { id: string; classSec: string }[];
+  attendanceToMark: { id: string; classSec: string; remindedAt?: string }[];
   pendingLeaves: number;
   noticeCount?: number;
 }
@@ -336,7 +336,13 @@ function Today({ data, teacher }: { data: Home | undefined; teacher: boolean }) 
         href={open ? `/attendance/?id=${open.id}` : "/attendance/"}
         icon={blue("attendance")}
         title={L({ hi: "हाज़िरी", en: "Attendance" })}
-        note={open ? L({ hi: `${open.classSec} की बाकी है`, en: `${open.classSec} not marked` }) : L({ hi: "सब लग गई", en: "All marked" })}
+        note={
+          open
+            ? open.remindedAt
+              ? L({ hi: `ऑफ़िस ने याद दिलाया · ${open.classSec} की बाकी`, en: `Office reminder · ${open.classSec} not marked` })
+              : L({ hi: `${open.classSec} की बाकी है`, en: `${open.classSec} not marked` })
+            : L({ hi: "सब लग गई", en: "All marked" })
+        }
         end={open ? <span className="pay-pulse rounded-full bg-[#b01003] px-3.5 py-2 text-[13.5px] font-semibold text-white">{L({ hi: "अभी लगाएँ", en: "Mark now" })}</span> : null}
       />
       <TodayRow

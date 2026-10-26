@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { AlertTriangle, ArrowRight, MessageCircle, Phone } from "lucide-react";
-import { useApi } from "@/lib/api";
+import { AlertTriangle, ArrowRight, BellRing, Check, MessageCircle, Phone } from "lucide-react";
+import { api, ApiError, useApi } from "@/lib/api";
+import { toast } from "@/lib/toast";
 import { useL } from "@/lib/i18n";
 import { absenceWhatsApp, type AttendanceDay, type AttStatus } from "@/lib/erpAttendance";
 import { phone, type StaffList } from "@/lib/erpStaff";
@@ -27,10 +28,6 @@ const STATUS_TEXT: Record<AttStatus, { hi: string; en: string; dot: string }> = 
   Leave: { hi: "छुट्टी", en: "Leave", dot: "bg-marigold-400" },
   HalfDay: { hi: "आधा दिन", en: "Half day", dot: "bg-sky-500" },
 };
-const waTo = (mobile: string, text: string) => {
-  const d = (mobile || "").replace(/\D/g, "").slice(-10);
-  return /^[6-9]\d{9}$/.test(d) ? `https://wa.me/91${d}?text=${encodeURIComponent(text)}` : null;
-};
 
 export default function ErpAttendanceTodayPage() {
   const L = useL();
@@ -40,6 +37,29 @@ export default function ErpAttendanceTodayPage() {
   const staff = useApi<StaffList>("/erp/staff");
   const { data: school } = useApi<Record<string, string>>("/erp/school");
   const [tab, setTab] = useState<Tab>("pending");
+  const reminded = useApi<{ data: Record<string, string> }>(`/erp/attendance/reminders?date=${date}`);
+  const [sending, setSending] = useState<string | null>(null);
+
+  /** Sends the reminder to each section's class teacher; quiet about ones with no class teacher when sending to all. */
+  async function remind(list: { class: string; section: string; classSec: string }[]) {
+    setSending(list.length === 1 ? list[0].classSec : "all");
+    let sent = 0;
+    let fail = "";
+    for (const s of list) {
+      try {
+        await api("/erp/attendance/remind", { body: { date, class: s.class, section: s.section } });
+        sent++;
+      } catch (e) {
+        fail = (e instanceof ApiError && e.message) || L({ hi: "याद नहीं भेजी जा सकी।", en: "Could not send the reminder." });
+        if (list.length === 1 || (e instanceof ApiError && e.status === 503)) break;
+      }
+    }
+    setSending(null);
+    reminded.reload();
+    if (sent) toast(true, list.length === 1 ? L({ hi: `${list[0].classSec} के क्लास टीचर को ऐप में याद दिलाया।`, en: `Reminded ${list[0].classSec}'s class teacher in the app.` }) : L({ hi: `${sent} क्लास टीचर को याद दिलाया।`, en: `Reminded ${sent} class teachers.` }));
+    else if (fail) toast(false, fail);
+  }
+  const clock = (at: string) => new Date(at).toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit", hour12: true });
 
   const ctOf = useMemo(() => {
     const m = new Map<string, { name: string; mobile: string }>();
@@ -110,28 +130,41 @@ export default function ErpAttendanceTodayPage() {
         (!pending.length ? (
           <Empty>{L({ hi: "सारे सेक्शन की हाज़िरी लग चुकी है।", en: "Every section is marked." })}</Empty>
         ) : (
+          <>
+          <button type="button" onClick={() => remind(pending.filter((p) => ctOf.has(p.classSec)))} disabled={!!sending || !pending.some((p) => ctOf.has(p.classSec))} className="btn-line w-full disabled:opacity-50">
+            <BellRing className="h-4 w-4" aria-hidden />
+            {sending === "all" ? "…" : L({ hi: `सबको याद दिलाएँ (${pending.filter((p) => ctOf.has(p.classSec)).length})`, en: `Remind all (${pending.filter((p) => ctOf.has(p.classSec)).length})` })}
+          </button>
           <ul>
             {pending.map((s) => {
               const ct = ctOf.get(s.classSec);
-              const wa = ct && waTo(ct.mobile, `नमस्ते ${ct.name} जी, आज (${dateLabel}) ${s.classSec} की हाज़िरी अभी नहीं लगी है। कृपया ऐप में लगा दें। – ${schoolName}`);
+              const at = reminded.data?.data?.[s.classSec];
+              const busy = sending === s.classSec || sending === "all";
               return (
                 <li key={s.classSec} className="flex items-center gap-3 border-b border-ink-100 py-2.5">
-                  <Link href={`/erp/attendance/mark/section/?date=${date}&class=${encodeURIComponent(s.class)}&section=${encodeURIComponent(s.section)}`} className="min-w-0 flex-1">
+                  <Link href={`/erp/attendance/mark/?date=${date}&class=${encodeURIComponent(s.class)}&section=${encodeURIComponent(s.section)}`} className="min-w-0 flex-1">
                     <span className="block text-[14.5px] font-semibold">{s.classSec}</span>
                     <span className="block truncate text-[12.5px] text-ink-500">
                       {s.students} {L({ hi: "बच्चे", en: "students" })} · {ct ? ct.name : <span className="text-rose-600">{L({ hi: "क्लास टीचर नहीं", en: "No class teacher" })}</span>}
                     </span>
+                    {at && (
+                      <span className="mt-0.5 flex items-center gap-1 text-[12px] font-medium text-jade-700">
+                        <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />
+                        {L({ hi: `याद दिलाया ${clock(at)}`, en: `Reminded ${clock(at)}` })}
+                      </span>
+                    )}
                   </Link>
-                  {wa && (
-                    <a href={wa} target="_blank" rel="noreferrer" className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-[13px] font-semibold text-jade-700">
-                      <MessageCircle className="h-4 w-4" aria-hidden />
-                      {L({ hi: "याद दिलाएँ", en: "Remind" })}
-                    </a>
+                  {ct && (
+                    <button type="button" onClick={() => remind([s])} disabled={busy} className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-xl border border-ink-200 bg-white px-3 text-[13px] font-semibold text-ink-900 disabled:opacity-50">
+                      <BellRing className="h-4 w-4" aria-hidden />
+                      {busy ? "…" : at ? L({ hi: "फिर से", en: "Again" }) : L({ hi: "याद दिलाएँ", en: "Remind" })}
+                    </button>
                   )}
                 </li>
               );
             })}
           </ul>
+          </>
         ))}
 
       {tab === "marked" &&
@@ -143,7 +176,7 @@ export default function ErpAttendanceTodayPage() {
               const p = pct(s.present + s.half * 0.5, s.marked);
               return (
                 <li key={s.classSec}>
-                  <Link href={`/erp/attendance/mark/section/?date=${date}&class=${encodeURIComponent(s.class)}&section=${encodeURIComponent(s.section)}`} className="flex items-center gap-3 border-b border-ink-100 py-2.5">
+                  <Link href={`/erp/attendance/mark/?date=${date}&class=${encodeURIComponent(s.class)}&section=${encodeURIComponent(s.section)}`} className="flex items-center gap-3 border-b border-ink-100 py-2.5">
                     <span className="min-w-0 flex-1">
                       <span className="block text-[14.5px] font-semibold">{s.classSec}</span>
                       <span className="block truncate text-[12.5px] text-ink-500">

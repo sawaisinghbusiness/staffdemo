@@ -22,6 +22,20 @@ export function setErpMode(on: boolean) {
   } catch {
     /* storage blocked: they land on staff sign-in next time */
   }
+  applyErpScale();
+}
+
+/**
+ * ERP login is shown zoomed out (user, 2026-10-26: "sab bada lagta hai, zoom out karo"): the page is laid out
+ * wider and drawn smaller, like the browser's own zoom out, so every screen fits more. Staff sign-in stays at 1.
+ * The same rule runs as an inline script in app/layout.tsx before the first paint.
+ */
+export const ERP_SCALE = 0.88;
+export function applyErpScale() {
+  const meta = document.querySelector('meta[name="viewport"]');
+  if (!meta) return;
+  const scale = isErpMode() ? ERP_SCALE : 1;
+  meta.setAttribute("content", `width=device-width, initial-scale=${scale}, viewport-fit=cover`);
 }
 
 class ErpError extends Error {
@@ -43,8 +57,17 @@ async function getJson(url: string, init?: RequestInit) {
     throw new ErpError(0, "offline");
   }
   const data = await res.json().catch(() => ({}));
+  // The browser holds a staff-app (phone) or parent sign-in, not an ERP one: send them to sign in again.
+  if (res.status === 403 && FAMILY_403.test((data as any)?.error || "")) notErp();
   if (!res.ok) throw new ErpError(res.status, (data as any)?.error || "");
   return data as any;
+}
+
+const FAMILY_403 = /^This area is for school staff/;
+const ERP_ROLES = ["admin", "teacher", "accountant", "exam_cell"];
+function notErp(): never {
+  setErpMode(false);
+  throw new ErpError(401, "Please sign in again.");
 }
 
 /**
@@ -67,6 +90,7 @@ export async function erpApi(path: string, method: string, body?: unknown): Prom
   if (p === "/school") return getJson("/api/staff-app/school");
   if (p === "/me") {
     const [{ user }, school] = await Promise.all([getJson("/api/auth/me"), getJson("/api/staff-app/school").catch(() => ({ name: "", shortName: "", logoUrl: null, officePhone: "" }))]);
+    if (!ERP_ROLES.includes(user?.role)) notErp();
     return {
       role: "teacher",
       name: user.name,
@@ -79,6 +103,9 @@ export async function erpApi(path: string, method: string, body?: unknown): Prom
       sections: [],
     };
   }
+
+  // School Sahayak: the office version answers from the school's own figures.
+  if (p === "/assistant" || p === "/assistant/warm") return getJson(`/api/dashboard${p}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}) });
 
   // Nothing can be saved from an ERP login yet.
   if (method !== "GET") throw new ErpError(403, "ERP लॉगिन में यह अभी चालू नहीं है।");
