@@ -1,9 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import clsx from "clsx";
-import { Banknote, BellRing, CalendarCheck, CalendarX2, ChevronRight, Languages, LogOut, Phone, type LucideIcon } from "lucide-react";
+import { Banknote, BellRing, CalendarCheck, CalendarX2, CircleHelp, Languages, Phone } from "lucide-react";
 import { useAlertClose } from "@/lib/driverPrefs";
 import { api, markSignedIn, clearCache } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
@@ -11,28 +10,7 @@ import { useL, useLang } from "@/lib/i18n";
 import { phoneText } from "@/lib/format";
 import { Avatar, Skeleton } from "@/components/ui";
 import { isErpMode } from "@/lib/erpMode";
-import { ErpProfile } from "@/components/erp/ErpProfile";
-
-function Row({ icon: Icon, text, value, href }: { icon: LucideIcon; text: string; value?: string; href: string }) {
-  const cls = "flex min-h-[54px] w-full items-center gap-3 border-b border-ink-100 px-0.5 active:bg-ink-50";
-  const inner = (
-    <>
-      <Icon className="h-[21px] w-[21px] shrink-0 text-ink-700" strokeWidth={1.8} aria-hidden />
-      <span className="min-w-0 flex-1 text-[15.5px]">{text}</span>
-      {value && <span className="shrink-0 text-[14px] text-ink-400">{value}</span>}
-      <ChevronRight className="h-[18px] w-[18px] shrink-0 text-ink-300" aria-hidden />
-    </>
-  );
-  return href.startsWith("tel:") ? (
-    <a href={href} className={cls}>
-      {inner}
-    </a>
-  ) : (
-    <Link href={href} className={cls}>
-      {inner}
-    </Link>
-  );
-}
+import { ErpProfile, Group, InfoRow, Row as GRow } from "@/components/erp/ErpProfile";
 
 /** Who is signed in, their details as the office has them, then salary, attendance, leave and settings. */
 export default function ProfilePage() {
@@ -72,49 +50,45 @@ export default function ProfilePage() {
     [L({ hi: "मोबाइल", en: "Mobile" }), phoneText(me.phone)],
   ];
 
+  // Same layout as the ERP login's profile (user, 2026-10-26): who, then grouped rows, then Log out.
   return (
-    <div className="animate-rise space-y-4 pb-2">
-      <section className="flex flex-col items-center pt-1 text-center">
-        <Avatar name={me.name} url={me.photoUrl} size={76} tint={5} />
-        <h2 className="mt-2.5 text-[19px] font-bold">{me.name}</h2>
-        <p className="text-[13.5px] text-ink-500">
-          {L(me.roleLabel)} · {me.empCode}
-        </p>
+    <div className="animate-rise space-y-3.5 pb-6 pt-1">
+      <section className="flex items-center gap-3.5 rounded-2xl border border-ink-100 bg-white p-4">
+        <Avatar name={me.name} url={me.photoUrl} size={60} tint={5} />
+        <span className="min-w-0 flex-1">
+          <span className="block truncate text-[17px] font-bold">{me.name}</span>
+          <span className="block truncate text-[13.5px] text-ink-600">
+            {L(me.roleLabel)} · {me.empCode}
+          </span>
+          {me.school.name && <span className="block truncate text-[13px] text-ink-500">{me.school.name}</span>}
+        </span>
       </section>
 
-      <dl className="kv">
-        {rows.map(([k, v]) => (
-          <div key={k}>
-            <dt>{k}</dt>
-            <dd>{v}</dd>
-          </div>
+      <Group title={L({ hi: "मेरी जानकारी", en: "My details" })}>
+        {rows.map(([k, v], i) => (
+          <InfoRow key={k} text={k} value={v} last={i === rows.length - 1} />
         ))}
-      </dl>
+      </Group>
 
-      <div>
-        <Row icon={Banknote} text={L({ hi: "सैलरी स्लिप", en: "Salary slips" })} href="/salary/" />
-        <Row icon={CalendarCheck} text={L({ hi: "मेरी हाज़िरी", en: "My attendance" })} href="/my-attendance/" />
-        <Row icon={CalendarX2} text={L({ hi: "मेरी छुट्टी", en: "My leave" })} href="/leave/" />
-        <div className="flex min-h-[54px] items-center gap-3 border-b border-ink-100 px-0.5">
-          <Languages className="h-[21px] w-[21px] shrink-0 text-ink-700" strokeWidth={1.8} aria-hidden />
-          <span className="min-w-0 flex-1 text-[15.5px]">{L({ hi: "भाषा", en: "Language" })}</span>
-          <div className="flex rounded-[10px] bg-ink-100 p-[3px]" role="radiogroup" aria-label={L({ hi: "भाषा", en: "Language" })}>
-            {(["en", "hi"] as const).map((l) => (
-              <button key={l} role="radio" aria-checked={lang === l} onClick={() => setLang(l)} className={clsx("min-h-[38px] rounded-lg px-3 text-[14px]", lang === l ? "bg-white font-semibold text-[#3099a4] shadow-sm" : "font-medium text-ink-500")}>
-                {l === "hi" ? "हिंदी" : "English"}
-              </button>
-            ))}
-          </div>
-        </div>
+      <Group title={L({ hi: "मेरा", en: "Mine" })}>
+        <GRow icon={Banknote} text={L({ hi: "सैलरी स्लिप", en: "Salary slips" })} href="/salary/" />
+        <GRow icon={CalendarCheck} text={L({ hi: "मेरी हाज़िरी", en: "My attendance" })} href="/my-attendance/" />
+        <GRow icon={CalendarX2} text={L({ hi: "मेरी छुट्टी", en: "My leave" })} href="/leave/" last />
+      </Group>
+
+      <Group title={L({ hi: "सेटिंग", en: "Settings" })}>
+        <GRow icon={Languages} text={L({ hi: "भाषा", en: "Language" })} value={lang === "hi" ? "हिंदी" : "English"} onClick={() => setLang(lang === "hi" ? "en" : "hi")} last={me.role !== "driver"} />
         {me.role === "driver" && <AlertSetting />}
-        {me.school.officePhone && <Row icon={Phone} text={L({ hi: "स्कूल ऑफ़िस को कॉल करें", en: "Call school office" })} value={me.school.officePhone} href={`tel:${me.school.officePhone.replace(/\s/g, "")}`} />}
-        <button onClick={logout} disabled={leaving} className="flex min-h-[54px] w-full items-center gap-3 px-0.5 text-left font-semibold text-rose-600 active:bg-ink-50">
-          <LogOut className="h-[21px] w-[21px] shrink-0" strokeWidth={1.8} aria-hidden />
-          {L({ hi: "लॉग आउट", en: "Log out" })}
-        </button>
-      </div>
+      </Group>
 
-      <p className="text-center text-[12px] text-ink-400">{me.school.name}</p>
+      <Group title={L({ hi: "मदद", en: "Help" })}>
+        {me.school.officePhone && <GRow icon={Phone} text={L({ hi: "स्कूल ऑफ़िस को कॉल करें", en: "Call school office" })} value={me.school.officePhone} href={`tel:${me.school.officePhone.replace(/\s/g, "")}`} />}
+        <GRow icon={CircleHelp} text={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} href="/assistant/" last />
+      </Group>
+
+      <button type="button" onClick={logout} disabled={leaving} className="min-h-[50px] w-full rounded-2xl border border-ink-100 bg-white text-[15px] font-semibold text-rose-700 active:bg-ink-50 disabled:opacity-60">
+        {leaving ? "…" : L({ hi: "लॉग आउट", en: "Log out" })}
+      </button>
     </div>
   );
 }
@@ -124,7 +98,7 @@ function AlertSetting() {
   const L = useL();
   const [mode, setMode] = useAlertClose();
   return (
-    <div className="border-b border-ink-100 px-0.5 py-3">
+    <div className="py-3 pr-3.5">
       <div className="flex items-center gap-3">
         <BellRing className="h-[21px] w-[21px] shrink-0 text-ink-700" strokeWidth={1.8} aria-hidden />
         <span className="min-w-0 flex-1 text-[15.5px]">{L({ hi: "स्टॉप का अलर्ट", en: "Stop alert" })}</span>

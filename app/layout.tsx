@@ -29,7 +29,8 @@ export const metadata: Metadata = {
 
 export const viewport: Viewport = {
   width: "device-width",
-  initialScale: 1,
+  // The whole app is drawn zoomed out (user, 2026-10-26: "sab bada lagta hai"): laid out wider, drawn smaller.
+  initialScale: 0.88,
   viewportFit: "cover",
   themeColor: "#FFFFFF",
 };
@@ -38,12 +39,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <body>
-        {/* ERP login: zoom the page out before the first paint (see applyErpScale in lib/erpMode.ts). */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(localStorage.getItem("sa:erp")==="1"){var m=document.querySelector('meta[name="viewport"]');m&&m.setAttribute("content","width=device-width, initial-scale=0.88, viewport-fit=cover")}}catch(e){}`,
-          }}
-        />
         <LangProvider>
           {children}
           <Toaster />

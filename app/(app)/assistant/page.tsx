@@ -158,12 +158,13 @@ export default function AssistantPage() {
   const empty = turns.length === 0;
 
   return (
-    <div className="sahayak-bg relative flex min-h-[100dvh] flex-col overflow-hidden text-[#2A2350]">
+    <div className="sahayak-bg relative flex min-h-[100dvh] flex-col overflow-x-clip text-[#2A2350]">
       {/* Soft round shapes behind everything, as in the reference. */}
       <span aria-hidden className="pointer-events-none absolute -left-24 top-[420px] h-64 w-64 rounded-full bg-[radial-gradient(circle_at_35%_35%,#fff_0%,#E9DDFF_55%,#D9C8FF_100%)] opacity-70" />
       <span aria-hidden className="pointer-events-none absolute -right-16 top-24 h-48 w-48 rounded-full bg-[radial-gradient(circle_at_35%_35%,#fff_0%,#FBDDF2_55%,#F5C6E8_100%)] opacity-70" />
 
-      <header className="pt-safe sticky top-0 z-20">
+      {/* Stays at the top while the chat scrolls (overflow-x-clip above, not hidden, so sticky works). */}
+      <header className="pt-safe sticky top-0 z-20 bg-[#eef0ff]">
         <div className="flex h-14 items-center gap-2.5 px-2">
           <Link href="/" className="grid h-11 w-11 shrink-0 place-items-center rounded-full active:bg-white/60" aria-label={L({ hi: "वापस", en: "Back" })}>
             <ChevronLeft className="h-6 w-6" aria-hidden />

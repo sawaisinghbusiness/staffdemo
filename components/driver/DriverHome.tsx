@@ -26,6 +26,8 @@ export function DriverHome() {
 
   // The same top row as the parents' app: school logo and name, language, notices, and the
   // driver's own profile in the corner.
+  const hour = new Date().getHours();
+  const greet = hour < 12 ? L({ hi: "सुप्रभात", en: "Good morning" }) : hour < 17 ? L({ hi: "नमस्ते", en: "Good afternoon" }) : L({ hi: "नमस्ते", en: "Good evening" });
   const head = (
     <header className="pt-safe">
       <div className="flex items-center gap-1.5 px-4 pb-1 pt-4">
@@ -33,8 +35,9 @@ export function DriverHome() {
         <div className="ml-1 min-w-0 flex-1">
           {me ? (
             <>
-              <p className="line-clamp-2 text-[13.5px] font-semibold leading-tight">{me.school.name}</p>
-              <p className="mt-0.5 truncate text-[11.5px] text-drv-mute">{L({ hi: `नमस्ते, ${first}`, en: `Hello, ${first}` })}</p>
+              {/* Two lines (user, 2026-10-26): the greeting small on top, the name under it. */}
+              <p className="truncate text-[11.5px] text-drv-mute">{greet}</p>
+              <p className="truncate text-[15.5px] font-semibold leading-tight">{first}</p>
             </>
           ) : (
             <Skeleton className="h-4 w-28" />

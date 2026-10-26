@@ -37,11 +37,10 @@ export default function ErpReportPage() {
   return (
     <div className="animate-rise space-y-3 pb-6">
       <div>
-        <h1 className="text-[20px] font-bold leading-tight">
-          {hello}
-          {me?.name ? `, ${me.name.split(" ")[0]}` : ""}
-        </h1>
-        <p className="text-[13px] text-ink-500">{today}</p>
+        <p className="text-[12.5px] font-medium text-ink-500">
+          {hello} · {today}
+        </p>
+        <h1 className="text-[18px] font-bold leading-tight">{me?.name ? me.name.split(" ")[0] : ""}</h1>
       </div>
 
       {error && !data && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}

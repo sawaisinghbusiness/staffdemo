@@ -125,7 +125,8 @@ const config: Config = {
         base: ["1rem", { lineHeight: "1.5rem" }],
       },
       // Kit corners: fields and buttons 12px, row cards 14px, banners 16px.
-      borderRadius: { xl: "0.75rem", "2xl": "0.875rem", "3xl": "1rem" },
+      // Tighter corners (user, 2026-10-26: very soft corners look AI-made).
+      borderRadius: { xl: "0.625rem", "2xl": "0.75rem", "3xl": "0.875rem" },
       boxShadow: {
         card: "0 1px 2px rgb(31 27 46 / 0.05), 0 10px 26px -16px rgb(31 27 46 / 0.18)",
         bar: "0 -1px 0 rgb(31 27 46 / 0.06)",

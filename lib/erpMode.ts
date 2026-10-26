@@ -22,20 +22,6 @@ export function setErpMode(on: boolean) {
   } catch {
     /* storage blocked: they land on staff sign-in next time */
   }
-  applyErpScale();
-}
-
-/**
- * ERP login is shown zoomed out (user, 2026-10-26: "sab bada lagta hai, zoom out karo"): the page is laid out
- * wider and drawn smaller, like the browser's own zoom out, so every screen fits more. Staff sign-in stays at 1.
- * The same rule runs as an inline script in app/layout.tsx before the first paint.
- */
-export const ERP_SCALE = 0.88;
-export function applyErpScale() {
-  const meta = document.querySelector('meta[name="viewport"]');
-  if (!meta) return;
-  const scale = isErpMode() ? ERP_SCALE : 1;
-  meta.setAttribute("content", `width=device-width, initial-scale=${scale}, viewport-fit=cover`);
 }
 
 class ErpError extends Error {

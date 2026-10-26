@@ -7,7 +7,7 @@ import { api, ApiError, useApi } from "@/lib/api";
 import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL } from "@/lib/i18n";
-import { ErrorCard, LineTabs, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
+import { ErrorCard, LineTabs, ListSkeleton, SelectBox } from "@/components/ui";
 import { MyMonth } from "@/components/MyMonth";
 
 type Mark = "P" | "A" | "L" | "H";
@@ -151,7 +151,7 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
     : `${L({ hi: "सेव करें", en: "Save" })} · ${count.P} ${L({ hi: "उपस्थित", en: "present" })}, ${count.A} ${L({ hi: "अनुपस्थित", en: "absent" })}${count.L + count.H ? `, ${count.L + count.H} ${L({ hi: "छुट्टी", en: "leave" })}` : ""}`;
 
   return (
-    <div className={clsx("space-y-2", editable && "pb-20")}>
+    <div className="space-y-2 pb-4">
       {/* Save also right under the class and date, so a short class needs no scrolling. */}
       {editable && (
         <button onClick={save} disabled={busy} className="btn-primary w-full">
@@ -210,12 +210,11 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
         })}
       </ul>
 
+      {/* Save at the end of the list too, in the page, not floating (user, 2026-10-26). */}
       {editable && (
-        <StickyBar>
-          <button onClick={save} disabled={busy} className="btn-primary w-full">
-            {saveText}
-          </button>
-        </StickyBar>
+        <button onClick={save} disabled={busy} className="btn-primary mt-2 w-full">
+          {saveText}
+        </button>
       )}
     </div>
   );

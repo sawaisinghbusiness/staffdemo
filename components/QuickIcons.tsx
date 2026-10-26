@@ -40,20 +40,22 @@ const SHAPES = {
   "myAttendance": "<rect width=\"100\" height=\"100\" rx=\"28\" fill=\"{T}\"/><circle cx=\"72\" cy=\"28\" r=\"22\" fill=\"{L}\"/><circle cx=\"16\" cy=\"84\" r=\"10\" fill=\"{D}\"/><g fill=\"#FFFFFF\"><circle cx=\"42\" cy=\"36\" r=\"13\"/><path d=\"M21 87a21 21 0 0 1 42 0v2a3 3 0 0 1-3 3H24a3 3 0 0 1-3-3z\"/></g><circle cx=\"72\" cy=\"72\" r=\"13\" fill=\"#22C55E\" stroke=\"{T}\" stroke-width=\"3\"/><path d=\"M66 72.5L70.5 77L78.5 68\" fill=\"none\" stroke=\"#FFFFFF\" stroke-width=\"4\" stroke-linecap=\"round\" stroke-linejoin=\"round\"/>"
 } as const;
 
+// Navy on the teal band (user picked option C, 2026-10-26): the old orange and bright blue clashed with teal.
+// "orange" keeps its name so existing callers need no change; "blue" is the lighter navy for Today's rows.
 const TONES = {
   "orange": {
-    "T": "#EA580C",
-    "L": "#F97316",
-    "D": "#C2410C",
-    "P": "#FED7AA",
-    "I": "#7C2D12"
+    "T": "#23436B",
+    "L": "#2F5A8C",
+    "D": "#1A3354",
+    "P": "#C9D8EA",
+    "I": "#0E1F36"
   },
   "blue": {
-    "T": "#2563EB",
-    "L": "#3B82F6",
-    "D": "#1D4ED8",
-    "P": "#BFDBFE",
-    "I": "#1E3A8A"
+    "T": "#2F5A8C",
+    "L": "#3D6CA3",
+    "D": "#23436B",
+    "P": "#D3E0EE",
+    "I": "#1A3354"
   }
 } as const;
 

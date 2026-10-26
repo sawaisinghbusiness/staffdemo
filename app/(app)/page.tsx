@@ -175,12 +175,17 @@ export default function HomePage() {
           <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 grid h-11 w-10 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100">
             <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
           </button>
-          <h1 className="min-w-0 flex-1 truncate text-[19px] font-bold leading-tight text-ink-900">
-            <span className="reveal">
-              <span style={v(0)}>{greet},</span>
-            </span>{" "}
-            <span className="reveal">
-              <span style={v(1)}>{first}</span>
+          {/* Two lines (user, 2026-10-26): the greeting small on top, the name under it. */}
+          <h1 className="min-w-0 flex-1 leading-tight">
+            <span className="reveal block">
+              <span style={v(0)} className="block truncate text-[12.5px] font-medium text-ink-500">
+                {greet}
+              </span>
+            </span>
+            <span className="reveal block">
+              <span style={v(1)} className="block truncate text-[17px] font-bold text-ink-900">
+                {first}
+              </span>
             </span>
           </h1>
           <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>

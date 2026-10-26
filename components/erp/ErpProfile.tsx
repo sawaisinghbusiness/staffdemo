@@ -21,7 +21,7 @@ const ROLE: Record<string, { hi: string; en: string }> = {
   exam_cell: { hi: "परीक्षा सेल", en: "Exam cell" },
 };
 
-function Row({ icon: Icon, text, value, href, onClick, last }: { icon: LucideIcon; text: string; value?: string; href?: string; onClick?: () => void; last?: boolean }) {
+export function Row({ icon: Icon, text, value, href, onClick, last }: { icon: LucideIcon; text: string; value?: string; href?: string; onClick?: () => void; last?: boolean }) {
   const cls = `flex min-h-[52px] w-full items-center gap-3.5 pr-3.5 text-left active:bg-ink-50 ${last ? "" : "border-b border-ink-100"}`;
   const inner = (
     <>
@@ -42,7 +42,17 @@ function Row({ icon: Icon, text, value, href, onClick, last }: { icon: LucideIco
   );
 }
 
-function Group({ title, children }: { title: string; children: React.ReactNode }) {
+/** A fact, not a link: label on the left, the value under it. */
+export function InfoRow({ text, value, last }: { text: string; value: string; last?: boolean }) {
+  return (
+    <div className={`py-2.5 pr-3.5 ${last ? "" : "border-b border-ink-100"}`}>
+      <span className="block text-[12.5px] text-ink-500">{text}</span>
+      <span className="block text-[15px] text-ink-900">{value}</span>
+    </div>
+  );
+}
+
+export function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
       <h2 className="mx-1 mb-1.5 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{title}</h2>
