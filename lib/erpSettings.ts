@@ -26,13 +26,15 @@ export interface SchoolProfile {
   email: string;
   website: string;
   logo_url: string;
+  /** School photo for the apps' Home header (data URL), from ERP Settings. */
+  hero_url: string;
   principal_name: string;
   updated_at?: string | null;
 }
 
 export const DEFAULT_SCHOOL_PROFILE: SchoolProfile = {
-  school_name: "St. Paul School",
-  short_name: "SPS",
+  school_name: "School",
+  short_name: "",
   board: "CBSE",
   affiliation_no: "1730512",
   school_code: "10492",
@@ -47,6 +49,7 @@ export const DEFAULT_SCHOOL_PROFILE: SchoolProfile = {
   email: "",
   website: "",
   logo_url: "",
+  hero_url: "",
   principal_name: "",
 };
 

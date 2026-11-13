@@ -21,7 +21,7 @@ export interface Me {
   photoUrl?: string | null;
   phone: string;
   joined: string;
-  school: { name: string; shortName: string; logoUrl: string | null; officePhone: string; address?: string };
+  school: { name: string; shortName: string; logoUrl: string | null; heroUrl?: string | null; officePhone: string; address?: string };
   sections: MySection[];
 }
 
@@ -36,6 +36,10 @@ const Ctx = createContext<State>({ me: undefined, stale: false, error: null, rel
 /** The signed-in staff member. Teachers also get the classes and subjects they take. */
 export function StaffProvider({ children }: { children: React.ReactNode }) {
   const { data: me, stale, error, reload } = useApi<Me>("/me");
+  // The browser tab carries the school's name from ERP Settings.
+  useEffect(() => {
+    if (me?.school.name) document.title = `${me.school.name} · Staff`;
+  }, [me?.school.name]);
   useEffect(() => {
     // Signed out: straight to sign-in, without first drawing the home screen.
     if (DEMO && !isErpMode() && !demoSignedIn()) window.location.replace("/login/");

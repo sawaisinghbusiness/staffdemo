@@ -16,6 +16,7 @@ import { clock } from "@/lib/format";
 import { useUnseenNotices } from "@/lib/counts";
 import { Avatar, CountBadge, ErrorCard, OfflineNote, Skeleton } from "@/components/ui";
 import { DriverHome } from "@/components/driver/DriverHome";
+import { StaffHome } from "@/components/StaffHome";
 
 interface Lesson {
   id: string;
@@ -144,6 +145,8 @@ export default function HomePage() {
   // Drivers have their own Home: today's route and the trip. Until we know who it is, only a
   // plain loading screen, so a driver never sees the teachers' Home flash first.
   if (me?.role === "driver") return <DriverHome />;
+  // Teachers and other staff get the parent app's Home design (2026-11-13); the ERP login keeps the one below.
+  if (me && !isErpMode()) return <StaffHome />;
   if (!me)
     return (
       <div className="space-y-4 px-4 pt-6" aria-busy="true">
@@ -203,7 +206,7 @@ export default function HomePage() {
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={isErpMode() ? "/home-top-erp.jpg" : "/home-top.jpeg"}
-          alt={isErpMode() ? L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" }) : L({ hi: "स्टाफ पोर्टल – सेंट पॉल स्कूल", en: "Staff portal – St. Paul School" })}
+          alt={isErpMode() ? L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" }) : `${L({ hi: "स्टाफ पोर्टल", en: "Staff portal" })} – ${me.school.name}`}
           className="enter aspect-[1366/768] w-full rounded-2xl border border-ink-100 bg-ink-100 object-cover" style={v(3)} />
         {teacher && (
           <Link href={isErpMode() ? "/erp/students/?search=1" : "/students/?search=1"} className="enter mt-3.5 flex h-12 items-center gap-2.5 rounded-xl border border-ink-100 bg-white px-4 text-ink-500 shadow-sm" style={v(3)} aria-label={L({ hi: "बच्चे खोजें", en: "Search students" })}>

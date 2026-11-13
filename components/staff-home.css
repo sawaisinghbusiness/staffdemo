@@ -1,0 +1,11 @@
+.staff-home{font-family:'Plus Jakarta Sans Variable','Noto Sans Devanagari Variable',system-ui,sans-serif;--home-line:#E6E7E8;--home-brand:#0D2A5E;color-scheme:light}
+.staff-home ::selection{background:#DCE7F5;color:#0D2A5E}
+.staff-home :focus-visible{outline:2px solid var(--home-brand);outline-offset:4px;box-shadow:none}
+.staff-home .home-updates{display:grid;gap:0}
+.staff-home .home-update{display:flex;align-items:center;gap:12px;min-height:76px;padding:14px 0;border-bottom:1px solid var(--home-line);color:#242628}
+.staff-home .home-update-due{background:#FBF3E7;border:0;border-radius:12px;padding:16px 12px;margin-bottom:4px;color:#583D1E}
+.staff-home .home-update:hover{background:#F7F8FA}
+.staff-home .home-update-due:hover{background:#F5EAD9}
+.staff-home .home-update:active{opacity:.8}
+.staff-home h2{color:#242628}
+@media(prefers-reduced-motion:reduce){.staff-home .animate-pulse{animation:none}}

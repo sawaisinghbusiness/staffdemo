@@ -77,5 +77,5 @@ export function whatsappLink(mobile: string, text: string): string | null {
   return `https://wa.me/91${digits}?text=${encodeURIComponent(text)}`;
 }
 
-export const lowAttendanceMessage = (s: { name: string; classSec: string; percent: number }) =>
-  `प्रिय अभिभावक, ${s.name} (कक्षा ${s.classSec}) की इस माह उपस्थिति केवल ${s.percent}% है। कृपया नियमित रूप से स्कूल भेजें। – St. Paul School, Barmer`;
+export const lowAttendanceMessage = (s: { name: string; classSec: string; percent: number }, school = "") =>
+  `प्रिय अभिभावक, ${s.name} (कक्षा ${s.classSec}) की इस माह उपस्थिति केवल ${s.percent}% है। कृपया नियमित रूप से स्कूल भेजें। – ${school || "School"}`;

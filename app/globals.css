@@ -1086,3 +1086,40 @@ form.sahayak-glass:focus-within {
 @media (prefers-reduced-motion: reduce) {
   [class*="owl-do-"] * { animation: none !important; }
 }
+
+/* ───────────── Page changes (2026-11-13) ─────────────
+   Opening slides in from the right, Back from the left, a tab switch only fades (lib/pageMotion).
+   "backwards" fill: once it has played, no transform is left behind (fixed sheets inside stay put). */
+.page-fwd {
+  animation: page-from-right 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.page-back {
+  animation: page-from-left 0.3s cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+}
+.page-tab {
+  animation: page-fade 0.2s ease-out backwards;
+}
+@keyframes page-from-right {
+  from {
+    opacity: 0;
+    transform: translate3d(32%, 0, 0);
+  }
+}
+@keyframes page-from-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-24%, 0, 0);
+  }
+}
+@keyframes page-fade {
+  from {
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .page-fwd,
+  .page-back,
+  .page-tab {
+    animation: none;
+  }
+}

@@ -29,8 +29,8 @@ export const CERT_TEXT: Record<CertificateType, Bi> = {
 export function useSchoolInfo(): SchoolInfo {
   const { data: p } = useApi<Record<string, string>>("/erp/school");
   return {
-    name: p?.school_name || "St. Paul School",
-    short: p?.short_name || "SPS",
+    name: p?.school_name || "School",
+    short: p?.short_name || "",
     affiliationNo: p?.affiliation_no || "1730512",
     schoolCode: p?.school_code || "10492",
     place: [p?.address, p?.city || "Barmer", p?.state || "Rajasthan"].filter(Boolean).join(", "),

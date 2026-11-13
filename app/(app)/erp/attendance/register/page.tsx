@@ -9,6 +9,7 @@ import { useL } from "@/lib/i18n";
 import { lowAttendanceMessage, whatsappLink, type LowReport, type Mark, type MonthRegister, type RegisterSection, type RegisterStudent } from "@/lib/erpRegister";
 import { PrintRegister } from "@/components/erp/register/PrintRegister";
 import { Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, Sheet } from "@/components/ui";
+import { useSchoolInfo } from "@/lib/erpCerts";
 
 /*
  * ERP login → Attendance → Register & reports: the ERP's register (GET /api/attendance-register/*). A section's
@@ -21,7 +22,6 @@ type Tab = "register" | "low";
 const BELOW = 75;
 const SESSION_START_MONTH = "2026-04";
 const SEC_KEY = "att.register.sec";
-const SCHOOL = "St. Paul School, Barmer";
 const todayIST = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const shiftMonth = (m: string, by: number) => {
   const [y, mo] = m.split("-").map(Number);
@@ -34,6 +34,8 @@ const isOff = (d: { sunday: boolean; holiday: string | null }) => d.sunday || !!
 const MARK_TONE: Record<Mark, string> = { P: "bg-jade-600 text-white", A: "bg-rose-600 text-white", L: "bg-marigold-500 text-white", H: "bg-sky-600 text-white" };
 
 export default function ErpRegisterPage() {
+  // The school's name from ERP Settings, on the printed register and the WhatsApp note.
+  const SCHOOL = useSchoolInfo().name;
   const L = useL();
   const today = todayIST();
   const thisMonth = today.slice(0, 7);
@@ -194,7 +196,7 @@ export default function ErpRegisterPage() {
           <p className="text-[12.5px] text-ink-500">{L({ hi: `पूरा स्कूल · ${monthLabel(month)} · सबसे कम पहले · WhatsApp बटन से माता-पिता को हिंदी मैसेज`, en: `Whole school · ${monthLabel(month)} · lowest first · the WhatsApp button opens a Hindi message to the parent` })}</p>
           <ul>
             {low.students.map((s) => {
-              const wa = whatsappLink(s.mobile, lowAttendanceMessage(s));
+              const wa = whatsappLink(s.mobile, lowAttendanceMessage(s, SCHOOL));
               return (
                 <li key={s.id} className={clsx("flex items-center gap-3 border-b border-ink-100 py-2", classSec === s.classSec && "bg-brand-50/60")}>
                   <span className="min-w-0 flex-1">

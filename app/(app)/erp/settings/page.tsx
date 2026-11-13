@@ -126,6 +126,7 @@ function SchoolTab({ isAdmin, known }: { isAdmin: boolean; known: boolean }) {
       <Field label={L({ hi: "छोटा नाम (जैसे SPS)", en: "Short name (e.g. SPS)" })} value={form.short_name} onChange={(v) => set("short_name", v.toUpperCase().slice(0, 5))} ro={ro} />
       <Field label={L({ hi: "प्रिंसिपल का नाम (हस्ताक्षर के नीचे)", en: "Principal's name (under the signature)" })} value={form.principal_name} onChange={(v) => set("principal_name", v)} ro={ro} />
       <LogoPick value={form.logo_url} short={form.short_name} ro={ro} onChange={(v) => set("logo_url", v)} />
+      <HeroPick value={form.hero_url} ro={ro} onChange={(v) => set("hero_url", v)} />
 
       <p className="mlabel pt-1">{L({ hi: "बोर्ड और पंजीकरण", en: "Board and registration" })}</p>
       {ro ? (
@@ -207,6 +208,67 @@ function LogoPick({ value, short, ro, onChange }: { value: string; short: string
       <span className="min-w-0 flex-1">
         <span className="block text-[14.5px] font-semibold">{L({ hi: "लोगो", en: "Logo" })}</span>
         <span className="block text-[12.5px] text-ink-500">{value ? L({ hi: "लोगो लगा है", en: "Logo uploaded" }) : L({ hi: "लोगो नहीं: छोटे नाम वाला निशान छपता है", en: "No logo yet: the crest with your short name is used" })}</span>
+      </span>
+      {!ro && (
+        <span className="flex shrink-0 flex-col gap-1">
+          <input ref={input} type="file" accept="image/png,image/jpeg,image/webp" className="hidden" onChange={(e) => pick(e.target.files?.[0])} />
+          <button type="button" onClick={() => input.current?.click()} disabled={busy} className="inline-flex min-h-[44px] items-center gap-1.5 px-1 text-[14px] font-semibold text-brand-600">
+            <ImagePlus className="h-4 w-4" aria-hidden /> {busy ? "…" : value ? L({ hi: "बदलें", en: "Change" }) : L({ hi: "लगाएँ", en: "Upload" })}
+          </button>
+          {value && (
+            <button type="button" onClick={() => onChange("")} className="min-h-[36px] px-1 text-[13px] font-semibold text-rose-600">
+              {L({ hi: "हटाएँ", en: "Remove" })}
+            </button>
+          )}
+        </span>
+      )}
+    </div>
+  );
+}
+
+/** The school building photo for the parent and staff apps' Home header: shrunk here to 1200px JPEG before saving. */
+function HeroPick({ value, ro, onChange }: { value: string; ro: boolean; onChange: (v: string) => void }) {
+  const L = useL();
+  const input = useRef<HTMLInputElement>(null);
+  const [busy, setBusy] = useState(false);
+  const pick = async (file?: File) => {
+    if (!file) return;
+    setBusy(true);
+    try {
+      if (!/^image\/(png|jpeg|webp)$/.test(file.type)) throw new Error(L({ hi: "PNG या JPG फ़ोटो चुनें।", en: "Choose a PNG or JPG image." }));
+      const url = URL.createObjectURL(file);
+      const img = await new Promise<HTMLImageElement>((ok, bad) => {
+        const i = new Image();
+        i.onload = () => ok(i);
+        i.onerror = bad;
+        i.src = url;
+      });
+      const scale = Math.min(1, 1200 / img.width);
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(img.width * scale));
+      canvas.height = Math.max(1, Math.round(img.height * scale));
+      canvas.getContext("2d")!.drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      let data = canvas.toDataURL("image/jpeg", 0.82);
+      if (data.length > 1_400_000) data = canvas.toDataURL("image/jpeg", 0.6);
+      if (data.length > 1_400_000) throw new Error(L({ hi: "फ़ोटो बहुत बड़ी है, दूसरी चुनें।", en: "That picture is too detailed. Try another photo." }));
+      onChange(data);
+    } catch (e) {
+      toast(false, e instanceof Error ? e.message : L({ hi: "फ़ोटो नहीं पढ़ी जा सकी।", en: "Could not read that picture." }));
+    } finally {
+      setBusy(false);
+      if (input.current) input.current.value = "";
+    }
+  };
+  return (
+    <div className="row-card flex items-center gap-3">
+      <span className="grid h-14 w-24 shrink-0 place-items-center overflow-hidden rounded-xl border border-ink-200 bg-white">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        {value ? <img src={value} alt="" className="h-full w-full object-cover" /> : <span className="text-[12px] text-ink-400">{L({ hi: "फ़ोटो नहीं", en: "No photo" })}</span>}
+      </span>
+      <span className="min-w-0 flex-1">
+        <span className="block text-[14.5px] font-semibold">{L({ hi: "स्कूल की फ़ोटो", en: "School photo" })}</span>
+        <span className="block text-[12.5px] text-ink-500">{L({ hi: "पेरेंट और स्टाफ़ ऐप के होम में सबसे ऊपर", en: "Shown at the top of the parent and staff apps' Home" })}</span>
       </span>
       {!ro && (
         <span className="flex shrink-0 flex-col gap-1">

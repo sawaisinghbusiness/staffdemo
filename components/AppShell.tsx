@@ -9,6 +9,7 @@ import { useStaff } from "@/lib/staff";
 import { SahayakButton } from "./SahayakButton";
 import { useL, type Bi } from "@/lib/i18n";
 import { MenuContext } from "@/lib/menu";
+import { markBack, motionClass, usePageMotion } from "@/lib/pageMotion";
 import { isErpMode } from "@/lib/erpMode";
 import { ErrorCard, OfflineNote } from "./ui";
 import { SideMenu } from "./SideMenu";
@@ -188,6 +189,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const midOn = !!mid && (path === mid.href || lit === mid.href);
   const cols = mid ? 5 : tabs.length;
   const litCol = midOn ? -1 : mid && litIndex >= 2 ? litIndex + 1 : litIndex;
+  // Open = slide in from the right, Back = from the left, between bottom tabs = fade.
+  const motion = motionClass(usePageMotion(path, (p) => tabs.some((t) => t.href === p) || mid?.href === p));
   useEffect(() => {
     if (blocked) window.location.replace("/");
   }, [blocked]);
@@ -228,13 +231,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? "bg-[#e3ecec]" : "app-page")}>
+    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-white") : "app-page")}>
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
           <div className={clsx("grid h-14 items-center gap-1 px-1.5", page?.action?.badge ? "grid-cols-[48px_1fr_auto]" : "grid-cols-[48px_1fr_48px]")}>
             {page?.back ? (
-              <Link href={page.back} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L({ hi: "वापस", en: "Back" })}>
+              <Link href={page.back} onClick={markBack} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L({ hi: "वापस", en: "Back" })}>
                 <ChevronLeft className="h-6 w-6" aria-hidden />
               </Link>
             ) : driver ? (
@@ -270,10 +273,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <div className={clsx(isHome && "px-4 pt-6")}>
             <ErrorCard offline={error.status === 0} onRetry={reload} />
           </div>
-        ) : isHome || own ? (
+        ) : own ? (
           children
+        ) : isHome ? (
+          <div key={path} className={motion}>
+            {children}
+          </div>
         ) : (
-          <div key={path} className="page-in space-y-3.5">
+          <div key={path} className={clsx(motion, "space-y-3.5")}>
             {children}
           </div>
         )}
@@ -284,6 +291,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />
+      ) : !erp ? (
+      // Teachers and other staff: the parent app's flat bar (user, 2026-11-13): white, a hairline on top,
+      // a navy line over the lit tab, whose icon is filled navy. Report sits in the middle as a plain tab.
+      <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-[#DFE5EF] bg-white pb-[env(safe-area-inset-bottom,0px)]" aria-label="Main">
+        <ul className={clsx("relative grid h-16", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
+          {(mid ? [...tabs.slice(0, 2), { ...mid, icon: LayoutDashboard }, ...tabs.slice(2)] : tabs).map(({ href, text, icon: Icon }) => {
+            const on = mid && href === mid.href ? midOn : !midOn && lit === href;
+            return (
+              <li key={href} className="relative">
+                {on && <span className="absolute inset-x-1 top-[-1px] h-[3px] rounded-b bg-[#0D2A5E]" aria-hidden />}
+                <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-16 flex-col items-center justify-center gap-1 text-[12px] transition-colors duration-300", on ? "font-bold text-[#0D2A5E]" : "font-medium text-[#5B6478]")}>
+                  <Icon className="h-6 w-6" strokeWidth={on ? 2.2 : 1.7} fill={on ? "currentColor" : "none"} aria-hidden />
+                  {L(text)}
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
       ) : (
       // Docked to the bottom edge, as on the parent app (user, 2026-10-24): solid white, no pill behind the lit
       // tab (its icon is filled inside instead), and the middle button rising above it as the green disc.

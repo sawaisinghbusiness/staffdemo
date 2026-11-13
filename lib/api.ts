@@ -104,7 +104,8 @@ export function clearCache() {
  * on screen and the network failed, so the page can say "purani jaankari".
  */
 export function useApi<T>(path: string | null) {
-  const [data, setData] = useState<T | undefined>(undefined);
+  // What was saved last time shows in the very first frame, so a screen opens filled, not as grey boxes.
+  const [data, setData] = useState<T | undefined>(() => (path && typeof window !== "undefined" ? readCache<T>(path) : undefined));
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(!!path);
   const [stale, setStale] = useState(false);
