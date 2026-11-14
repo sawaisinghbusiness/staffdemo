@@ -15,7 +15,7 @@ import "@fontsource-variable/noto-sans-devanagari";
 import "./staff-home.css";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
-import { Banknote, Bell, BookOpen, CalendarCheck, CalendarX2, ChevronRight, Clock, Megaphone, MessageCircle, RotateCw, TrendingUp, Users, WifiOff, type LucideIcon } from "lucide-react";
+import { Banknote, Bell, CalendarCheck, CalendarX2, ChevronRight, Clock, MessageCircle, RotateCw, WifiOff } from "lucide-react";
 import { useStaff } from "@/lib/staff";
 import { useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
@@ -25,7 +25,7 @@ import { useUnseenNotices } from "@/lib/counts";
 
 const INK = "#242628";
 const MUTED = "#666A6E";
-const LINE = "#E6E7E8";
+const LINE = "#DCE4ED";
 const TILE = "#F3F4F4";
 
 interface Lesson {
@@ -106,30 +106,31 @@ export function StaffHome() {
   // The class this teacher is class teacher of, for the card ("Class teacher · 5-A").
   const ownClass = me?.sections.find((s) => s.classTeacher)?.classSec;
 
-  const tiles: { href: string; icon: LucideIcon; t: string; n?: number }[] = teacher
+  // Each tile shows the school's own illustration, arriving in its own way (fx, see staff-home.css), as on the parent app.
+  const tiles: { href: string; art: string; fx: "slide" | "rise" | "tilt" | "grow"; t: string; n?: number }[] = teacher
     ? [
-        { href: "/attendance/", icon: CalendarCheck, t: L({ hi: "हाज़िरी", en: "Attendance" }) },
-        { href: "/homework/", icon: BookOpen, t: L({ hi: "होमवर्क", en: "Homework" }) },
-        { href: "/students/", icon: Users, t: L({ hi: "बच्चे", en: "Students" }) },
-        { href: "/marks/", icon: TrendingUp, t: L({ hi: "अंक", en: "Marks" }) },
+        { href: "/attendance/", art: "attendance", fx: "grow", t: L({ hi: "हाज़िरी", en: "Attendance" }) },
+        { href: "/homework/", art: "homework", fx: "rise", t: L({ hi: "होमवर्क", en: "Homework" }) },
+        { href: "/students/", art: "students", fx: "slide", t: L({ hi: "बच्चे", en: "Students" }) },
+        { href: "/marks/", art: "marks", fx: "tilt", t: L({ hi: "अंक", en: "Marks" }) },
       ]
     : [
-        { href: "/my-attendance/", icon: CalendarCheck, t: L({ hi: "मेरी हाज़िरी", en: "Attendance" }) },
-        { href: "/leave/", icon: CalendarX2, t: L({ hi: "छुट्टी", en: "Leave" }) },
-        { href: "/salary/", icon: Banknote, t: L({ hi: "सैलरी", en: "Salary" }) },
-        { href: "/notice/", icon: Megaphone, t: L({ hi: "सूचना", en: "Notice" }), n: unread },
+        { href: "/my-attendance/", art: "my-attendance", fx: "rise", t: L({ hi: "मेरी हाज़िरी", en: "Attendance" }) },
+        { href: "/leave/", art: "leave", fx: "grow", t: L({ hi: "छुट्टी", en: "Leave" }) },
+        { href: "/salary/", art: "salary", fx: "tilt", t: L({ hi: "सैलरी", en: "Salary" }) },
+        { href: "/notice/", art: "notice", fx: "slide", t: L({ hi: "सूचना", en: "Notice" }), n: unread },
       ];
 
   return (
-    <div className="staff-home bg-white" style={{ color: INK }}>
-      {/* ── Header: photo on the right, a neutral shade behind the text, fading to white at the bottom ── */}
+    <div className="staff-home" style={{ color: INK }}>
+      {/* School photograph fades into the cool Home background, as on the parent app. */}
       <header className="relative h-[calc(210px+env(safe-area-inset-top,0px))] overflow-hidden bg-[#25282A]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={fx.img} src={school?.heroUrl || "/img/school-hero.jpg"} alt="" className="absolute inset-0 h-full w-full object-cover object-[72%_60%] will-change-transform" />
-        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(18,22,24,.76) 0%, rgba(18,22,24,.64) 45%, rgba(18,22,24,.28) 75%, rgba(18,22,24,.12) 100%)" }} />
-        <div className="absolute inset-x-0 top-0 h-[130px]" style={{ background: "linear-gradient(180deg, rgba(18,22,24,.4) 0%, rgba(18,22,24,0) 100%)" }} />
+        <img ref={fx.img} src={school?.heroUrl || "/img/school-hero-morning.jpg"} alt="" className="absolute inset-0 h-full w-full object-cover object-[72%_60%] will-change-transform" />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(18,22,24,.52) 0%, rgba(18,22,24,.36) 45%, rgba(18,22,24,.12) 75%, rgba(18,22,24,0) 100%)" }} />
+        <div className="absolute inset-x-0 top-0 h-[130px]" style={{ background: "linear-gradient(180deg, rgba(18,22,24,.28) 0%, rgba(18,22,24,0) 100%)" }} />
         <div ref={fx.shade} className="absolute inset-0 bg-[#25282A] opacity-0" aria-hidden />
-        <div className="absolute inset-x-0 bottom-0 h-[60px]" style={{ background: "linear-gradient(180deg, rgba(255,255,255,0) 0%, #fff 100%)" }} />
+        <div className="home-photo-fade absolute inset-x-0 bottom-0 h-[60px]" />
 
         <div ref={fx.text} className="pt-safe relative z-[1] px-4 will-change-[opacity,transform]">
           <div className="flex items-center pt-5">
@@ -137,14 +138,14 @@ export function StaffHome() {
             <button type="button" onClick={openMenu} aria-haspopup="dialog" aria-label={L({ hi: "मेन्यू", en: "Menu" })} className="flex min-w-0 flex-1 items-center text-left active:opacity-80">
               {school?.logoUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={school.logoUrl} alt="" className="h-10 w-10 shrink-0 rounded-full bg-white object-cover ring-1 ring-white/50" />
+                <img src={school.logoUrl} alt="" className="h-8 w-8 shrink-0 rounded-full bg-white object-cover ring-1 ring-white/50" />
               ) : (
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/50 text-[15px] font-semibold text-white">{school ? initials(school.name) : ""}</span>
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-white/50 text-[12px] font-semibold text-white">{school ? initials(school.name) : ""}</span>
               )}
-              <span className="mx-2.5 h-8 w-px shrink-0 bg-white/35" aria-hidden />
+              <span className="mx-2 h-6 w-px shrink-0 bg-white/35" aria-hidden />
               <span className="min-w-0 flex-1 text-white">
-                <span className="block truncate text-[16px] font-semibold leading-[1.2]">{school?.name || " "}</span>
-                <span className="mt-0.5 block truncate text-[14px] font-medium text-white/85">{town}</span>
+                <span className="block truncate text-[14px] font-semibold leading-[1.2]">{school?.name || " "}</span>
+                <span className="mt-0.5 block truncate text-[12px] font-medium text-white/85">{town}</span>
               </span>
             </button>
             <Link href="/notice/" className="relative grid h-11 w-11 shrink-0 place-items-center text-white" aria-label={unread ? `${L({ hi: "सूचनाएँ", en: "Notices" })}, ${unread} ${L({ hi: "नई", en: "new" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
@@ -157,7 +158,7 @@ export function StaffHome() {
             </Link>
           </div>
           <div className="mt-5 max-w-full text-white">
-            <div className="truncate text-[22px] font-medium leading-snug">
+            <div className="truncate text-[19px] font-medium leading-snug">
               {greet}
             </div>
           </div>
@@ -166,7 +167,7 @@ export function StaffHome() {
 
       <div className="relative z-[2] -mt-[48px] space-y-6 px-5">
         {/* ── The staff member's card: photo, name, role, today's own attendance ── */}
-        <Link href="/profile/" className="flex min-h-[112px] w-full items-stretch rounded-[14px] border bg-white py-3" style={{ borderColor: LINE }}>
+        <Link href="/profile/" className="-mx-2 flex min-h-[96px] w-[calc(100%+1rem)] items-stretch rounded-[14px] border bg-white py-2" style={{ borderColor: LINE }}>
           <span className="grid w-[76px] shrink-0 place-items-center">{me && <Photo key={me.empCode} name={me.name} url={me.photoUrl || null} />}</span>
           <span className="flex min-w-0 flex-1 flex-col justify-center pr-1 text-left">
             <span className="break-words text-[19px] font-semibold leading-6">{me?.name}</span>
@@ -201,13 +202,12 @@ export function StaffHome() {
 
         {/* ── Four tiles; the rest of the shortcuts are in the side menu ── */}
         <div className="grid grid-cols-4 gap-2 border-b pb-5" style={{ borderColor: LINE }}>
-          {tiles.map(({ href, icon: Icon, t, n }) => (
-            <Link key={href} href={href} className="relative flex h-[68px] flex-col items-center justify-center gap-2 rounded-[10px] bg-white transition-colors hover:bg-neutral-50 active:bg-neutral-100">
-              <span className="relative">
-                <Icon className="h-6 w-6" style={{ color: INK }} strokeWidth={1.6} aria-hidden />
-                {!!n && <span className="absolute -right-2.5 -top-1.5 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-[#E53935] px-1 text-[10px] font-semibold leading-none text-white">{n > 9 ? "9+" : n}</span>}
-              </span>
-              <span className="text-[12px] font-medium">{t}</span>
+          {tiles.map(({ href, art, fx, t, n }, i) => (
+            <Link key={href} href={href} className="home-tile relative flex h-[68px] flex-col items-center justify-between overflow-hidden rounded-[10px] border px-0.5 pt-1.5 active:opacity-80" style={{ animationDelay: `${i * 80}ms` }}>
+              <span className="text-[11.5px] font-bold leading-[1.15]">{t}</span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={`/img/tiles/${art}.png`} alt="" className={`home-art-${fx} h-[42px] max-w-full object-contain object-bottom`} style={{ animationDelay: `${i * 80 + 150}ms` }} />
+              {!!n && <span className="absolute right-1 top-1 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-[#E53935] px-1 text-[10px] font-semibold leading-none text-white">{n > 9 ? "9+" : n}</span>}
             </Link>
           ))}
         </div>
@@ -254,7 +254,7 @@ function MyToday({ data }: { data: HomeData }) {
   );
 }
 
-/** What still needs doing today; rows that need action are amber. */
+/** What still needs doing today, in the parent app's plain rows. */
 function TodaySummary({ data, teacher, unreadChats }: { data: HomeData; teacher: boolean; unreadChats: number }) {
   const L = useL();
   if (!isToday(data.date)) return null;
@@ -271,7 +271,6 @@ function TodaySummary({ data, teacher, unreadChats }: { data: HomeData; teacher:
               : L({ hi: `${open.map((o) => o.classSec).join(", ")} की हाज़िरी बाकी`, en: `${open.map((o) => o.classSec).join(", ")} not marked yet` })
             : L({ hi: "सब लग गई", en: "All marked" }),
           icon: CalendarCheck,
-          attention: open.length > 0,
         },
         {
           href: "/leave/?tab=requests",
@@ -279,7 +278,6 @@ function TodaySummary({ data, teacher, unreadChats }: { data: HomeData; teacher:
           value: data.pendingLeaves ? String(data.pendingLeaves) : "",
           detail: data.pendingLeaves ? L({ hi: "जवाब देना बाकी", en: "Waiting for your answer" }) : L({ hi: "कोई अर्ज़ी बाकी नहीं", en: "None waiting" }),
           icon: CalendarX2,
-          attention: data.pendingLeaves > 0,
         },
         {
           href: "/messages/",
@@ -287,12 +285,11 @@ function TodaySummary({ data, teacher, unreadChats }: { data: HomeData; teacher:
           value: unreadChats ? String(unreadChats) : "",
           detail: unreadChats ? L({ hi: "नए संदेश", en: "New messages" }) : L({ hi: "कोई नया संदेश नहीं", en: "No new messages" }),
           icon: MessageCircle,
-          attention: false,
         },
       ]
     : [
-        { href: "/leave/", label: L({ hi: "छुट्टी", en: "Leave" }), value: "", detail: L({ hi: "अर्ज़ी दें या देखें", en: "Apply or check" }), icon: CalendarX2, attention: false },
-        { href: "/salary/", label: L({ hi: "सैलरी", en: "Salary" }), value: "", detail: L({ hi: "सैलरी स्लिप देखें", en: "View salary slips" }), icon: Banknote, attention: false },
+        { href: "/leave/", label: L({ hi: "छुट्टी", en: "Leave" }), value: "", detail: L({ hi: "अर्ज़ी दें या देखें", en: "Apply or check" }), icon: CalendarX2 },
+        { href: "/salary/", label: L({ hi: "सैलरी", en: "Salary" }), value: "", detail: L({ hi: "सैलरी स्लिप देखें", en: "View salary slips" }), icon: Banknote },
       ];
   return (
     <section aria-labelledby="today-title">
@@ -300,13 +297,13 @@ function TodaySummary({ data, teacher, unreadChats }: { data: HomeData; teacher:
         {L({ hi: "आज की जानकारी", en: "Today at school" })}
       </h2>
       <ul className="home-updates">
-        {rows.map(({ href, label, value, detail, icon: Icon, attention }) => (
+        {rows.map(({ href, label, value, detail, icon: Icon }) => (
           <li key={href}>
-            <Link href={href} className={attention ? "home-update home-update-due" : "home-update"}>
+            <Link href={href} className="home-update">
               <Icon className="h-5 w-5 shrink-0" strokeWidth={1.7} aria-hidden />
               <span className="min-w-0 flex-1">
                 <span className="block text-[14px] font-semibold">{label}</span>
-                <span className="mt-1 block break-words text-[12px] leading-5" style={{ color: attention ? "#78552D" : MUTED }}>
+                <span className="mt-1 block break-words text-[12px] leading-5" style={{ color: MUTED }}>
                   {detail}
                 </span>
               </span>

@@ -231,7 +231,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-white") : "app-page")}>
+    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "app-page")}>
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
           {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
