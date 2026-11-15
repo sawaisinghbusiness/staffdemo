@@ -28,7 +28,7 @@ import {
   type TripKind,
 } from "@/lib/bus";
 import { SlideConfirm } from "@/components/driver/SlideConfirm";
-import { askForLocation, playTripEnd } from "@/lib/slideFeedback";
+import { askForLocation } from "@/lib/slideFeedback";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
 import { DropAlert } from "@/components/driver/DropAlert";
@@ -366,8 +366,7 @@ export default function TripPage() {
     setFail("");
     try {
       await api("/bus/trip/end", { body: {} });
-      playTripEnd();
-      await new Promise((r) => setTimeout(r, 1000)); // leave after the closing sound has played
+      navigator.vibrate?.([35, 45, 70]);
       window.location.replace("/");
     } catch (problem: any) {
       setFail(problem?.message || L({ hi: "\u091f\u094d\u0930\u093f\u092a \u092c\u0902\u0926 \u0928\u0939\u0940\u0902 \u0939\u0941\u0908", en: "Could not end the trip. Try again." }));
