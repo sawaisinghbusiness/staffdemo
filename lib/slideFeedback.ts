@@ -2,24 +2,100 @@
 /**
  * Feedback for the driver's slide buttons: vibration only, no sound.
  *   touch the thumb → one small buzz
- *   dragging        → a very light buzz every few percent, so the slide is felt in the hand
- *   finished        → a firmer double buzz (in SlideConfirm)
+ *   dragging        → bumps: uneven buzzes with a very quiet thud, like dragging an object over a rough surface
+ *   finished        → a firmer double buzz (in SlideConfirm), no sound
  */
 import { vibrate as buzz } from "@/lib/haptics";
 
-/** Thumb touched. */
-export const slideGrab = () => buzz(25);
+/*
+ * Dragging the thumb feels like pulling an object over a bumpy surface: while it moves, every 9 to 20 px
+ * (never the same twice) there is a bump, a short uneven buzz plus a very quiet low thud. Stand still and it
+ * is silent and still. The thuds are kept quiet on purpose (the cab is not a gaming console).
+ */
+let ctx: AudioContext | null = null;
+let thud: AudioBuffer | null = null;
 
-let lastStep = 0;
+function audio(): AudioContext | null {
+  try {
+    if (!ctx || ctx.state === "closed") {
+      const Ctx = window.AudioContext || (window as any).webkitAudioContext;
+      if (!Ctx) return null;
+      ctx = new Ctx();
+    }
+    if (ctx.state === "suspended") void ctx.resume().catch(() => {});
+    if (!thud) {
+      const n = Math.floor(ctx.sampleRate * 0.07);
+      thud = ctx.createBuffer(1, n, ctx.sampleRate);
+      const d = thud.getChannelData(0);
+      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    }
+    return ctx;
+  } catch {
+    return null;
+  }
+}
+
+/** One low thud, a different weight each time. `strength` is 0..1. */
+function playThud(strength: number) {
+  const c = audio();
+  if (!c || !thud || c.state !== "running") return;
+  try {
+    const t = c.currentTime;
+    const src = c.createBufferSource();
+    const filter = c.createBiquadFilter();
+    const gain = c.createGain();
+    src.buffer = thud;
+    filter.type = "lowpass";
+    filter.frequency.value = 220 + strength * 380;
+    const peak = 0.025 + strength * 0.05; // quiet: at most about 7% of full volume
+    gain.gain.setValueAtTime(0.0001, t);
+    gain.gain.exponentialRampToValueAtTime(peak, t + 0.004);
+    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(c.destination);
+    src.start(t);
+    src.stop(t + 0.07);
+    src.onended = () => {
+      src.disconnect();
+      filter.disconnect();
+      gain.disconnect();
+    };
+  } catch {
+    /* no sound: the buzz still comes */
+  }
+}
+
+const TRACK_PX = 300; // roughly one slide; only used to turn progress into distance
+let moved = 0;
+let nextBump = 12;
+let lastProgress: number | null = null;
+
+/** Thumb touched: a small buzz, and the audio is switched on by this tap. */
+export function slideGrab() {
+  audio();
+  buzz(25);
+}
+
 /** Dragging: progress is 0..1 along the track. */
 export function slideDrag(progress: number) {
-  const step = Math.floor(progress * 16); // about every 6% of the track (a pulse needs time to play)
-  if (step === lastStep) return;
-  lastStep = step;
-  buzz(20);
+  if (lastProgress === null) {
+    lastProgress = progress;
+    return;
+  }
+  moved += Math.abs(progress - lastProgress) * TRACK_PX;
+  lastProgress = progress;
+  if (moved < nextBump) return;
+  moved = 0;
+  nextBump = 9 + Math.random() * 11;
+  const strength = Math.random();
+  buzz([Math.round(16 + strength * 16)]); // 16..32 ms, uneven like gravel
+  playThud(strength);
 }
 export const resetSlideDrag = () => {
-  lastStep = 0;
+  moved = 0;
+  nextBump = 12;
+  lastProgress = null;
 };
 
 /** Ask the phone for its location now (the "Allow location?" question), so it is not asked mid-trip. */
