@@ -1,6 +1,6 @@
 "use client";
 
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import clsx from "clsx";
@@ -183,12 +183,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const onBand = "text-ink-900 active:bg-ink-100";
   const blocked = !!me && me.role !== "teacher" && !!page?.teacher;
   const lit = isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
-  const litIndex = tabs.findIndex((t) => t.href === lit);
   // Four-tab bars get the raised Report button in the middle (Dhan's centre button, 2026-10-17).
   const mid = tabs.length === 4 ? (erp ? ERP_REPORT : TEACHER_REPORT) : null;
   const midOn = !!mid && (path === mid.href || lit === mid.href);
-  const cols = mid ? 5 : tabs.length;
-  const litCol = midOn ? -1 : mid && litIndex >= 2 ? litIndex + 1 : litIndex;
   // Open = slide in from the right, Back = from the left, between bottom tabs = fade.
   const motion = motionClass(usePageMotion(path, (p) => tabs.some((t) => t.href === p) || mid?.href === p));
   useEffect(() => {
@@ -231,9 +228,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "app-page")}>
+    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
       {!isHome && !own && (
-        <header className="pt-safe sticky top-0 z-20 bg-white/95 backdrop-blur-sm">
+        <header className="pt-safe sticky top-0 z-20 border-b border-[#DCE4ED] bg-white">
           {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
           <div className={clsx("grid h-14 items-center gap-1 px-1.5", page?.action?.badge ? "grid-cols-[48px_1fr_auto]" : "grid-cols-[48px_1fr_48px]")}>
             {page?.back ? (
@@ -247,7 +244,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <MenuIcon className="h-6 w-6" strokeWidth={2} aria-hidden />
               </button>
             )}
-            <h1 className={clsx("truncate", page?.action?.badge ? "text-left" : "text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-bold")}>{page ? L(page.title) : ""}</h1>
+            <h1 className={clsx("truncate", page?.action?.badge ? "text-left" : "text-center", driver ? "text-[16px] font-semibold" : "text-[18px] font-semibold")}>{page ? L(page.title) : ""}</h1>
             <span className="relative flex justify-end">
               {page?.action?.badge ? (
                 <Link
@@ -267,7 +264,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={clsx("relative z-10 flex-1",!page?.bare && "pb-28", !isHome && !own && "space-y-3.5 px-4 pt-1")}>
+      <main className={clsx("relative z-10 flex-1",!page?.bare && "pb-28", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
         {!isHome && !own && <OfflineNote show={stale && !!me} />}
         {blocked ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
@@ -291,7 +288,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />
-      ) : !erp ? (
+      ) : (
       // Teachers and other staff: the parent app's flat bar (user, 2026-11-13): white, a hairline on top,
       // a navy line over the lit tab, whose icon is filled navy. Report sits in the middle as a plain tab.
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-[#DFE5EF] bg-white pb-[env(safe-area-inset-bottom,0px)]" aria-label="Main">
@@ -310,44 +307,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </ul>
       </nav>
-      ) : (
-      // Docked to the bottom edge, as on the parent app (user, 2026-10-24): solid white, no pill behind the lit
-      // tab (its icon is filled inside instead), and the middle button rising above it as the green disc.
-      <nav className="nav-dock fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] pb-[env(safe-area-inset-bottom,0px)]" aria-label="Main">
-        <ul className={clsx("relative grid h-16", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
-          {tabs.map(({ href, text, icon: Icon }, i) => {
-            const on = lit === href;
-            return (
-              <Fragment key={href}>
-                {mid && i === 2 && (
-                  <li className="relative">
-                    <Link href={mid.href} aria-current={midOn ? "page" : undefined} className="flex h-16 flex-col items-center justify-end pb-[9px] text-[11px]">
-                      <span
-                        className={clsx(
-                          "absolute -top-[22px] left-1/2 grid h-[54px] w-[54px] -translate-x-1/2 place-items-center rounded-full border-4 text-white transition-transform duration-200 active:scale-95",
-                          home ? "border-[#e3ecec]" : "border-[#ececec]",
-                          midOn ? "bg-[#33a811] shadow-[0_6px_16px_rgba(57,188,19,.45)]" : "bg-[#39bc13] shadow-[0_4px_12px_rgba(57,188,19,.35)]"
-                        )}
-                      >
-                        <LayoutDashboard className="h-[25px] w-[25px]" strokeWidth={2} aria-hidden />
-                      </span>
-                      <span className={clsx("font-semibold", midOn ? "text-[#2c9010]" : "text-[#2f9c10]")}>{L(mid.text)}</span>
-                    </Link>
-                  </li>
-                )}
-                <li className="relative">
-                  <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-16 flex-col items-center justify-center gap-0.5 text-[11px] transition-colors duration-300", on ? "font-semibold text-brand-600" : "font-medium text-ink-400")}>
-                    <span className="grid h-7 w-[52px] place-items-center">
-                      <Icon key={on ? "on" : "off"} className={clsx("h-[27px] w-[27px]", on && "tab-icon-on")} strokeWidth={on ? 2 : 1.7} fill={on ? "currentColor" : "none"} fillOpacity={on ? 0.22 : undefined} aria-hidden />
-                    </span>
-                    {L(text)}
-                  </Link>
-                </li>
-              </Fragment>
-            );
-          })}
-        </ul>
-      </nav>
+
       )}
 
       {menu && <SideMenu onClose={() => setMenu(false)} />}

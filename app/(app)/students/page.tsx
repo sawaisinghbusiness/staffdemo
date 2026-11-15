@@ -58,13 +58,13 @@ export default function StudentsPage() {
         <Empty>{L({ hi: "कोई बच्चा नहीं मिला।", en: "No student found." })}</Empty>
       ) : (
         <>
-          <p className="mlabel">
-            {data.classSec} · {data.students.length} {L({ hi: "बच्चे", en: "students" })}
+          <p className="teacher-section-heading">
+            {data.classSec} · {list.length} / {data.students.length} {L({ hi: "बच्चे", en: "students" })}
           </p>
-          <ul>
+          <ul className="teacher-register">
             {list.map((s) => (
               <li key={s.id}>
-                <Link href={`/students/detail/?id=${encodeURIComponent(s.id)}`} className="flex min-h-[60px] items-center gap-3 border-b border-ink-100 active:bg-ink-50">
+                <Link href={`/students/detail/?id=${encodeURIComponent(s.id)}`} className="flex min-h-[68px] items-center gap-3 border-b border-ink-100 px-3.5 active:bg-ink-50">
                   <Avatar name={s.name} url={s.photoUrl} size={40} />
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-[15.5px] font-medium">{s.name}</span>

@@ -50,7 +50,7 @@ export default function ErpParentChatPage() {
   const status = { waiting: L({ hi: "माता-पिता के जवाब का इंतज़ार", en: "Waiting for the parent" }), yes: L({ hi: "माता-पिता ने ठीक कहा", en: "Parent said Okay" }), other: L({ hi: "माता-पिता ने दूसरा समय माँगा", en: "Parent asked for another time" }) } as const;
 
   return (
-    <div className="animate-rise -mx-4 -mt-1 flex min-h-[calc(100dvh-11rem)] flex-col bg-[#eef3f3]">
+    <div className="animate-rise -mx-4 -mt-1 flex min-h-[calc(100dvh-11rem)] flex-col bg-[#F7F9FC]">
       <div className="flex items-center gap-3 border-b border-ink-100 bg-white px-4 py-2.5">
         <Avatar name={t.student} size={40} />
         <span className="min-w-0">
@@ -68,7 +68,7 @@ export default function ErpParentChatPage() {
           return (
             <div key={m.id} className="contents">
               {newDay && <span className="my-1 self-center rounded-lg bg-white px-2.5 py-1 text-[12px] font-medium text-ink-600">{dayLabel(m.at, L)}</span>}
-              <div className={clsx("max-w-[80%] px-3 pb-1.5 pt-2", teacher ? "self-end rounded-2xl rounded-br-md bg-[#1f6f78] text-white" : "self-start rounded-2xl rounded-bl-md bg-white text-ink-900")}>
+              <div className={clsx("max-w-[80%] px-3 pb-1.5 pt-2", teacher ? "self-end rounded-2xl rounded-br-md bg-[#0D2A5E] text-white" : "self-start rounded-2xl rounded-bl-md bg-white text-ink-900")}>
                 {m.meeting ? (
                   <p className="text-[15px] leading-snug">
                     {L({ hi: "मिलने का समय:", en: "Meeting time:" })} {new Date(m.meeting.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, {ampm(m.meeting.time)} · {m.meeting.placeText}

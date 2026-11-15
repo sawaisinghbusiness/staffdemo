@@ -111,14 +111,18 @@ function Create() {
 
   async function remove(id: string) {
     if (!window.confirm(L({ hi: "यह होमवर्क हटाएँ?", en: "Delete this homework?" }))) return;
-    await api(`/homework/${id}`, { method: "DELETE" }).catch(() => null);
-    list.reload();
+    try {
+      await api(`/homework/${id}`, { method: "DELETE" });
+      list.reload();
+    } catch (err) {
+      setMsg({ok:false,text:err instanceof ApiError && err.message ? err.message : L({hi:"\u0939\u094b\u092e\u0935\u0930\u094d\u0915 \u0939\u091f\u093e \u0928\u0939\u0940\u0902\u0964 \u0926\u094b\u092c\u093e\u0930\u093e \u0915\u094b\u0936\u093f\u0936 \u0915\u0930\u0947\u0902\u0964",en:"Homework was not deleted. Try again."})});
+    }
   }
 
   return (
     <div className="space-y-5">
-      <form onSubmit={post} className="space-y-3" noValidate>
-        <div className="grid grid-cols-2 gap-2.5">
+      <form onSubmit={post} className="teacher-form space-y-4" noValidate>
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
           <SelectBox
             label={L({ hi: "कक्षा", en: "Class" })}
             value={sectionId}
@@ -143,7 +147,7 @@ function Create() {
           <small>{L({ hi: "क्या करना है", en: "Title" })}</small>
           <input value={title} onChange={(e) => setTitle(e.target.value)} maxLength={120} placeholder={L({ hi: "जैसे: प्रश्न 1 से 10 हल करें", en: "e.g. Exercise 4.2, questions 1–8" })} />
         </label>
-        <textarea value={details} onChange={(e) => setDetails(e.target.value)} rows={3} maxLength={500} className="textarea-box" placeholder={L({ hi: "और जानकारी (ज़रूरी नहीं)", en: "Details for the child (optional)" })} />
+        <textarea aria-label={L({hi: "\u0939\u094b\u092e\u0935\u0930\u094d\u0915 \u0915\u0940 \u091c\u093e\u0928\u0915\u093e\u0930\u0940", en: "Homework details"})} value={details} onChange={(e) => setDetails(e.target.value)} rows={3} maxLength={500} className="textarea-box" placeholder={L({ hi: "और जानकारी (ज़रूरी नहीं)", en: "Details for the child (optional)" })} />
         <label className="field-box">
           <small>{L({ hi: "कब तक जमा करना है", en: "Submit by" })}</small>
           <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
@@ -156,7 +160,7 @@ function Create() {
       </form>
 
       <section className="space-y-2">
-        <h2 className="mlabel">{L({ hi: "हाल में दिया", en: "Recently given" })}</h2>
+        <h2 className="teacher-section-heading">{L({ hi: "हाल में दिया", en: "Recently given" })}</h2>
         {list.data.items.length === 0 ? (
           <Empty>{L({ hi: "अभी कोई होमवर्क नहीं दिया।", en: "No homework yet." })}</Empty>
         ) : (
@@ -165,7 +169,7 @@ function Create() {
               <li key={h.id} className="row-card">
                 {/* Top: subject - class, and the day it was given in the corner. Then the work. Bottom: due date, delete. */}
                 <div className="flex items-center justify-between gap-2">
-                  <p className="min-w-0 truncate font-title text-[17px] font-bold leading-tight text-ink-900">
+                  <p className="min-w-0 truncate text-[15px] font-semibold leading-snug text-ink-900">
                     {h.subject} <span className="text-[13.5px] font-medium text-ink-500">- {h.classSec}</span>
                   </p>
                   <span className="flex shrink-0 items-center gap-1">
@@ -284,8 +288,8 @@ function Ticks({ id }: { id: string }) {
           <li key={s.id} className="border-b border-ink-900/10 last:border-b-0">
             <button onClick={() => setDone((d) => ({ ...d, [s.id]: !d[s.id] }))} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 text-left">
               <Avatar name={s.name} url={s.photoUrl} size={36} />
-              <span className="min-w-0 flex-1 truncate font-title text-[16px] font-semibold text-ink-900">{s.name}</span>
-              <span className={clsx("grid h-7 w-7 place-items-center rounded-lg transition-colors", done[s.id] ? "border border-[#16a34a] bg-[#22c55e] text-black" : "border-[1.6px] border-ink-300 bg-white")}>{done[s.id] && <Check className="h-4 w-4" strokeWidth={3.2} aria-hidden />}</span>
+              <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-ink-900">{s.name}</span>
+              <span className={clsx("grid h-7 w-7 place-items-center rounded-lg transition-colors", done[s.id] ? "border border-jade-700 bg-jade-700 text-white" : "border border-ink-300 bg-white")}>{done[s.id] && <Check className="h-4 w-4" strokeWidth={3.2} aria-hidden />}</span>
             </button>
           </li>
         ))}

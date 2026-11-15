@@ -129,7 +129,7 @@ export default function ErpStudentsExcelPage() {
         <section className="space-y-3">
           <div className="grid grid-cols-2 gap-2">
             <Figure n={check.newCount} text={L({ hi: "नए बच्चे", en: "New students" })} dot="bg-jade-500" />
-            <Figure n={check.changedCount} text={L({ hi: "बदलाव", en: "Changes" })} dot="bg-[#3099a4]" />
+            <Figure n={check.changedCount} text={L({ hi: "बदलाव", en: "Changes" })} dot="bg-[#0D2A5E]" />
             <Figure n={check.unchanged} text={L({ hi: "बिना बदलाव", en: "No change" })} dot="bg-ink-300" />
             <Figure n={check.errorCount} text={L({ hi: "गलती वाली लाइन", en: "Rows with errors" })} dot="bg-rose-500" />
           </div>
@@ -212,7 +212,7 @@ function Figure({ n, text, dot }: { n: number; text: string; dot: string }) {
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-1 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{title}</h3>
+      <h3 className="mb-2 text-[14px] font-semibold text-ink-700">{title}</h3>
       <ul className="rounded-2xl border border-ink-100 bg-white px-3.5">{children}</ul>
     </div>
   );

@@ -16,7 +16,7 @@ import { ErrorCard, Skeleton } from "@/components/ui";
  * by month, how parents paid, classes with most dues, and what needs attention today.
  */
 
-const TEAL = "#3099a4";
+const TEAL = "#0D2A5E";
 
 export default function ErpReportPage() {
   const L = useL();
@@ -79,7 +79,7 @@ export default function ErpReportPage() {
 
       <section className="row-card">
         <h2 className="text-[16px] font-bold">{L({ hi: "हर महीने की फ़ीस वसूली", en: "Fee collection by month" })}</h2>
-        <p className="text-[13px] text-ink-500">{L({ hi: "सत्र 2026-27 · ₹ लाख में", en: "Session 2026-27 · ₹ in lakh" })}</p>
+        <p className="text-[13px] text-ink-500">{L({ hi: "सत्र 2026-27 · ₹ लाख में", en: "This session · ₹ in lakh" })}</p>
         {f ? <MonthChart data={f.byMonth} lang={lang} /> : <Skeleton className="mt-3 h-48 w-full" />}
       </section>
 
@@ -370,8 +370,8 @@ function MonthChart({ data, lang }: { data: { month: string; amount: number }[];
   const name = (m: string) => new Date(m + "-01T00:00:00").toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { month: "short" });
   const W = 340, H = 196, Lp = 30, R = 4, T = 18, B = 24;
   const lakhs = data.map((d) => d.amount / 1e5);
-  const rawMax = Math.max(10, ...lakhs);
-  const step = [5, 10, 20, 25, 50, 100, 200].find((s) => rawMax / s <= 5) || 250;
+  const rawMax = Math.max(1, ...lakhs);
+  const step = [0.25, 0.5, 1, 2, 5, 10, 20, 25, 50, 100, 200].find((s) => rawMax / s <= 5) || 250;
   const max = Math.ceil(rawMax / step) * step;
   const ticks = Array.from({ length: max / step + 1 }, (_, i) => i * step);
   const plotH = H - T - B, slot = (W - Lp - R) / Math.max(1, data.length), bw = Math.min(24, slot * 0.56);
@@ -419,7 +419,7 @@ function MonthChart({ data, lang }: { data: { month: string; amount: number }[];
 }
 
 function Attention({ icon: Icon, tone, title, sub, href, action }: { icon: LucideIcon; tone: "warn" | "brand" | "bad" | "good"; title: string; sub: string; href?: string; action?: string }) {
-  const tint = { warn: "text-marigold-600", brand: "text-[#3099a4]", bad: "text-rose-600", good: "text-jade-600" }[tone];
+  const tint = { warn: "text-marigold-600", brand: "text-[#0D2A5E]", bad: "text-rose-600", good: "text-jade-600" }[tone];
   return (
     <li className="flex min-h-[60px] items-center gap-3 py-2.5">
       <span className={clsx("grid h-9 w-9 shrink-0 place-items-center rounded-lg border border-ink-200 bg-white", tint)}>

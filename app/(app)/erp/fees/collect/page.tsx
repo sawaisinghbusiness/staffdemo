@@ -217,7 +217,7 @@ export default function ErpCollectFeePage() {
                 {L({ hi: "बदलें", en: "Change" })}
               </button>
             </div>
-            <div className="mt-3.5 grid grid-cols-3 gap-2">
+            <div className="staff-summary mt-3.5 grid grid-cols-3">
               <Figure label={L({ hi: "सत्र की फ़ीस", en: "Session fee" })} value={rupees(net)} />
               <Figure label={L({ hi: "जमा", en: "Paid" })} value={rupees(paid)} />
               <Figure label={balance > 0 ? L({ hi: "बाकी", en: "Still due" }) : L({ hi: "बाकी", en: "Balance" })} value={balance > 0 ? rupees(balance) : L({ hi: "कुछ नहीं", en: "Nil" })} due={balance > 0} />
@@ -430,7 +430,7 @@ function StudentRow({ s, onPick, pct }: { s: ErpStudent; onPick: (s: ErpStudent)
 
 function Figure({ label, value, due }: { label: string; value: string; due?: boolean }) {
   return (
-    <div className={clsx("rounded-xl px-2.5 py-2", due ? "bg-rose-50" : "bg-ink-50")}>
+    <div className={clsx("rounded-xl px-2.5 py-2", "bg-white")}>
       <p className={clsx("text-[11.5px] font-semibold", due ? "text-rose-600" : "text-ink-500")}>{label}</p>
       <p className={clsx("tnum mt-0.5 truncate text-[15.5px] font-extrabold", due ? "text-rose-700" : "text-ink-900")}>{value}</p>
     </div>

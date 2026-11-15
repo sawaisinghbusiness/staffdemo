@@ -1,0 +1,56 @@
+[
+  {
+    "route": "my-attendance",
+    "file": "my-attendance.png",
+    "url": "http://127.0.0.1:3301/my-attendance",
+    "text": "My Attendance\n\nNovember 2026\n\nMon\nTue\nWed\nThu\nFri\nSat\nSun\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\nPresent\nAbsent\nLeave\nHoliday\n\nPresent\n\n10.5\n\nAbsent\n\n0\n\nLeave\n\n0.5\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "My Attendance",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "leave/apply",
+    "file": "leave-apply.png",
+    "url": "http://127.0.0.1:3301/leave/apply",
+    "text": "Apply Leave\nType - Casual\nFrom\nTo\nFull day\nHalf day\nReason for leave\n\nThe school office will see this and reply here.\n\nApply\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Apply Leave",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "messages",
+    "file": "messages.png",
+    "url": "http://127.0.0.1:3301/messages",
+    "text": "Parent Enquiries\nAll\n5th - A\n5th - B\nWaiting for your reply\n2\nLS\nLaxman Singh · 5th - B\n1\nMa'am, Laxman is finding fractions hard. How can we practise at…\n14 hours ago\nKP\nKavya Purohit · 5th - A\n2\nCan she give the Maths test on Monday?\n3 hours ago\nReplied\n1\nAM\nAarav Mali · 5th - B\nYou: Yes, please send the form tomorrow.\nThu\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Parent Enquiries",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "assistant",
+    "file": "assistant.png",
+    "url": "http://127.0.0.1:3301/assistant",
+    "text": "School Sahayak\n\nHello, Rakesh!\n\nWhat would you like to know?\n\nWho is absent today?\nMy timetable today?\nLeave requests waiting?\nHow much leave do I have?\nQuestion",
+    "width": 443,
+    "scrollWidth": 443,
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "profile",
+    "file": "profile.png",
+    "url": "http://127.0.0.1:3301/profile",
+    "text": "Profile\nRB\nRakesh Bishnoi\nTeacher · T-014\nMother Teresa Nobles Academy\nMy details\nClass teacher of\n5th - B\nTeaches\nMaths, Science · 5th - B, 5th - A, 6th - A\nJoined\n15 Jun 2019\nMobile\n94140 00000\nMine\nSalary slips\nMy attendance\nMy leave\nSettings\nLanguage\nEnglish\nHelp\nCall school office\n94600 62543\nAsk School Sahayak\nLog out\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Profile",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

@@ -182,7 +182,7 @@ export function ExcelRoundTrip({
 function Block({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <div>
-      <h3 className="mb-1 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{title}</h3>
+      <h3 className="mb-2 text-[14px] font-semibold text-ink-700">{title}</h3>
       <ul className="rounded-2xl border border-ink-100 bg-white px-3.5">{children}</ul>
     </div>
   );

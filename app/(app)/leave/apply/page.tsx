@@ -39,6 +39,7 @@ export default function ApplyLeavePage() {
 
   async function send(e: React.FormEvent) {
     e.preventDefault();
+    if (!from || !to) return setProblem(L({ hi: "\u091b\u0941\u091f\u094d\u091f\u0940 \u0915\u0940 \u0924\u093e\u0930\u0940\u0916\u0947\u0902 \u091a\u0941\u0928\u0947\u0902\u0964", en: "Choose the leave dates." }));
     if (to && to < from) return setProblem(L({ hi: "आख़िरी दिन पहले दिन से पहले नहीं हो सकता।", en: "The last day cannot be before the first day." }));
     if (reason.trim().length < 3) return setProblem(L({ hi: "छुट्टी का कारण लिखें।", en: "Write the reason for leave." }));
     setBusy(true);
@@ -58,7 +59,7 @@ export default function ApplyLeavePage() {
   }
 
   return (
-    <form onSubmit={send} className="animate-rise space-y-3.5" noValidate>
+    <form onSubmit={send} className="space-y-5 rounded-xl border border-[#DCE4ED] bg-white p-4" noValidate>
       <SelectBox label={L({ hi: "छुट्टी का प्रकार", en: "Type" })} value={type} onChange={(v) => setType(v as LeaveType)}>
         {(Object.keys(LEAVE_TYPES) as LeaveType[]).map((k) => (
           <option key={k} value={k}>
@@ -97,7 +98,7 @@ export default function ApplyLeavePage() {
           <span className={oneDay ? "" : "text-ink-400"}>{L({ hi: "आधा दिन", en: "Half day" })}</span>
         </label>
       </div>
-      <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={4} maxLength={300} className="textarea-box" placeholder={L({ hi: "छुट्टी का कारण", en: "Reason for leave" })} />
+      <label className="block"><span className="mb-2 block text-[13px] font-medium text-ink-700">{L({ hi: "\u0915\u093e\u0930\u0923", en: "Reason for leave" })}</span><textarea required value={reason} onChange={(e) => setReason(e.target.value)} rows={4} maxLength={300} className="textarea-box" placeholder={L({ hi: "छुट्टी का कारण", en: "Reason for leave" })} /></label>
       <p className="text-[13px] text-ink-500">{L({ hi: "स्कूल ऑफ़िस इसे देखकर यहीं जवाब देगा।", en: "The school office will see this and reply here." })}</p>
       <button type="submit" disabled={busy} className="btn-primary w-full">
         {busy ? "…" : L({ hi: "अर्ज़ी भेजें", en: "Apply" })}

@@ -85,7 +85,7 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
           const link = links[d.key];
           return (
             <li key={d.key} className="flex min-h-[56px] items-center gap-2.5 border-b border-ink-100 py-1.5 last:border-0">
-              <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-md border-[1.5px]", on ? "border-[#3099a4] bg-[#3099a4] text-white" : "border-ink-300 bg-white")} aria-label={on ? L({ hi: "मिला", en: "Received" }) : L({ hi: "नहीं मिला", en: "Not received" })}>
+              <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-md border-[1.5px]", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-300 bg-white")} aria-label={on ? L({ hi: "मिला", en: "Received" }) : L({ hi: "नहीं मिला", en: "Not received" })}>
                 {on && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}
               </span>
               <span className="min-w-0 flex-1">
@@ -96,7 +96,7 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
                 <span className="flex shrink-0 items-center gap-1">
                   {link && (
                     <>
-                      <a href={link} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-lg text-[#3099a4]" aria-label={L({ hi: `${L(d.text)} देखें`, en: `View ${L(d.text)}` })}>
+                      <a href={link} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-lg text-[#0D2A5E]" aria-label={L({ hi: `${L(d.text)} देखें`, en: `View ${L(d.text)}` })}>
                         <ExternalLink className="h-[18px] w-[18px]" aria-hidden />
                       </a>
                       <button type="button" disabled={!!busy} onClick={() => remove(d.key)} className="grid h-10 w-10 place-items-center rounded-lg text-ink-500 disabled:opacity-40" aria-label={L({ hi: `${L(d.text)} की फ़ोटो हटाएँ`, en: `Remove ${L(d.text)} scan` })}>
@@ -252,7 +252,7 @@ export default function ErpStudentDetailPage() {
                 (s.siblings || []).length ? (
                   <span className="flex flex-col items-end gap-0.5">
                     {(s.siblings || []).map((b) => (
-                      <Link key={b.id} href={`/erp/students/detail/?id=${encodeURIComponent(b.id)}`} onClick={() => setTimeout(() => window.location.reload(), 0)} className="text-[#3099a4] underline-offset-2 hover:underline">
+                      <Link key={b.id} href={`/erp/students/detail/?id=${encodeURIComponent(b.id)}`} onClick={() => setTimeout(() => window.location.reload(), 0)} className="text-[#0D2A5E] underline-offset-2 hover:underline">
                         {b.name} ({b.classSec.replace(" - ", " ")})
                       </Link>
                     ))}

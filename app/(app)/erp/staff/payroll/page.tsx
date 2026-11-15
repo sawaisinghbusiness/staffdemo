@@ -115,7 +115,7 @@ export default function ErpPayrollPage() {
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
         <span className="flex items-center gap-1.5 text-[16px] font-bold text-ink-900">
-          <CalendarDays className="h-[18px] w-[18px] text-[#3099a4]" aria-hidden />
+          <CalendarDays className="h-[18px] w-[18px] text-[#0D2A5E]" aria-hidden />
           {monthLabel(month)}
         </span>
         <button type="button" onClick={() => go(1)} disabled={month >= nowMonth()} className="grid h-11 w-11 place-items-center rounded-full border border-ink-200 bg-white active:bg-ink-100 disabled:opacity-35" aria-label={L({ hi: "अगला महीना", en: "Next month" })}>
@@ -124,7 +124,7 @@ export default function ErpPayrollPage() {
       </div>
 
       {/* Figures */}
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="staff-summary grid grid-cols-2">
         <Figure label={L({ hi: "कुल सैलरी", en: "Net salary" })} value={rows ? inr(stats.net) : "…"} dot="bg-ink-400" />
         <Figure label={L({ hi: "दे दी", en: "Paid" })} value={rows ? inr(stats.paid) : "…"} dot="bg-jade-600" />
         <Figure label={L({ hi: "देनी बाकी", en: "To pay" })} value={rows ? inr(stats.due) : "…"} dot="bg-marigold-500" />
@@ -133,7 +133,7 @@ export default function ErpPayrollPage() {
 
       {/* Run / recalculate, and paying many at once */}
       <div className="flex gap-2">
-        <button type="button" onClick={run} disabled={running || !rows?.length || future} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#3099a4] px-4 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40">
+        <button type="button" onClick={run} disabled={running || !rows?.length || future} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#0D2A5E] px-4 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40">
           {running ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : stats.made ? <RefreshCw className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
           {stats.made ? L({ hi: "दोबारा हिसाब", en: "Recalculate" }) : L({ hi: "सैलरी बनाएँ", en: "Run payroll" })}
         </button>
@@ -154,7 +154,7 @@ export default function ErpPayrollPage() {
       {picking && (
         <div className="flex items-center justify-between px-0.5 text-[13.5px]">
           <span className="text-ink-500">{L({ hi: "जिनकी सैलरी देनी है, उन्हें चुनें", en: "Pick the unpaid salaries to mark paid" })}</span>
-          <button type="button" onClick={() => setPicked(picked.size === drafts.length ? new Set() : new Set(drafts.map((r) => r.slip!.id)))} className="min-h-[44px] font-semibold text-[#3099a4]">
+          <button type="button" onClick={() => setPicked(picked.size === drafts.length ? new Set() : new Set(drafts.map((r) => r.slip!.id)))} className="min-h-[44px] font-semibold text-[#0D2A5E]">
             {picked.size === drafts.length ? L({ hi: "कोई नहीं", en: "None" }) : L({ hi: "सब चुनें", en: "All" })}
           </button>
         </div>
@@ -166,7 +166,7 @@ export default function ErpPayrollPage() {
       ) : rows.length === 0 ? (
         <Empty>
           {L({ hi: `${monthLabel(month)} में कोई स्टाफ़ नहीं।`, en: `No staff on the rolls in ${monthLabel(month)}.` })}{" "}
-          <Link href="/erp/staff/" className="font-semibold text-[#3099a4]">
+          <Link href="/erp/staff/" className="font-semibold text-[#0D2A5E]">
             {L({ hi: "स्टाफ़ जोड़ें", en: "Add staff" })}
           </Link>
         </Empty>
@@ -186,7 +186,7 @@ export default function ErpPayrollPage() {
                   className={clsx("flex w-full items-center gap-3 px-3.5 py-3 text-left", picking && !canPick && "opacity-45")}
                 >
                   {picking && (
-                    <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-full border-[1.5px]", on ? "border-[#3099a4] bg-[#3099a4] text-white" : "border-ink-300 bg-white")} aria-hidden>
+                    <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-full border-[1.5px]", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-300 bg-white")} aria-hidden>
                       {on && <Check className="h-3.5 w-3.5" strokeWidth={3} />}
                     </span>
                   )}
@@ -207,7 +207,7 @@ export default function ErpPayrollPage() {
                     ) : r.structure ? (
                       <span className="text-[13px] text-ink-500">{L({ hi: "बनी नहीं", en: "Not run" })}</span>
                     ) : (
-                      <span className="text-[13px] font-semibold text-[#3099a4]">{L({ hi: "सैलरी तय करें", en: "Set salary" })}</span>
+                      <span className="text-[13px] font-semibold text-[#0D2A5E]">{L({ hi: "सैलरी तय करें", en: "Set salary" })}</span>
                     )}
                   </span>
                 </button>
@@ -465,7 +465,7 @@ function SalarySheet({ row, onClose, onSaved }: { row: PayrollRow; onClose: () =
         <span className="min-w-0 flex-1 text-[13.5px] text-ink-600">
           {L({ hi: "हर महीने", en: "Net a month" })} <b className="tnum block text-[18px] text-ink-900">{inr(net)}</b>
         </span>
-        <button type="button" onClick={save} disabled={busy} className="flex min-h-[48px] items-center gap-2 rounded-xl bg-[#3099a4] px-6 text-[15px] font-semibold text-white disabled:opacity-50">
+        <button type="button" onClick={save} disabled={busy} className="flex min-h-[48px] items-center gap-2 rounded-xl bg-[#0D2A5E] px-6 text-[15px] font-semibold text-white disabled:opacity-50">
           {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
           {L({ hi: "सेव करें", en: "Save" })}
         </button>
@@ -477,7 +477,7 @@ function SalarySheet({ row, onClose, onSaved }: { row: PayrollRow; onClose: () =
 function Toggle({ on, onChange, label, value }: { on: boolean; onChange: (v: boolean) => void; label: string; value: string }) {
   return (
     <div className="flex min-h-[48px] items-center gap-3">
-      <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={clsx("relative h-7 w-12 shrink-0 rounded-full transition-colors", on ? "bg-[#3099a4]" : "bg-ink-300")}>
+      <button type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)} className={clsx("relative h-7 w-12 shrink-0 rounded-full transition-colors", on ? "bg-[#0D2A5E]" : "bg-ink-300")}>
         <span className={clsx("absolute top-0.5 h-6 w-6 rounded-full bg-white shadow transition-all", on ? "left-[22px]" : "left-0.5")} />
       </button>
       <span className="text-[14.5px] font-medium text-ink-800">{label}</span>
@@ -604,14 +604,14 @@ function SlipSheet({ row, school, place, isAdmin, onClose, onEditSalary, onChang
           </section>
         )}
 
-        <button type="button" onClick={onEditSalary} className="mt-3 min-h-[44px] text-[14px] font-semibold text-[#3099a4]">
+        <button type="button" onClick={onEditSalary} className="mt-3 min-h-[44px] text-[14px] font-semibold text-[#0D2A5E]">
           {L({ hi: "तय सैलरी बदलें", en: "Change monthly salary" })}
         </button>
 
         <div className="sticky bottom-0 -mx-4 mt-2 flex gap-2 border-t border-ink-100 bg-white px-4 pt-3">
           {draft ? (
             changed ? (
-              <button type="button" onClick={() => act(`/erp/payroll/slips/${slip.id}`, { lopDays: lop, bonus, advance }, L({ hi: "सैलरी बदल गई।", en: "Salary updated." }), false)} disabled={busy} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#3099a4] text-[15px] font-semibold text-white disabled:opacity-50">
+              <button type="button" onClick={() => act(`/erp/payroll/slips/${slip.id}`, { lopDays: lop, bonus, advance }, L({ hi: "सैलरी बदल गई।", en: "Salary updated." }), false)} disabled={busy} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#0D2A5E] text-[15px] font-semibold text-white disabled:opacity-50">
                 {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
                 {L({ hi: "बदलाव सेव करें", en: "Save changes" })}
               </button>
@@ -633,7 +633,7 @@ function SlipSheet({ row, school, place, isAdmin, onClose, onEditSalary, onChang
                   {L({ hi: "पेमेंट हटाएँ", en: "Undo payment" })}
                 </button>
               )}
-              <button type="button" onClick={() => setPrinting(true)} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#3099a4] text-[15px] font-semibold text-white">
+              <button type="button" onClick={() => setPrinting(true)} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#0D2A5E] text-[15px] font-semibold text-white">
                 <Printer className="h-[18px] w-[18px]" aria-hidden />
                 {L({ hi: "स्लिप प्रिंट करें", en: "Print slip" })}
               </button>

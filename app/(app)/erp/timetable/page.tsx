@@ -131,9 +131,9 @@ export default function ErpTimetablePage() {
               const n = i + 1;
               const on = n === shown;
               return (
-                <button key={n} role="tab" aria-selected={on} aria-label={DAYS_FULL[lang][i]} onClick={() => setDay(n)} className={clsx("flex min-h-[54px] flex-col items-center justify-center rounded-xl text-[11.5px] leading-tight", on ? "bg-[#3099a4] text-white/80" : "border border-ink-200 bg-white text-ink-500")}>
+                <button key={n} role="tab" aria-selected={on} aria-label={DAYS_FULL[lang][i]} onClick={() => setDay(n)} className={clsx("flex min-h-[54px] flex-col items-center justify-center rounded-xl text-[11.5px] leading-tight", on ? "bg-[#0D2A5E] text-white/80" : "border border-ink-200 bg-white text-ink-500")}>
                   {name}
-                  <b className={clsx("tnum text-[16px]", on ? "text-white" : n === todayN ? "text-[#3099a4]" : "text-ink-900")}>{+addDays(monday, i).slice(8)}</b>
+                  <b className={clsx("tnum text-[16px]", on ? "text-white" : n === todayN ? "text-[#0D2A5E]" : "text-ink-900")}>{+addDays(monday, i).slice(8)}</b>
                 </button>
               );
             })}
@@ -166,7 +166,7 @@ export default function ErpTimetablePage() {
                 );
                 const box = clsx(
                   "my-1 block w-full rounded-xl px-3 py-2.5 text-left text-[15px]",
-                  p.isBreak ? "border border-dashed border-ink-300 font-medium text-ink-400" : live && filled ? "glass-line !rounded-xl !border-[#3099a4] !bg-[#3099a4]/10 font-semibold" : filled ? "glass-line !rounded-xl font-semibold" : editable ? "glass-line !rounded-xl font-semibold text-brand-600" : "glass-line !rounded-xl font-medium text-ink-400",
+                  p.isBreak ? "border border-dashed border-ink-300 font-medium text-ink-400" : live && filled ? "glass-line !rounded-xl !border-[#0D2A5E] !bg-[#0D2A5E]/10 font-semibold" : filled ? "glass-line !rounded-xl font-semibold" : editable ? "glass-line !rounded-xl font-semibold text-brand-600" : "glass-line !rounded-xl font-medium text-ink-400",
                 );
                 return (
                   <li key={p.id} className="grid grid-cols-[46px_14px_1fr] gap-x-1.5">
@@ -290,8 +290,8 @@ function CellSheet({ sectionId, classSec, subjects, day, period, entry, teachers
     return (
       <li key={t.id}>
         <button type="button" disabled={blocked} onClick={() => setStaffId(on ? "" : t.id)} aria-pressed={on} className={clsx("flex min-h-[48px] w-full items-center gap-3 border-b border-ink-100 py-2 text-left", blocked && "opacity-45")}>
-          <span className={clsx("grid h-5 w-5 shrink-0 place-items-center rounded-full border-2", on ? "border-[#3099a4]" : "border-ink-300")} aria-hidden>
-            {on && <span className="h-2.5 w-2.5 rounded-full bg-[#3099a4]" />}
+          <span className={clsx("grid h-5 w-5 shrink-0 place-items-center rounded-full border-2", on ? "border-[#0D2A5E]" : "border-ink-300")} aria-hidden>
+            {on && <span className="h-2.5 w-2.5 rounded-full bg-[#0D2A5E]" />}
           </span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-[14.5px] font-semibold">{t.name}</span>
@@ -308,7 +308,7 @@ function CellSheet({ sectionId, classSec, subjects, day, period, entry, teachers
       <h3 className="mb-2 text-[13px] font-bold text-ink-700">{L({ hi: "विषय", en: "Subject" })}</h3>
       <div className="flex flex-wrap gap-1.5">
         {[...subjects, OTHER].map((s) => (
-          <button key={s} type="button" onClick={() => pickSubject(s)} aria-pressed={subject === s} className={clsx("min-h-[40px] rounded-lg px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#3099a4] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
+          <button key={s} type="button" onClick={() => pickSubject(s)} aria-pressed={subject === s} className={clsx("min-h-[40px] rounded-lg px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#0D2A5E] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
             {s === OTHER ? L({ hi: "दूसरा…", en: "Other…" }) : s}
           </button>
         ))}

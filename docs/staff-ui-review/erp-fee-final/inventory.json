@@ -1,0 +1,19 @@
+[
+  {
+    "route": "erp/fees/collect",
+    "file": "erp-fees-collect.png",
+    "url": "http://127.0.0.1:3301/erp/fees/collect",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Collect Fee\n\nCollected today\n\n₹9,500\n\n3 receipts\n\nCash\n₹4,500\nUPI\n₹5,000\nCheque\n₹0\nHighest balances\n\nStudents with the most fee pending. Tap one to collect.\n\nIM\nIshita Mehta\n7th - A · Rajesh Sharma · 48% paid\n₹22,000\nAJ\nArjun Joshi\n6th - B · Mahesh Joshi · 48% paid\n₹22,000\nVS\nVivaan Shah\n7th - B · Vikram Singh · 48% paid\n₹22,000\nVS\nVihaan Singh\n6th - B · Vikram Singh · 57% paid\n₹18,000\nMV\nMeera Vyas\n8th - A · Rajesh Sharma · 57% paid\n₹18,000\nSR\nShaurya Rao\n7th - B · Mahesh Joshi · 57% paid\n₹18,000\nLatest receipts\nAarav Sharma\nToday · #1024 · 6th\n₹2,500\nPrisha Joshi\n13 Nov · #1025 · 7th\n₹3,000\nAnanya Rathore\n12 Nov · #1026 · 8th\n₹3,500\nVihaan Singh\n11 Nov · #1027 · 6th\n₹4,000\nIshita Mehta\nToday · #1028 · 7th\n₹4,500\nDev Choudhary\n13 Nov · #1029 · 8th\n₹5,000\nAditi Soni\n12 Nov · #1030 · 6th\n₹5,500\nKabir Jain\n11 Nov · #1031 · 7th\n₹6,000\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "Collect Fee",
+      "Highest balances",
+      "Latest receipts"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  }
+]

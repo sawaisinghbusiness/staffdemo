@@ -52,11 +52,11 @@ export default function ProfilePage() {
 
   // Same layout as the ERP login's profile (user, 2026-10-26): who, then grouped rows, then Log out.
   return (
-    <div className="animate-rise space-y-3.5 pb-6 pt-1">
-      <section className="flex items-center gap-3.5 rounded-2xl border border-ink-100 bg-white p-4">
-        <Avatar name={me.name} url={me.photoUrl} size={60} tint={5} />
+    <div className="space-y-5 pb-6 pt-1">
+      <section className="flex items-center gap-3.5 rounded-xl border border-[#DCE4ED] bg-white p-4">
+        <Avatar name={me.name} url={me.photoUrl} size={60} tint={0} />
         <span className="min-w-0 flex-1">
-          <span className="block truncate text-[17px] font-bold">{me.name}</span>
+          <span className="block truncate text-[18px] font-semibold">{me.name}</span>
           <span className="block truncate text-[13.5px] text-ink-600">
             {L(me.roleLabel)} · {me.empCode}
           </span>

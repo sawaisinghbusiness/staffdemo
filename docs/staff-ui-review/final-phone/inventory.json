@@ -1,0 +1,176 @@
+[
+  {
+    "route": "",
+    "file": "home.png",
+    "url": "http://127.0.0.1:3301/",
+    "text": "Mother Teresa Nobles Academy\nBarmer\n4\nGood Morning\nRB\nRakesh Bishnoi\nTeacher • Class teacher 5th - B\nToday\n·\nAttendance not marked\nAttendance\nHomework\nStudents\nMarks\nToday at school\nClass attendance\n5th - B not marked yet\n1\nLeave requests\nWaiting for your answer\n3\nParent enquiries\nNew messages\n3\nToday's lectures\nView All\n\nYou have no classes today.\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "attendance",
+    "file": "attendance.png",
+    "url": "http://127.0.0.1:3301/attendance",
+    "text": "Attendance\nStudents\nTeacher\nClass - 5th - B\nDate\nSave · 14 present, 0 absent\nNo.\nName\nP\nA\nL\n01\nAarav Choudhary\n02\nAnanya Sharma\n03\nBhavesh Rathore\n04\nChetna Meena\n05\nDevendra Singh\n06\nDivya Bishnoi\n07\nFarhan Khan\n08\nGeeta Kanwar\n09\nHarsh Vyas\n10\nIshita Jain\n11\nJayant Soni\n12\nKavya Panwar\n13\nLokesh Gehlot\n14\nMahi Garg\nSave · 14 present, 0 absent\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "heading": "Attendance",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "homework",
+    "file": "homework.png",
+    "url": "http://127.0.0.1:3301/homework",
+    "text": "Homework\nCreate\nCheck\nClass - 5th - B\nSubject - Maths\nTitle\nSubmit by\nAttach photo or PDF\nSend homework\nRecently given\n\nMaths - 5th - B\n\n14 Nov\n\nExercise 4.2 — Q 1 to 10\n\nShow all steps.\n\nDue 15 Nov\n\nMaths - 5th - A\n\n13 Nov\n\nTable of 13 and 14\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "heading": "Homework",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "marks",
+    "file": "marks.png",
+    "url": "http://127.0.0.1:3301/marks",
+    "text": "Marks\nExam - Half Yearly Exam\nClass - 5th - B\nSubject - Maths\n\nParts: Theory 80 + Internal 20\n\nEnter marks\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Marks",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "timetable",
+    "file": "timetable.png",
+    "url": "http://127.0.0.1:3301/timetable",
+    "text": "Time Table\nMon\n16\nTue\n17\nWed\n18\nThu\n19\nFri\n20\nSat\n21\n8:00\nMaths5th - B\n8:40\nFree\n9:20\nMaths5th - A\n10:00\nScience6th - A\n10:40\nInterval\n11:00\nFree\n11:40\nScience5th - B\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Time Table",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "lectures",
+    "file": "lectures.png",
+    "url": "http://127.0.0.1:3301/lectures",
+    "text": "Today's Lectures\n\n15 Nov 2026\n\nYou have no classes today.\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Today's Lectures",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "notes",
+    "file": "notes.png",
+    "url": "http://127.0.0.1:3301/notes",
+    "text": "Teacher's Note\nClass - 5th - B\nStudent - Aarav Choudhary\n\nThis note will be visible to the student's parent.\n\nSend note\nEarlier notes\n\nMahi Garg · 5th - B\n\nVery good in mental maths. Needs practice in word problems.\n\n10 Nov\n\nLokesh Gehlot · 5th - B\n\nHomework copy not brought for a week. Spoke to father.\n\n6 Nov\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "heading": "Teacher's Note",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "students",
+    "file": "students.png",
+    "url": "http://127.0.0.1:3301/students",
+    "text": "Students\n\n5th - B · 14 / 14 students\n\nAC\nAarav Choudhary\nRoll 01\nAS\nAnanya Sharma\nRoll 02\nBR\nBhavesh Rathore\nRoll 03\nCM\nChetna Meena\nRoll 04\nDS\nDevendra Singh\nRoll 05\nDB\nDivya Bishnoi\nRoll 06\nFK\nFarhan Khan\nRoll 07\nGK\nGeeta Kanwar\nRoll 08\nHV\nHarsh Vyas\nRoll 09\nIJ\nIshita Jain\nRoll 10\nJS\nJayant Soni\nRoll 11\nKP\nKavya Panwar\nRoll 12\nLG\nLokesh Gehlot\nRoll 13\nMG\nMahi Garg\nRoll 14\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "heading": "Students",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "profile",
+    "file": "profile.png",
+    "url": "http://127.0.0.1:3301/profile",
+    "text": "Profile\nRB\nRakesh Bishnoi\nTeacher · T-014\nMother Teresa Nobles Academy\nMy details\nClass teacher of\n5th - B\nTeaches\nMaths, Science · 5th - B, 5th - A, 6th - A\nJoined\n15 Jun 2019\nMobile\n94140 00000\nMine\nSalary slips\nMy attendance\nMy leave\nSettings\nLanguage\nEnglish\nHelp\nCall school office\n94600 62543\nAsk School Sahayak\nLog out\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "heading": "Profile",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "my-attendance",
+    "file": "my-attendance.png",
+    "url": "http://127.0.0.1:3301/my-attendance",
+    "text": "My Attendance\n\nNovember 2026\n\nMon\nTue\nWed\nThu\nFri\nSat\nSun\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\nPresent\nAbsent\nLeave\nHoliday\n\nPresent\n\n11.5\n\nAbsent\n\n0\n\nLeave\n\n0.5\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "My Attendance",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "salary",
+    "file": "salary.png",
+    "url": "http://127.0.0.1:3301/salary",
+    "text": "Salary Slips\nSeptember 2026\nPaid on 30 Sept 2026\n₹26,320\nBasic\n₹16,800\nAllowances\n₹11,200\nPF\n− ₹1,680\nTake-home\n₹26,320\nAugust 2026\nPaid on 30 Aug 2026\n₹25,387\nJuly 2026\nPaid on 30 Jul 2026\n₹26,320\nJune 2026\nPaid on 30 Jun 2026\n₹26,320\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Salary Slips",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "leave",
+    "file": "leave.png",
+    "url": "http://127.0.0.1:3301/leave",
+    "text": "Leave\nMy leave\nRequests\n3\nSeptember 2026\n\nFri, 11 Sept\n\nApproved\n\nBank work in Jodhpur.\n\nCasual\nFull day\nAugust 2026\n\nMon, 24 Aug\n\nApproved\n\nDoctor's appointment in the morning.\n\nSick\nHalf day\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Leave",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "leave/apply",
+    "file": "leave-apply.png",
+    "url": "http://127.0.0.1:3301/leave/apply",
+    "text": "Apply Leave\nType - Casual\nFrom\nTo\nFull day\nHalf day\nReason for leave\n\nThe school office will see this and reply here.\n\nApply\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Apply Leave",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "notice",
+    "file": "notice.png",
+    "url": "http://127.0.0.1:3301/notice",
+    "text": "Notice\nHalf yearly exam duty chart\nSat, 14 Nov\nNew\nInvigilation duties for 21 to 27 October are on the staff room board. Please check your rooms and timings by Friday.\nDussehra holiday\nThu, 12 Nov\nNew\nSchool stays closed from 20 to 22 October. Classes start again on 23 October.\nStaff meeting on Saturday\nMon, 9 Nov\nNew\nAll staff meet in the hall at 1:15 pm after school. Class teachers bring the attendance registers.\nSeptember salary credited\nWed, 30 Sept\nNew\nSeptember salary has been credited to your bank accounts. Salary slips are in the app.\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Notice",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "messages",
+    "file": "messages.png",
+    "url": "http://127.0.0.1:3301/messages",
+    "text": "Parent Enquiries\nAll\n5th - A\n5th - B\nWaiting for your reply\n2\nLS\nLaxman Singh · 5th - B\n1\nMa'am, Laxman is finding fractions hard. How can we practise at…\n14 hours ago\nKP\nKavya Purohit · 5th - A\n2\nCan she give the Maths test on Monday?\n3 hours ago\nReplied\n1\nAM\nAarav Mali · 5th - B\nYou: Yes, please send the form tomorrow.\nFri\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Parent Enquiries",
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "assistant",
+    "file": "assistant.png",
+    "url": "http://127.0.0.1:3301/assistant",
+    "text": "School Sahayak\n\nHello, Rakesh!\n\nWhat would you like to know?\n\nWho is absent today?\nMy timetable today?\nLeave requests waiting?\nHow much leave do I have?\nQuestion",
+    "width": 390,
+    "scrollWidth": 390,
+    "font": "\"Plus Jakarta Sans Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

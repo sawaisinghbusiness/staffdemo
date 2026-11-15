@@ -65,7 +65,7 @@ export default function ErpTransportPage() {
         </>
       ) : (
         <>
-          <h2 className="-mb-1 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{L({ hi: "रूट", en: "Routes" })}</h2>
+          <h2 className="text-[15px] font-semibold text-ink-900">{L({ hi: "रूट", en: "Routes" })}</h2>
           <ul className="-mx-4 border-y border-ink-100 bg-white pl-4">
             {routes.map((r) => {
               const [no, area] = splitName(r.name);
@@ -76,7 +76,7 @@ export default function ErpTransportPage() {
               return (
                 <li key={r.id}>
                   <Link href={`/erp/transport/route/?id=${encodeURIComponent(r.id)}`} className="flex items-center gap-3 border-b border-ink-100 py-3 pr-4 active:bg-ink-50">
-                    <span className={clsx("grid h-10 w-10 shrink-0 place-items-center rounded-xl", missing ? "bg-ink-100 text-ink-500" : "bg-[#fff4cc] text-[#7a5a00]")}>
+                    <span className={clsx("grid h-10 w-10 shrink-0 place-items-center rounded-xl", missing ? "bg-ink-100 text-ink-500" : "bg-[#E8EFF7] text-[#0D2A5E]")}>
                       <Bus className="h-5 w-5" strokeWidth={1.9} aria-hidden />
                     </span>
                     <span className="min-w-0 flex-1">
@@ -103,7 +103,7 @@ export default function ErpTransportPage() {
                       )}
                       {full !== null && (
                         <span className="mt-1.5 block h-1 overflow-hidden rounded-full bg-ink-100" aria-hidden>
-                          <span className={clsx("block h-full rounded-full", over ? "bg-rose-500" : full >= 85 ? "bg-marigold-400" : "bg-[#3099a4]")} style={{ width: `${Math.min(100, full)}%` }} />
+                          <span className={clsx("block h-full rounded-full", over ? "bg-rose-500" : full >= 85 ? "bg-marigold-400" : "bg-[#0D2A5E]")} style={{ width: `${Math.min(100, full)}%` }} />
                         </span>
                       )}
                     </span>

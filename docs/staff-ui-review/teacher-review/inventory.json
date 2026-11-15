@@ -1,0 +1,79 @@
+[
+  {
+    "route": "attendance",
+    "file": "attendance.png",
+    "url": "http://127.0.0.1:3301/attendance",
+    "text": "Attendance\nStudents\nTeacher\nClass - 5th - B\nDate\nSave · 14 present, 0 absent\nNo.\nName\nP\nA\nL\n01\nAarav Choudhary\n02\nAnanya Sharma\n03\nBhavesh Rathore\n04\nChetna Meena\n05\nDevendra Singh\n06\nDivya Bishnoi\n07\nFarhan Khan\n08\nGeeta Kanwar\n09\nHarsh Vyas\n10\nIshita Jain\n11\nJayant Soni\n12\nKavya Panwar\n13\nLokesh Gehlot\n14\nMahi Garg\nSave · 14 present, 0 absent\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 409,
+    "scrollWidth": 409,
+    "heading": "Attendance",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "homework",
+    "file": "homework.png",
+    "url": "http://127.0.0.1:3301/homework",
+    "text": "Homework\nCreate\nCheck\nClass - 5th - B\nSubject - Maths\nTitle\nSubmit by\nAttach photo or PDF\nSend homework\nRecently given\n\nMaths - 5th - B\n\n13 Nov\n\nExercise 4.2 — Q 1 to 10\n\nShow all steps.\n\nDue 14 Nov\n\nMaths - 5th - A\n\n12 Nov\n\nTable of 13 and 14\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 409,
+    "scrollWidth": 409,
+    "heading": "Homework",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "marks",
+    "file": "marks.png",
+    "url": "http://127.0.0.1:3301/marks",
+    "text": "Marks\nExam - Half Yearly Exam\nClass - 5th - B\nSubject - Maths\n\nParts: Theory 80 + Internal 20\n\nEnter marks\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 409,
+    "scrollWidth": 409,
+    "heading": "Marks",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "timetable",
+    "file": "timetable.png",
+    "url": "http://127.0.0.1:3301/timetable",
+    "text": "Time Table\nMon\n9\nTue\n10\nWed\n11\nThu\n12\nFri\n13\nSat\n14\n8:00\nMaths5th - A\n8:40\nScience5th - B\n9:20\nFree\n10:00\nMaths5th - B\n10:40\nInterval\n11:00\nFree\n11:40\nMaths6th - A\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 409,
+    "scrollWidth": 409,
+    "heading": "Time Table",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "lectures",
+    "file": "lectures.png",
+    "url": "http://127.0.0.1:3301/lectures",
+    "text": "Today's Lectures\n\nSaturday, 14 Nov 2026\n\nMaths · 5th - Adone\n\n8:00 – 8:40 · Period 1\n\nScience · 5th - Bdone\n\n8:40 – 9:20 · Period 2\n\nFree period\n\n9:20 – 10:00 · Period 3\n\nMaths · 5th - Bdone\n\n10:00 – 10:40 · Period 4\n\nFree period\n\n11:00 – 11:40 · Period 5\n\nMaths · 6th - Adone\n\n11:40 – 12:20 · Period 6\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 409,
+    "scrollWidth": 409,
+    "heading": "Today's Lectures",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "notes",
+    "file": "notes.png",
+    "url": "http://127.0.0.1:3301/notes",
+    "text": "Teacher's Note\nClass - 5th - B\nStudent - Aarav Choudhary\n\nThis note will be visible to the student's parent.\n\nSend note\nEarlier notes\n\nMahi Garg · 5th - B\n\nVery good in mental maths. Needs practice in word problems.\n\n9 Nov\n\nLokesh Gehlot · 5th - B\n\nHomework copy not brought for a week. Spoke to father.\n\n5 Nov\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 459,
+    "scrollWidth": 459,
+    "heading": "Teacher's Note",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "students",
+    "file": "students.png",
+    "url": "http://127.0.0.1:3301/students",
+    "text": "Students\n\n5th - B · 14 / 14 students\n\nAC\nAarav Choudhary\nRoll 01\nAS\nAnanya Sharma\nRoll 02\nBR\nBhavesh Rathore\nRoll 03\nCM\nChetna Meena\nRoll 04\nDS\nDevendra Singh\nRoll 05\nDB\nDivya Bishnoi\nRoll 06\nFK\nFarhan Khan\nRoll 07\nGK\nGeeta Kanwar\nRoll 08\nHV\nHarsh Vyas\nRoll 09\nIJ\nIshita Jain\nRoll 10\nJS\nJayant Soni\nRoll 11\nKP\nKavya Panwar\nRoll 12\nLG\nLokesh Gehlot\nRoll 13\nMG\nMahi Garg\nRoll 14\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 409,
+    "scrollWidth": 409,
+    "heading": "Students",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

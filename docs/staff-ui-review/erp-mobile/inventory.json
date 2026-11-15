@@ -1,0 +1,164 @@
+[
+  {
+    "route": "erp/fees/collect",
+    "file": "erp-fees-collect.png",
+    "url": "http://127.0.0.1:3301/erp/fees/collect",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Collect Fee\n\nCollected today\n\n₹9,500\n\n3 receipts\n\nCash\n₹4,500\nUPI\n₹5,000\nCheque\n₹0\nHighest balances\n\nStudents with the most fee pending. Tap one to collect.\n\nIM\nIshita Mehta\n7th - A · Rajesh Sharma · 48% paid\n₹22,000\nAJ\nArjun Joshi\n6th - B · Mahesh Joshi · 48% paid\n₹22,000\nVS\nVivaan Shah\n7th - B · Vikram Singh · 48% paid\n₹22,000\nVS\nVihaan Singh\n6th - B · Vikram Singh · 57% paid\n₹18,000\nMV\nMeera Vyas\n8th - A · Rajesh Sharma · 57% paid\n₹18,000\nSR\nShaurya Rao\n7th - B · Mahesh Joshi · 57% paid\n₹18,000\nLatest receipts\nAarav Sharma\nToday · #1024 · 6th\n₹2,500\nPrisha Joshi\n13 Nov · #1025 · 7th\n₹3,000\nAnanya Rathore\n12 Nov · #1026 · 8th\n₹3,500\nVihaan Singh\n11 Nov · #1027 · 6th\n₹4,000\nIshita Mehta\nToday · #1028 · 7th\n₹4,500\nDev Choudhary\n13 Nov · #1029 · 8th\n₹5,000\nAditi Soni\n12 Nov · #1030 · 6th\n₹5,500\nKabir Jain\n11 Nov · #1031 · 7th\n₹6,000\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "Collect Fee",
+      "Highest balances",
+      "Latest receipts"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/fees/dues",
+    "file": "erp-fees-dues.png",
+    "url": "http://127.0.0.1:3301/erp/fees/dues",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Dues & Reminders\n\nAs on 14 Nov · Quarter 3 is due\n\nOverdue now\n₹2.8 L\n20 students\nLate fine so far\n₹0\nAs per fee setup\nNext instalment\n—\nAll instalments are due\nUp to date\n4\nof 24 students\nStudents\nBy class\nClass - All\nOverdue - Any\nSort - Most due first\nSelect all shown\n20 · ₹2,76,000 + fine ₹0\nIshita Mehta\n7th - A · Rajesh Sharma\nQ3 44d\n₹22,000\nArjun Joshi\n6th - B · Mahesh Joshi\nQ3 44d\n₹22,000\nVivaan Shah\n7th - B · Vikram Singh\nQ3 44d\n₹22,000\nVihaan Singh\n6th - B · Vikram Singh\nQ3 44d\n₹18,000\nMeera Vyas\n8th - A · Rajesh Sharma\nQ3 44d\n₹18,000\nShaurya Rao\n7th - B · Mahesh Joshi\nQ3 44d\n₹18,000\nTara Desai\n6th - A · Suresh Rathore\nQ3 44d\n₹18,000\nDhruv Shah\n8th - B · Vikram Singh\nQ3 44d\n₹18,000\nAnanya Rathore\n8th - A · Suresh Rathore\nQ3 44d\n₹14,000\nDiya Singh\n6th - A · Rajesh Sharma\nQ3 44d\n₹14,000\nReyansh Das\n8th - B · Mahesh Joshi\nQ3 44d\n₹14,000\nRiya Saxena\n7th - A · Suresh Rathore\nQ3 44d\n₹14,000\nPrisha Joshi\n7th - B · Mahesh Joshi\nQ3 44d\n₹10,000\nAditi Soni\n6th - A · Suresh Rathore\nQ3 44d\n₹10,000\nRohan Mehta\n8th - B · Vikram Singh\nQ3 44d\n₹10,000\nSiya Agarwal\n7th - A · Rajesh Sharma\nQ3 44d\n₹10,000\nDev Choudhary\n8th - B · Mahesh Joshi\nQ3 44d\n₹6,000\nKavya Patel\n7th - A · Suresh Rathore\nQ3 44d\n₹6,000\nAditya Bhat\n6th - B · Vikram Singh\nQ3 44d\n₹6,000\nAvni Gupta\n8th - A · Rajesh Sharma\nQ3 44d\n₹6,000\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "Dues & Reminders"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/staff",
+    "file": "erp-staff.png",
+    "url": "http://127.0.0.1:3301/erp/staff",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Staff Directory\nExcel\nAll 8\nTeaching 6\nNon-teaching 2\nLeft 0\n\n8 on staff · 0 with a login\n\nAdd staff\nNS\nNeha Sharma\nEMP-100 · Teacher\n6th - A\nNo login\nRM\nRakesh Mehta\nEMP-101 · Teacher\n6th - B\nNo login\nKD\nKamla Devi\nEMP-102 · Teacher\n7th - A\nNo login\nMS\nManish Singh\nEMP-103 · Teacher\n7th - B\nNo login\nPV\nPooja Verma\nEMP-104 · Teacher\n8th - A\nNo login\nSS\nSanjay Soni\nEMP-105 · Teacher\n8th - B\nNo login\nSR\nSunita Rao\nEMP-106 · Office Clerk\nNo login\nML\nMohan Lal\nEMP-107 · Office Clerk\nNo login\n\n8 people\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "Staff Directory"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/settings",
+    "file": "erp-settings.png",
+    "url": "http://127.0.0.1:3301/erp/settings",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "School & Session\nSchool\nSession & holidays\nHow it prints\n\nSchool\n\nSchool name *\nShort name (e.g. SPS)\nPrincipal's name (under the signature)\nSB\nLogo\nNo logo yet: the crest with your short name is used\nUpload\nNo photo\nSchool photo\nShown at the top of the parent and staff apps' Home\nUpload\n\nBoard and registration\n\nBoard - CBSE\nAffiliation no.\nSchool no. / code\nUDISE+ code (11 digits)\n\nAddress and contact\n\nAddress (street / area)\nCity\nDistrict\nState\nPIN code\nOffice phone\nSecond phone\nE-mail\nWebsite\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "School & Session"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/exams/marks",
+    "file": "erp-exams-marks.png",
+    "url": "http://127.0.0.1:3301/erp/exams/marks",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Marks Entry\nExam - Term I examination · out of 100\nMarks entered\n47%\n\n408 / 864 marks\n\n6th - A · 36 students\n\nEnglish\n0/36\nHindi\n3/36\nMathematics\n6/36\nScience\n9/36\n\n6th - B · 36 students\n\nEnglish\n5/36\nHindi\n8/36\nMathematics\n11/36\nScience\n14/36\n\n7th - A · 36 students\n\nEnglish\n10/36\nHindi\n13/36\nMathematics\n16/36\nScience\n19/36\n\n7th - B · 36 students\n\nEnglish\n15/36\nHindi\n18/36\nMathematics\n21/36\nScience\n24/36\n\n8th - A · 36 students\n\nEnglish\n20/36\nHindi\n23/36\nMathematics\n26/36\nScience\n29/36\n\n8th - B · 36 students\n\nEnglish\n25/36\nHindi\n28/36\nMathematics\n31/36\nScience\n34/36\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "Marks Entry"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/students",
+    "file": "erp-students.png",
+    "url": "http://127.0.0.1:3301/erp/students",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "All Students\nAdd student\nAll 24\nDue 20\nPaid 4\nBus 8\nClass - All\nSection - All\nAS\nAarav Sharma\n6th A · S/o Rajesh Sharma\nPaid\nAS\nAditi Soni\n6th A · S/o Suresh Rathore\n₹10,000\nDS\nDiya Singh\n6th A · S/o Rajesh Sharma\n₹14,000\nTD\nTara Desai\n6th A · S/o Suresh Rathore\n₹18,000\nVS\nVihaan Singh\n6th B · D/o Vikram Singh\n₹18,000\nAJ\nArjun Joshi\n6th B · D/o Mahesh Joshi\n₹22,000\nAB\nAditya Bhat\n6th B · D/o Vikram Singh\n₹6,000\nYV\nYash Verma\n6th B · D/o Mahesh Joshi\nPaid\nIM\nIshita Mehta\n7th A · S/o Rajesh Sharma\n₹22,000\nKP\nKavya Patel\n7th A · S/o Suresh Rathore\n₹6,000\nSA\nSiya Agarwal\n7th A · S/o Rajesh Sharma\n₹10,000\nRS\nRiya Saxena\n7th A · S/o Suresh Rathore\n₹14,000\nPJ\nPrisha Joshi\n7th B · D/o Mahesh Joshi\n₹10,000\nKJ\nKabir Jain\n7th B · D/o Vikram Singh\nPaid\nSR\nShaurya Rao\n7th B · D/o Mahesh Joshi\n₹18,000\nVS\nVivaan Shah\n7th B · D/o Vikram Singh\n₹22,000\nAR\nAnanya Rathore\n8th A · S/o Suresh Rathore\n₹14,000\nMV\nMeera Vyas\n8th A · S/o Rajesh Sharma\n₹18,000\nNK\nNisha Kumari\n8th A · S/o Suresh Rathore\nPaid\nAG\nAvni Gupta\n8th A · S/o Rajesh Sharma\n₹6,000\nDC\nDev Choudhary\n8th B · D/o Mahesh Joshi\n₹6,000\nRM\nRohan Mehta\n8th B · D/o Vikram Singh\n₹10,000\nRD\nReyansh Das\n8th B · D/o Mahesh Joshi\n₹14,000\nDS\nDhruv Shah\n8th B · D/o Vikram Singh\n₹18,000\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "All Students"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/students/id-cards",
+    "file": "erp-students-id-cards.png",
+    "url": "http://127.0.0.1:3301/erp/students/id-cards",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "ID Cards\nAarav Sharma\nSR-1200\nFront\nBack\nSB\nSMS Barmer Review School\nSample address, Barmer, Rajasthan 344001\nAS\nAarav Sharma\nClass 6th – A\nAdm. no.\nADM-2400\nRoll no.\n1\nFather\nRajesh Sharma\nD.O.B.\n12 Jun 2013\nMobile\n—\nSession 2026-27\nPrincipal\nSMS Barmer Review School\nClass - 6th (8)\nSection - All\nEveryone\n8 selected\nAS\nAarav Sharma\n1\nAS\nAditi Soni\n7\nDS\nDiya Singh\n13\nTD\nTara Desai\n19\nVS\nVihaan Singh\n4\nAJ\nArjun Joshi\n10\nAB\nAditya Bhat\n16\nYV\nYash Verma\n22\nHome\nStudents\nReport\nAttendance\nProfile\nPrint 8 cards",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "ID Cards",
+      "Aarav Sharma"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/transport",
+    "file": "erp-transport.png",
+    "url": "http://127.0.0.1:3301/erp/transport",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Routes & Buses\n8\non bus\n1\nroutes · 32 seats\n1\nno route yet\nRoutes\nCity route\n7/32\nRJ-04-PA-0000 · Sample Driver\n1 bus students have no route\nAdd route\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "headings": [
+      "Routes & Buses",
+      "Routes"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/timetable",
+    "file": "erp-timetable.png",
+    "url": "http://127.0.0.1:3301/erp/timetable",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Time Table\nClass\nTeacher\nClass - 6th\nSection - A\nMon\n9\nTue\n10\nWed\n11\nThu\n12\nFri\n13\nSat\n14\n8:00\n+ Add lesson\nPeriod 1\n9:00\n+ Add lesson\nPeriod 2\n10:00\n+ Add lesson\nPeriod 3\n11:00\n+ Add lesson\nPeriod 4\n12:00\n+ Add lesson\nPeriod 5\n1:00\n+ Add lesson\nPeriod 6\nPeriods & times\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "headings": [
+      "Time Table"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/report",
+    "file": "erp-report.png",
+    "url": "http://127.0.0.1:3301/erp/report",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "Overview\n\nGood evening · Saturday, 14 November\n\nReview\n\nCollected this month\n\n₹1.9 L\n\nCollected this session\n73% of ₹10.1 L\n₹7.3 L\nFees pending\n20 students\n₹2.8 L\nStudents\n12 boys · 12 girls · 8 by bus\n24\nFee collection by month\n\nThis session · ₹ in lakh\n\n0\n0.5\n1\n1.5\n2\nApr\nMay\nJun\nJul\nAug\nSept\nOct\nNov\n1.9\n\nNovember 2026 · ₹1.9 L\n\nHow parents paid\n\nThis session · ₹7.3 L\n\nCash\n₹2.6 L\n36%\nUPI\n₹4.4 L\n60%\nCheque\n₹30,000\n4%\nClasses with most fees pending\n\n₹ in lakh\n\n7th\n1.0\n6th\n0.9\n8th\n0.9\nAdmission report\n\nSession 2026-27\n\nThe server hasn't sent this yet.\n\nStudents in each class\n\nBoys · girls\n\nThe server hasn't sent this yet.\n\nAttendance report\n\nThe server hasn't sent this yet.\n\nNeeds attention today\n3 of 6 sections haven't marked attendance\n3 marked so far today\nMark\n3 cheques received this week\n₹45,000 to deposit in the bank\n20 students have fees pending\n₹2.8 L in total\nCollect\nNo birthdays today\nFrom students' dates of birth\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "Overview",
+      "Review",
+      "Fee collection by month",
+      "How parents paid",
+      "Classes with most fees pending",
+      "Admission report",
+      "Students in each class",
+      "Attendance report",
+      "Needs attention today"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  }
+]

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useDialog } from "@/lib/useDialog";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -77,21 +78,8 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
   const counts = useCounts();
   const count: Record<string, number> = { "/messages/": counts.chats, "/notice/": counts.notices, "/leave/": counts.leaves };
 
-  // Slide in on the next frame; Esc closes; the page behind doesn't scroll.
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setShown(true));
-    panel.current?.focus();
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && close();
-    window.addEventListener("keydown", onKey);
-    const overflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = overflow;
-    };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  useDialog(true, panel, close);
+  useEffect(() => { const raf = requestAnimationFrame(() => setShown(true)); return () => cancelAnimationFrame(raf); }, []);
 
   function close() {
     setShown(false);
@@ -188,7 +176,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
 
   // Drawn on <body>, so the page's own layers (and the tab bar) can't sit on top of it.
   return createPortal(
-    <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={L({ hi: "मेन्यू", en: "Menu" })}>
+    <div className="staff-workspace fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={L({ hi: "मेन्यू", en: "Menu" })}>
       <button type="button" aria-label={L({ hi: "बंद करें", en: "Close" })} onClick={close} className={clsx("absolute inset-0 bg-ink-950/40 transition-opacity duration-200", shown ? "opacity-100" : "opacity-0")} />
       {/* Opens from the left edge of the app itself (it is centred, max 560px, on a wide screen). */}
       <div className="pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[560px] -translate-x-1/2 overflow-hidden">

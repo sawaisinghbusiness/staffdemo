@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check } from "lucide-react";
+import { Circle } from "lucide-react";
 import { useL } from "@/lib/i18n";
 import { SOON_MODULES, type SoonModule } from "@/lib/erpSoon";
 import { Empty } from "@/components/ui";
@@ -40,7 +40,7 @@ export default function ErpSoonPage() {
         <ul className="mt-2 space-y-2.5">
           {m.lines.map((line, i) => (
             <li key={i} className="flex gap-2.5 text-[15px] leading-snug">
-              <Check className="mt-0.5 h-4 w-4 shrink-0 text-jade-600" strokeWidth={2.6} aria-hidden />
+              <Circle className="mt-1 h-3 w-3 shrink-0 text-ink-400" strokeWidth={1.8} aria-hidden />
               <span>{L(line)}</span>
             </li>
           ))}

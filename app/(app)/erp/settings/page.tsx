@@ -99,9 +99,9 @@ function SchoolTab({ isAdmin, known }: { isAdmin: boolean; known: boolean }) {
       )}
       {known && ro && <p className="text-[13px] text-ink-500">{L({ hi: "यह जानकारी सिर्फ़ एडमिन बदल सकते हैं।", en: "Only an admin can change these details." })}</p>}
 
-      {/* How it prints */}
-      <p className="mlabel">{L({ hi: "ऐसे छपता है", en: "How it prints" })}</p>
-      <div className="row-card text-center" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
+      <details className="rounded-2xl border border-ink-200 bg-white p-3">
+      <summary className="cursor-pointer text-[14px] font-semibold">{L({ hi: "ऐसे छपता है", en: "How it prints" })}</summary>
+      <div className="mt-3 text-center" style={{ fontFamily: "Georgia, 'Times New Roman', serif" }}>
         {form.logo_url ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={form.logo_url} alt="" className="mx-auto h-14 w-14 object-contain" />
@@ -120,6 +120,8 @@ function SchoolTab({ isAdmin, known }: { isAdmin: boolean; known: boolean }) {
         {(form.contact1 || form.email) && <p className="break-words text-[11px] text-ink-600">{[form.contact1 && `Ph. ${form.contact1}`, form.email].filter(Boolean).join(" · ")}</p>}
       </div>
       <p className="text-[12.5px] text-ink-500">{L({ hi: "फ़ीस रसीद, TC, बोनाफ़ाइड और चरित्र प्रमाणपत्र, गेट पास और साइड मेन्यू में छपता है।", en: "Used on fee receipts, TC, bonafide and character certificates, gate passes and the sidebar." })}</p>
+
+      </details>
 
       <p className="mlabel pt-1">{L({ hi: "स्कूल", en: "School" })}</p>
       <Field label={L({ hi: "स्कूल का नाम *", en: "School name *" })} value={form.school_name} onChange={(v) => set("school_name", v)} ro={ro} />
@@ -343,7 +345,7 @@ function SessionTab({ isAdmin }: { isAdmin: boolean }) {
           {dayLong(s.start)} – {dayLong(s.end)}
         </p>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-ink-100">
-          <div className="h-full rounded-full bg-[#3099a4]" style={{ width: `${pct}%` }} />
+          <div className="h-full rounded-full bg-[#0D2A5E]" style={{ width: `${pct}%` }} />
         </div>
         <p className="mt-1.5 text-[12.5px] text-ink-500">
           {L({

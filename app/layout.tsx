@@ -15,7 +15,9 @@ import "@fontsource/baloo-2/700.css";
 import "@fontsource/baloo-2/800.css";
 import "@fontsource-variable/inter/wght.css";
 import "@fontsource-variable/noto-sans-devanagari/wght.css";
+import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
+import "./staff-workspace.css";
 import { LangProvider } from "@/lib/i18n";
 import { Toaster } from "@/lib/toast";
 

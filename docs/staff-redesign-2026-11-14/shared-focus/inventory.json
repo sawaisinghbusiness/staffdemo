@@ -1,0 +1,13 @@
+[
+  {
+    "route": "attendance",
+    "file": "attendance.png",
+    "url": "http://127.0.0.1:3301/attendance",
+    "text": "Attendance\nStudents\nTeacher\nMonthly report\n\nNovember 2026\n\nMon\nTue\nWed\nThu\nFri\nSat\nSun\n1\n2\n3\n4\n5\n6\n7\n8\n9\n10\n11\n12\n13\n14\n15\n16\n17\n18\n19\n20\n21\n22\n23\n24\n25\n26\n27\n28\n29\n30\nPresent\nAbsent\nLeave\nHoliday\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 390,
+    "heading": "Attendance",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

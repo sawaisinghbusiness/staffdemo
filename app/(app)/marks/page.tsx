@@ -7,7 +7,7 @@ import { api, ApiError, useApi } from "@/lib/api";
 import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL } from "@/lib/i18n";
-import { Avatar, ErrorCard, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
+import { Avatar, Empty, ErrorCard, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
 
 interface Part {
   key: string;
@@ -44,13 +44,14 @@ export default function MarksPage() {
   }, [data, exam]);
 
   if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={3} />;
+  if (!data.exams.length || !data.sections.length) return <Empty>{L({hi:"\u0905\u092d\u0940 \u092a\u0930\u0940\u0915\u094d\u0937\u093e \u092f\u093e \u0915\u0915\u094d\u0937\u093e \u0924\u092f \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",en:"No exams or classes are assigned yet. Contact the school office to complete setup."})}</Empty>;
   if (open) return <Entry exam={exam} section={sectionId} subject={subject} onBack={() => setOpen(false)} />;
 
   const sec = data.sections.find((s) => s.id === sectionId);
   const ex = data.exams.find((e) => e.id === exam);
 
   return (
-    <div className="animate-rise space-y-3">
+    <div className="teacher-form space-y-4">
       <SelectBox label={L({ hi: "परीक्षा", en: "Exam" })} value={exam} onChange={setExam}>
         {data.exams.map((e) => (
           <option key={e.id} value={e.id}>
@@ -59,7 +60,7 @@ export default function MarksPage() {
           </option>
         ))}
       </SelectBox>
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
         <SelectBox
           label={L({ hi: "कक्षा", en: "Class" })}
           value={sectionId}
@@ -81,12 +82,12 @@ export default function MarksPage() {
         </SelectBox>
       </div>
       {ex && (
-        <p className="row-card flex items-center gap-2 text-[14px] text-ink-600">
+        <p className="flex items-center gap-2 border-t border-ink-100 pt-4 text-[13px] leading-relaxed text-ink-500">
           {ex.locked && <Lock className="h-4 w-4 shrink-0" aria-hidden />}
           {ex.locked ? L({ hi: "यह परीक्षा बंद है, सिर्फ़ देख सकते हैं।", en: "This exam is locked: view only." }) : `${L({ hi: "हिस्से", en: "Parts" })}: ${ex.parts.map((p) => `${p.name} ${p.max}`).join(" + ")}`}
         </p>
       )}
-      <button onClick={() => setOpen(true)} className="btn-primary w-full">
+      <button onClick={() => setOpen(true)} disabled={!exam || !sectionId || !subject} className="btn-primary w-full">
         {ex?.locked ? L({ hi: "अंक देखें", en: "View marks" }) : L({ hi: "अंक भरें", en: "Enter marks" })}
       </button>
     </div>
@@ -110,9 +111,11 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
   const multi = data.exam.parts.length > 1;
   const total = (id: string) => data.exam.parts.reduce((a, p) => a + (Number(vals[id]?.[p.key]) || 0), 0);
   const max = data.exam.parts.reduce((a, p) => a + p.max, 0);
+  const invalid = data.students.some(s => data.exam.parts.some(p => { const v=vals[s.id]?.[p.key]; return v !== undefined && v !== "" && (!Number.isFinite(Number(v)) || Number(v) < 0 || Number(v) > p.max); }));
   const filled = data.students.filter((s) => data.exam.parts.every((p) => vals[s.id]?.[p.key] !== "" && vals[s.id]?.[p.key] !== undefined)).length;
 
   async function save() {
+    if (invalid) return setMsg({ok:false,text:L({hi:"\u0905\u0902\u0915 \u092a\u0942\u0930\u094d\u0923\u093e\u0902\u0915 \u0938\u0947 \u091c\u094d\u092f\u093e\u0926\u093e \u0928\u0939\u0940\u0902 \u0939\u094b \u0938\u0915\u0924\u0947\u0964",en:"Correct the highlighted marks before saving."})});
     setBusy(true);
     setMsg(null);
     try {
@@ -140,9 +143,9 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
         </p>
       </div>
 
-      <ul>
+      <ul className="teacher-register">
         {data.students.map((s) => (
-          <li key={s.id} className="flex min-h-[62px] items-center gap-2.5 border-b border-ink-100">
+          <li key={s.id} className="flex min-h-[76px] flex-wrap items-center gap-2.5 border-b border-ink-100 px-3.5 py-3">
             <Avatar name={s.name} size={34} />
             <span className="min-w-0 flex-1">
               <span className="block truncate text-[15px]">{s.name}</span>
@@ -151,11 +154,12 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
                 {multi && ` · ${L({ hi: "कुल", en: "total" })} ${total(s.id)}`}
               </span>
             </span>
-            {data.exam.parts.map((p) => {
-              const bad = Number(vals[s.id]?.[p.key]) > p.max;
+            <div className="flex w-full flex-wrap justify-end gap-2 pl-11 sm:w-auto sm:pl-0">{data.exam.parts.map((p) => {
+              const raw=vals[s.id]?.[p.key];
+              const bad = raw !== undefined && raw !== "" && (!Number.isFinite(Number(raw)) || Number(raw) < 0 || Number(raw) > p.max);
               return (
                 <label key={p.key} className="flex shrink-0 flex-col items-center">
-                  {multi && <span className="text-[10.5px] leading-none text-ink-400">{p.name.slice(0, 3)}</span>}
+                  {multi && <span className="max-w-[76px] text-center text-[11px] leading-tight text-ink-500">{p.name}</span>}
                   <input
                     value={vals[s.id]?.[p.key] ?? ""}
                     onChange={(e) => setVals((v) => ({ ...v, [s.id]: { ...v[s.id], [p.key]: e.target.value.replace(/[^\d.]/g, "").slice(0, 5) } }))}
@@ -163,18 +167,19 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
                     disabled={locked}
                     aria-label={`${s.name} ${p.name}`}
                     aria-invalid={bad}
-                    className={clsx("tnum mt-0.5 h-11 w-[54px] rounded-xl border bg-white text-center font-semibold outline-none focus:border-brand-500 focus:ring-4 focus:ring-brand-100 disabled:bg-ink-50", bad ? "border-rose-500 text-rose-600" : "border-ink-200")}
+                    className={clsx("tnum mt-0.5 h-11 w-[54px] rounded-xl border bg-white text-center font-semibold outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:bg-ink-50", bad ? "border-rose-500 text-rose-600" : "border-ink-200")}
                   />
                 </label>
               );
-            })}
+            })}</div>
           </li>
         ))}
       </ul>
 
+      {invalid && <p role="alert" className="text-[13px] leading-relaxed text-rose-700">{L({hi:"\u0932\u093e\u0932 \u0926\u093f\u0916\u093e\u090f \u0905\u0902\u0915 \u091c\u093e\u0901\u091a\u0947\u0902\u0964 \u0905\u0902\u0915 \u0936\u0942\u0928\u094d\u092f \u0938\u0947 \u092a\u0942\u0930\u094d\u0923\u093e\u0902\u0915 \u0924\u0915 \u0939\u094b\u0928\u0947 \u091a\u093e\u0939\u093f\u090f\u0964",en:"Check the highlighted marks. Each value must be between zero and its maximum."})}</p>}
       {!locked && (
         <StickyBar>
-          <button onClick={save} disabled={busy} className="btn-primary w-full">
+          <button onClick={save} disabled={busy || invalid} className="btn-primary w-full">
             {busy ? "…" : `${L({ hi: "सेव करें", en: "Save" })} · ${filled} / ${data.students.length} ${L({ hi: "भरे", en: "filled" })}`}
           </button>
         </StickyBar>

@@ -77,14 +77,14 @@ export default function ErpParentChatsPage() {
                 <span className="min-w-0 flex-1">
                   <span className="flex items-baseline gap-2">
                     <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold">{r.student}</span>
-                    {r.last && <span className={r.last.from === "parent" ? "shrink-0 text-[12px] font-semibold text-[#1f6f78]" : "shrink-0 text-[12px] text-ink-500"}>{when(r.last.at, L({ hi: "कल", en: "Yesterday" }))}</span>}
+                    {r.last && <span className={r.last.from === "parent" ? "shrink-0 text-[12px] font-semibold text-[#0D2A5E]" : "shrink-0 text-[12px] text-ink-500"}>{when(r.last.at, L({ hi: "कल", en: "Yesterday" }))}</span>}
                   </span>
                   <span className="block truncate text-[12.5px] text-ink-500">
                     {r.classSec} · {r.teacher}
                   </span>
                   {r.last && (
                     <span className="flex items-center gap-1.5">
-                      {r.last.from === "parent" && <i className="h-2 w-2 shrink-0 rounded-full bg-[#3099a4]" aria-label={L({ hi: "जवाब बाकी", en: "Reply pending" })} />}
+                      {r.last.from === "parent" && <i className="h-2 w-2 shrink-0 rounded-full bg-[#0D2A5E]" aria-label={L({ hi: "जवाब बाकी", en: "Reply pending" })} />}
                       <span className={r.last.from === "parent" ? "truncate text-[14px] text-ink-900" : "truncate text-[14px] text-ink-600"}>
                         {r.last.from === "teacher" ? L({ hi: "टीचर: ", en: "Teacher: " }) : ""}
                         {r.last.text}

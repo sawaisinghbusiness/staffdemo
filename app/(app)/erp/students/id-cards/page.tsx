@@ -2,13 +2,13 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
-import { Printer, RotateCw, Search } from "lucide-react";
+import { Printer, Search } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { classRank, type ErpStudent } from "@/lib/erpStudents";
 import { CARD_H, CARD_W, IdCardBack, IdCardFront, IdCardSheet, PER_SHEET, type CardSchool } from "@/components/erp/IdCardPrint";
 import { PrintReportCards } from "@/components/erp/PrintReportCards";
-import { Avatar, Empty, ErrorCard, ListSkeleton, SelectBox, StickyBar } from "@/components/ui";
+import { Avatar, Empty, ErrorCard, ListSkeleton, SelectBox, StickyBar, LineTabs } from "@/components/ui";
 
 /*
  * ERP login → Students → ID cards: the ERP's ID card page. Pick a class/section, untick anyone who
@@ -100,7 +100,7 @@ export default function ErpIdCardsPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-20">
-      {preview && <FlipCard key={preview.id} s={preview} school={school} />}
+      {preview && <CardPreview key={preview.id} s={preview} school={school} />}
 
       <div className="grid grid-cols-2 gap-2.5">
         <SelectBox
@@ -181,61 +181,22 @@ export default function ErpIdCardsPage() {
   );
 }
 
-/** The chosen child's card at a readable size; a tap turns it over (ERP FlipCard). */
-function FlipCard({ s, school }: { s: ErpStudent; school: CardSchool }) {
+/** A readable document preview; front and back remain explicit choices. */
+function CardPreview({ s, school }: { s: ErpStudent; school: CardSchool }) {
   const L = useL();
   const ref = useRef<HTMLDivElement>(null);
-  const [flipped, setFlipped] = useState(false);
-  const [scale, setScale] = useState(1.2);
+  const [side, setSide] = useState<'front' | 'back'>('front');
+  const [scale, setScale] = useState(1);
   useEffect(() => {
-    const fit = () => setScale(Math.max(0.8, Math.min(1.35, (ref.current?.clientWidth || 0) / (CARD_W * MM))));
+    const fit = () => setScale(Math.max(0.5, Math.min(1.35, (ref.current?.clientWidth || 0) / (CARD_W * MM))));
     fit();
     const ro = new ResizeObserver(fit);
     if (ref.current) ro.observe(ref.current);
     return () => ro.disconnect();
   }, []);
-  const w = CARD_W * MM * scale;
-  const h = CARD_H * MM * scale;
-  const turn = () => setFlipped((f) => !f);
-
-  return (
-    <div ref={ref} className="flex w-full flex-col items-center pt-1">
-      <div className="[perspective:1600px]" style={{ width: w, height: h }}>
-        <div
-          role="button"
-          tabIndex={0}
-          onClick={turn}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              turn();
-            }
-          }}
-          aria-pressed={flipped}
-          aria-label={flipped ? `${L({ hi: "आगे का हिस्सा", en: "Show the front of" })} ${s.name}` : `${L({ hi: "पीछे का हिस्सा", en: "Show the back of" })} ${s.name}`}
-          className="relative h-full w-full cursor-pointer select-none rounded-[3mm] transition-transform duration-700 [transform-style:preserve-3d] [transition-timing-function:cubic-bezier(0.3,0.9,0.3,1)] motion-reduce:duration-0"
-          style={{ transform: flipped ? "rotateY(180deg)" : "none" }}
-        >
-          <Face scale={scale}>
-            <IdCardFront s={s} school={school} />
-          </Face>
-          <Face scale={scale} back>
-            <IdCardBack s={s} school={school} />
-          </Face>
-        </div>
-      </div>
-      <p className="mt-2 flex items-center gap-1.5 text-[12.5px] text-ink-500">
-        <RotateCw className="h-3.5 w-3.5" aria-hidden />
-        {flipped ? L({ hi: "पीछे · आगे देखने के लिए छुएँ", en: "Back · tap to see the front" }) : L({ hi: "आगे · पीछे देखने के लिए छुएँ", en: "Front · tap to see the back" })}
-      </p>
-    </div>
-  );
-}
-
-function Face({ scale, back, children }: { scale: number; back?: boolean; children: React.ReactNode }) {
-  return (
-    <div className={clsx("absolute inset-0 overflow-hidden rounded-[3mm] shadow-[0_1px_2px_rgba(16,24,40,0.06),0_10px_24px_-8px_rgba(16,24,40,0.22)] [backface-visibility:hidden]", back && "[transform:rotateY(180deg)]")}>
-      <div style={{ width: `${CARD_W}mm`, height: `${CARD_H}mm`, transform: `scale(${scale})`, transformOrigin: "top left" }}>{children}</div>
-    </div>
-  );
+  return <section className="space-y-3 rounded-2xl border border-ink-200 bg-white p-3">
+    <div className="flex min-w-0 items-center justify-between gap-3"><h2 className="truncate text-[14px] font-semibold">{s.name}</h2><span className="text-[12px] text-ink-500">{s.srNo}</span></div>
+    <LineTabs value={side} onChange={setSide} label={L({hi:'\u0915\u093e\u0930\u094d\u0921 \u0915\u093e \u0939\u093f\u0938\u094d\u0938\u093e',en:'Card side'})} options={[{key:'front',text:L({hi:'\u0906\u0917\u0947',en:'Front'})},{key:'back',text:L({hi:'\u092a\u0940\u091b\u0947',en:'Back'})}]} />
+    <div ref={ref} className="w-full overflow-hidden"><div className="mx-auto overflow-hidden rounded-[3mm] border border-ink-200" style={{width:CARD_W*MM*scale,height:CARD_H*MM*scale}}><div style={{width:CARD_W+'mm',height:CARD_H+'mm',transform:'scale('+scale+')',transformOrigin:'top left'}}>{side==='front'?<IdCardFront s={s} school={school}/>:<IdCardBack s={s} school={school}/>}</div></div></div>
+  </section>;
 }

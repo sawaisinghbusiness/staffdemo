@@ -60,8 +60,8 @@ export default function NotesPage() {
 
   return (
     <div className="animate-rise space-y-5">
-      <form onSubmit={save} className="space-y-3" noValidate>
-        <div className="grid grid-cols-[2fr_3fr] gap-2.5">
+      <form onSubmit={save} className="teacher-form space-y-4" noValidate>
+        <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-[minmax(0,2fr)_minmax(0,3fr)]">
           <SelectBox label={L({ hi: "कक्षा", en: "Class" })} value={sec} onChange={setSec}>
             {sections.map((s) => (
               <option key={s.id} value={s.id}>
@@ -77,14 +77,15 @@ export default function NotesPage() {
             ))}
           </SelectBox>
         </div>
-        <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={500} className="textarea-box" placeholder={L({ hi: "जैसे: भिन्न में कमज़ोर है, घर पर रोज़ 15 मिनट अभ्यास करवाएँ।", en: "e.g. Falling behind in fractions; needs 15 minutes of practice at home daily." })} />
+        <p className="text-[13px] leading-relaxed text-ink-500">{L({hi:"\u092f\u0939 \u0928\u094b\u091f \u092c\u091a\u094d\u091a\u0947 \u0915\u0947 \u0905\u092d\u093f\u092d\u093e\u0935\u0915 \u0915\u094b \u0926\u093f\u0916\u0947\u0917\u093e\u0964",en:"This note will be visible to the student's parent."})}</p>
+        <textarea aria-label={L({hi:"\u0928\u094b\u091f",en:"Note"})} value={text} onChange={(e) => setText(e.target.value)} rows={4} maxLength={500} className="textarea-box" placeholder={L({ hi: "जैसे: भिन्न में कमज़ोर है, घर पर रोज़ 15 मिनट अभ्यास करवाएँ।", en: "e.g. Falling behind in fractions; needs 15 minutes of practice at home daily." })} />
         <button type="submit" disabled={busy || !student} className="btn-go w-full">
           {busy ? "…" : L({ hi: "नोट भेजें", en: "Send note" })}
         </button>
       </form>
 
       <section className="space-y-2">
-        <h2 className="mlabel">{L({ hi: "पहले के नोट", en: "Earlier notes" })}</h2>
+        <h2 className="teacher-section-heading">{L({ hi: "पहले के नोट", en: "Earlier notes" })}</h2>
         {!notes.data ? (
           notes.error && notes.error.status !== 401 ? <ErrorCard offline={notes.error.status === 0} onRetry={notes.reload} /> : <ListSkeleton rows={2} />
         ) : notes.data.notes.length === 0 ? (
@@ -94,7 +95,7 @@ export default function NotesPage() {
             {notes.data.notes.map((n) => (
               <li key={n.id} className="row-card">
                 {/* Top: the child's name. Bottom corner: the date. */}
-                <p className="truncate font-title text-[17px] font-bold leading-tight text-ink-900">
+                <p className="truncate text-[15px] font-semibold leading-snug text-ink-900">
                   {n.student} <span className="text-[13.5px] font-medium text-ink-500">· {n.classSec}</span>
                 </p>
                 <div className="mt-1.5 flex items-end justify-between gap-3">

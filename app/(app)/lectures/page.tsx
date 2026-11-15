@@ -45,10 +45,10 @@ export default function LecturesPage() {
             const live = p.start <= now && now < p.end;
             const over = p.end <= now;
             return (
-              <li key={p.id} className={clsx("glass-line card-in px-3.5 py-3", live && "!border-[#3099a4] !bg-[#3099a4]/10", (over || !c) && !live && "text-ink-400")}>
+              <li key={p.id} className={clsx("glass-line px-4 py-3.5", live && "!border-[#0D2A5E] !bg-[#E8EFF7]", (over || !c) && !live && "text-ink-400")}>
                 <p className="text-[15.5px] font-bold">
                   {c ? `${c.subject} · ${c.classSec}` : L({ hi: "खाली पीरियड", en: "Free period" })}
-                  {live && <span className="ml-1.5 text-[11px] font-bold uppercase text-brand-600">{L({ hi: "अभी", en: "Now" })}</span>}
+                  {live && <span className="ml-1.5 text-[11px] font-semibold text-brand-600">{L({ hi: "अभी", en: "Now" })}</span>}
                   {over && c && <span className="ml-1.5 text-[12px] font-medium">{L({ hi: "हो गई", en: "done" })}</span>}
                 </p>
                 <p className="meta mt-1">

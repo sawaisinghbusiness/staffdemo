@@ -1,0 +1,34 @@
+[
+  {
+    "route": "leave/apply",
+    "file": "leave-apply.png",
+    "url": "http://127.0.0.1:3301/leave/apply",
+    "text": "छुट्टी की अर्ज़ी\nछुट्टी का प्रकार - ज़रूरी काम\nकिस दिन से\nकिस दिन तक\nपूरा दिन\nआधा दिन\nकारण\n\nस्कूल ऑफ़िस इसे देखकर यहीं जवाब देगा।\n\nअर्ज़ी भेजें\nहोम\nबच्चे\nरिपोर्ट\nहाज़िरी\nप्रोफ़ाइल",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "छुट्टी की अर्ज़ी",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "assistant",
+    "file": "assistant.png",
+    "url": "http://127.0.0.1:3301/assistant",
+    "text": "स्कूल सहायक\n\nHello, Rakesh!\n\nआज क्या जानना है?\n\nआज कौन absent है?\nमेरा आज का टाइम टेबल?\nछुट्टी की अर्ज़ियाँ?\nमेरी कितनी छुट्टी बची?\nसवाल",
+    "width": 443,
+    "scrollWidth": 443,
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "messages",
+    "file": "messages.png",
+    "url": "http://127.0.0.1:3301/messages",
+    "text": "अभिभावकों की पूछताछ\nसभी\n5th - A\n5th - B\nआपके जवाब का इंतज़ार\n2\nLS\nLaxman Singh · 5th - B\n1\nMa'am, Laxman is finding fractions hard. How can we practise at…\n14 घंटे पहले\nKP\nKavya Purohit · 5th - A\n2\nCan she give the Maths test on Monday?\n3 घंटे पहले\nजवाब दे दिया\n1\nAM\nAarav Mali · 5th - B\nआप: Yes, please send the form tomorrow.\nगुरु\nहोम\nबच्चे\nरिपोर्ट\nहाज़िरी\nप्रोफ़ाइल",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "अभिभावकों की पूछताछ",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

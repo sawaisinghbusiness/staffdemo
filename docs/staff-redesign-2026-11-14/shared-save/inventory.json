@@ -1,0 +1,13 @@
+[
+  {
+    "route": "marks",
+    "file": "marks.png",
+    "url": "http://127.0.0.1:3301/marks",
+    "text": "Marks\nChange\n\nMaths · 5th - B\n\nHalf Yearly Exam · out of 100 (Theory 80 + Internal 20)\n\nAC\nAarav Choudhary\nRoll 01 · total 0\nTheory\nInternal\nAS\nAnanya Sharma\nRoll 02 · total 0\nTheory\nInternal\nBR\nBhavesh Rathore\nRoll 03 · total 0\nTheory\nInternal\nCM\nChetna Meena\nRoll 04 · total 0\nTheory\nInternal\nDS\nDevendra Singh\nRoll 05 · total 0\nTheory\nInternal\nDB\nDivya Bishnoi\nRoll 06 · total 0\nTheory\nInternal\nFK\nFarhan Khan\nRoll 07 · total 0\nTheory\nInternal\nGK\nGeeta Kanwar\nRoll 08 · total 0\nTheory\nInternal\nHV\nHarsh Vyas\nRoll 09 · total 0\nTheory\nInternal\nIJ\nIshita Jain\nRoll 10 · total 0\nTheory\nInternal\nJS\nJayant Soni\nRoll 11 · total 0\nTheory\nInternal\nKP\nKavya Panwar\nRoll 12 · total 0\nTheory\nInternal\nLG\nLokesh Gehlot\nRoll 13 · total 0\nTheory\nInternal\nMG\nMahi Garg\nRoll 14 · total 0\nTheory\nInternal\nHome\nStudents\nReport\nAttendance\nProfile\nSave · 0 / 14 filled",
+    "width": 390,
+    "scrollWidth": 375,
+    "heading": "Marks",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

@@ -38,7 +38,7 @@ export default function MessagesPage() {
               role="tab"
               aria-selected={cls === c}
               onClick={() => setCls(c)}
-              className={clsx("h-9 shrink-0 rounded-full border px-4 text-[14px] font-semibold transition-colors", cls === c ? "border-[#3099a4] bg-[#3099a4] text-white" : "border-ink-200 bg-white text-ink-700")}
+              className={clsx("min-h-[44px] shrink-0 rounded-lg border px-4 text-[14px] font-semibold transition-colors", cls === c ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-200 bg-white text-ink-700")}
             >
               {c || L({ hi: "सभी", en: "All" })}
             </button>
@@ -79,7 +79,7 @@ function Group({ title, rows, pending }: { title: string; rows: InboxRow[]; pend
 /** Only the start of the last message; the rest is in the chat. */
 const short = (t: string) => {
   const s = t.replace(/\s+/g, " ").trim();
-  return s.length > 24 ? s.slice(0, 24).trimEnd() + "…" : s;
+  return s.length > 64 ? s.slice(0, 64).trimEnd() + "…" : s;
 };
 
 /** One child's parent: name and class, the last message, and a count when there are new ones. */
@@ -87,15 +87,15 @@ function Row({ r, i }: { r: InboxRow; i: number }) {
   const L = useL();
   const { lang } = useLang();
   return (
-    <li className="card-in" style={{ "--i": Math.min(i, 8) } as React.CSSProperties}>
+    <li className="" style={{ "--i": Math.min(i, 8) } as React.CSSProperties}>
       <Link
         href={`/messages/chat/?id=${r.id}`}
         className={clsx(
-          "glass-card press flex min-h-[76px] items-center gap-3 rounded-2xl border-[1.5px] px-4 py-3",
-          "border-ink-900"
+          "flex min-h-[80px] items-center gap-3 rounded-xl border bg-white px-4 py-3",
+          "border-[#DCE4ED]"
         )}
       >
-        <Avatar name={r.student} url={r.photoUrl} size={44} tint={i} />
+        <Avatar name={r.student} url={r.photoUrl} size={44} tint={0} />
         {/* Top: name · class, and the new-message count in the corner. Bottom: the message, and how long ago. */}
         <span className="min-w-0 flex-1 space-y-1">
           <span className="flex items-center justify-between gap-2">
@@ -113,7 +113,7 @@ function Row({ r, i }: { r: InboxRow; i: number }) {
               {r.last && (r.last.from === "teacher" ? L({ hi: "आप: ", en: "You: " }) : "")}
               {r.last && (r.last.text ? short(r.last.text) : L({ hi: "मिलने का समय", en: "Meeting time" }))}
             </span>
-            {r.waitingSince ? <span className="shrink-0 text-[14px] font-bold text-ink-900">{waited(r.waitingSince, lang)}</span> : r.last && <span className="shrink-0 text-[14px] font-bold text-ink-900">{when(r.last.at, lang)}</span>}
+            {r.waitingSince ? <span className="shrink-0 text-[12px] font-medium text-ink-500">{waited(r.waitingSince, lang)}</span> : r.last && <span className="shrink-0 text-[14px] font-bold text-ink-900">{when(r.last.at, lang)}</span>}
           </span>
         </span>
       </Link>

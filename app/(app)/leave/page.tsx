@@ -60,7 +60,7 @@ export default function LeavePage() {
   }, []);
 
   return (
-    <div className="animate-rise space-y-4">
+    <div className="space-y-5">
       {teacher && (
         <LineTabs
           label={L({ hi: "छुट्टी", en: "Leave" })}
@@ -90,6 +90,8 @@ function MyLeave() {
   const { lang } = useLang();
   const { data, error, reload } = useApi<{ requests: Mine[] }>("/my/leave");
   const [sent, setSent] = useState(false);
+  const [withdrawing, setWithdrawing] = useState<string | null>(null);
+  const setProblem = useToastMsg();
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("sent") === "1") {
       setSent(true);
@@ -105,8 +107,15 @@ function MyLeave() {
 
   async function cancel(id: string) {
     if (!window.confirm(L({ hi: "यह अर्ज़ी वापस लें?", en: "Withdraw this application?" }))) return;
-    await api(`/my/leave/${id}`, { method: "DELETE" }).catch(() => null);
-    reload();
+    setWithdrawing(id);
+    try {
+      await api(`/my/leave/${id}`, { method: "DELETE" });
+      reload();
+    } catch (e) {
+      setProblem(e instanceof ApiError && e.message ? e.message : L({ hi: "\u0905\u0930\u094d\u091c\u093c\u0940 \u0935\u093e\u092a\u0938 \u0928\u0939\u0940\u0902 \u0932\u0940 \u091c\u093e \u0938\u0915\u0940\u0964", en: "Could not withdraw the application. Try again." }));
+    } finally {
+      setWithdrawing(null);
+    }
   }
 
   if (!data) {
@@ -132,15 +141,15 @@ function MyLeave() {
               {list.map((r) => (
                 <li key={r.id} className="row-card">
                   <div className="flex items-start justify-between gap-2">
-                    <p className="text-[15px] font-bold leading-snug">{range(r.from, r.to, lang)}</p>
+                    <p className="text-[15px] font-semibold leading-snug">{range(r.from, r.to, lang)}</p>
                     <Status tone={TONE[r.status]}>{L(WORD[r.status])}</Status>
                   </div>
                   {/* Reason on the left; type and length in the bottom-right corner. */}
-                  <div className="mt-1.5 flex items-end justify-between gap-3">
+                  <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
                     <div className="min-w-0">
                       <p className="text-[14px] text-ink-700">{r.reason}</p>
                       {r.status === "pending" && (
-                        <button onClick={() => cancel(r.id)} className="mt-1 text-[13.5px] font-semibold text-ink-500 underline-offset-2 active:underline">
+                        <button disabled={withdrawing === r.id} onClick={() => cancel(r.id)} className="disabled:opacity-50 mt-1 text-[13.5px] font-semibold text-ink-500 underline-offset-2 active:underline">
                           {L({ hi: "अर्ज़ी वापस लें", en: "Withdraw" })}
                         </button>
                       )}
@@ -205,7 +214,7 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
               {/* Name - class; then Reason, From and Notes each on its own line; days bottom-left, the answers bottom-right. */}
               <div className="flex items-center gap-2.5">
                 <Avatar name={r.student} url={r.photoUrl} size={40} />
-                <p className="min-w-0 flex-1 truncate font-title text-[17px] font-bold text-ink-900">
+                <p className="min-w-0 flex-1 truncate text-[16px] font-semibold text-ink-900">
                   {r.student} <span className="text-[13.5px] font-medium text-ink-500">- {r.classSec}</span>
                 </p>
                 <span className="inline-flex shrink-0 items-center gap-1 text-[14px] font-bold text-ink-900">
@@ -231,10 +240,10 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
               </dl>
               <div className="mt-3 flex items-center justify-end gap-2">
                 <span className="flex gap-2">
-                  <button onClick={() => decide(r.id, "approved")} disabled={busy === r.id} className="glass-pill glass-ok">
+                  <button onClick={() => decide(r.id, "approved")} disabled={busy === r.id} className="btn-primary min-h-[44px]">
                     {L({ hi: "मंज़ूर", en: "Approve" })}
                   </button>
-                  <button onClick={() => decide(r.id, "rejected")} disabled={busy === r.id} className="glass-pill glass-no">
+                  <button onClick={() => decide(r.id, "rejected")} disabled={busy === r.id} className="btn-secondary min-h-[44px]">
                     {L({ hi: "नामंज़ूर", en: "Not approve" })}
                   </button>
                 </span>

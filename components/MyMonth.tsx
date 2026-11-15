@@ -19,7 +19,7 @@ interface Month {
 // One colour per state, shared by the calendar and the key under it (user's spec, 2026-10-14):
 // present green, absent red, leave (and half day) yellow, school holiday blue. The day number on them is
 // white, so the fills are deep enough to read it.
-const FILL: Record<Mark | "hol", string> = { P: "bg-[#16a34a]", A: "bg-[#dc2626]", L: "bg-[#ca8a04]", H: "bg-[#ca8a04]", hol: "bg-[#2563eb]" };
+const FILL: Record<Mark | "hol", string> = { P: "bg-[#16a34a]", A: "bg-[#dc2626]", L: "bg-[#A16207]", H: "bg-[#A16207]", hol: "bg-[#2563eb]" };
 const NAME: Record<Mark, { hi: string; en: string }> = {
   P: { hi: "उपस्थित", en: "Present" },
   A: { hi: "अनुपस्थित", en: "Absent" },
@@ -64,7 +64,7 @@ export function MyMonth({ counts = true }: { counts?: boolean }) {
             type="button"
             onClick={() => setReport(true)}
             disabled={!shown}
-            className="flex min-h-[40px] items-center gap-1.5 rounded-full border-[1.5px] border-ink-900 bg-white px-3.5 text-[13.5px] font-semibold text-ink-900 active:bg-ink-100 disabled:opacity-40"
+            className="flex min-h-[40px] items-center gap-1.5 rounded-lg border border-[#DCE4ED] bg-white px-3.5 text-[13.5px] font-semibold text-ink-900 active:bg-ink-100 disabled:opacity-40"
           >
             <FileText className="h-4 w-4" aria-hidden />
             {L({ hi: "मासिक रिपोर्ट", en: "Monthly report" })}
@@ -72,7 +72,7 @@ export function MyMonth({ counts = true }: { counts?: boolean }) {
         </div>
       )}
 
-      <section className="cal font-title">
+      <section className="cal">
         <div className="flex items-center justify-between">
           <button onClick={() => setMonth(shift(current, -1))} disabled={!shown || current <= "2026-04"} aria-label={L({ hi: "पिछला महीना", en: "Previous month" })} className="grid h-11 w-11 place-items-center rounded-full text-ink-700 active:bg-ink-100 disabled:opacity-25">
             <ChevronLeft className="h-5 w-5" aria-hidden />
@@ -107,7 +107,7 @@ export function MyMonth({ counts = true }: { counts?: boolean }) {
                         className={clsx(
                           "tnum grid h-8 w-8 place-items-center rounded-full text-[14.5px] font-semibold",
                           state ? clsx("text-white", FILL[state]) : isToday ? "border-2 border-ink-900 text-ink-900" : dim ? "text-ink-300" : "text-ink-900",
-                          isToday && "!font-extrabold"
+                          isToday && "!font-semibold"
                         )}
                       >
                         {+d.date.slice(8)}
@@ -119,7 +119,7 @@ export function MyMonth({ counts = true }: { counts?: boolean }) {
         </div>
 
         {/* The colour key, on one line. */}
-        <div className="mt-2 flex items-center justify-between gap-2 border-t border-ink-900/10 px-1 pt-3 text-[12.5px] text-ink-700">
+        <div className="mt-2 flex flex-wrap items-center justify-between gap-x-3 gap-y-2 border-t border-ink-900/10 px-1 pt-3 text-[12.5px] text-ink-700">
           {KEY.map(({ k, text }) => (
             <span key={k} className="flex items-center gap-1.5 whitespace-nowrap">
               <span className={clsx("h-2.5 w-2.5 shrink-0 rounded-full", FILL[k])} aria-hidden />
@@ -130,15 +130,15 @@ export function MyMonth({ counts = true }: { counts?: boolean }) {
       </section>
 
       {counts && t && (
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-3 divide-x divide-[#DCE4ED] overflow-hidden rounded-xl border border-[#DCE4ED] bg-white">
           {[
-            [L({ hi: "उपस्थित", en: "Present" }), t.present + t.half / 2, "bg-jade-50"],
-            [L({ hi: "अनुपस्थित", en: "Absent" }), t.absent, "bg-rose-50"],
-            [L({ hi: "छुट्टी", en: "Leave" }), t.leave + t.half / 2, "bg-marigold-50"],
+            [L({ hi: "उपस्थित", en: "Present" }), t.present + t.half / 2, "text-jade-800"],
+            [L({ hi: "अनुपस्थित", en: "Absent" }), t.absent, "text-rose-700"],
+            [L({ hi: "छुट्टी", en: "Leave" }), t.leave + t.half / 2, "text-[#A16207]"],
           ].map(([k, v, bg]) => (
-            <div key={k as string} className={clsx("rounded-2xl px-3 py-2.5", bg as string)}>
+            <div key={k as string} className={clsx("px-3 py-3", bg as string)}>
               <p className="text-[12px] text-ink-500">{k as string}</p>
-              <p className="tnum text-[22px] font-extrabold leading-tight">{num(v as number)}</p>
+              <p className="tnum text-[22px] font-semibold leading-tight">{num(v as number)}</p>
             </div>
           ))}
         </div>

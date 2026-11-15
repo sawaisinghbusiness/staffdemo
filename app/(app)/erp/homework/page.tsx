@@ -138,7 +138,7 @@ export default function ErpHomeworkPage() {
       {!!section?.subjects.length && (
         <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5" role="tablist" aria-label={L({ hi: "विषय", en: "Subject" })}>
           {["", ...section.subjects].map((s) => (
-            <button key={s || "all"} role="tab" aria-selected={subject === s} onClick={() => setSubject(s)} className={clsx("min-h-[38px] shrink-0 rounded-lg px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#3099a4] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
+            <button key={s || "all"} role="tab" aria-selected={subject === s} onClick={() => setSubject(s)} className={clsx("min-h-[38px] shrink-0 rounded-lg px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#0D2A5E] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
               {s || L({ hi: "सभी विषय", en: "All subjects" })}
             </button>
           ))}

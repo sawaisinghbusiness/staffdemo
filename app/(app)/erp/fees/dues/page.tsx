@@ -96,7 +96,7 @@ export default function ErpDuesPage() {
       </p>
       {error && !report && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="staff-summary grid grid-cols-2">
         <Figure label={L({ hi: "अभी देर वाली", en: "Overdue now" })} value={s ? lakh(s.dueNow) : "…"} note={s ? `${s.withDues.toLocaleString("en-IN")} ${L({ hi: "बच्चे", en: "students" })}` : ""} dot="bg-rose-500" />
         <Figure label={L({ hi: "अब तक लेट फ़ाइन", en: "Late fine so far" })} value={s ? lakh(s.fine) : "…"} note={L({ hi: "फ़ीस सेटअप के हिसाब से", en: "As per fee setup" })} dot="bg-marigold-400" />
         <Figure

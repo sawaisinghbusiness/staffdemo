@@ -282,7 +282,7 @@ function UserSheet({ user, meId, onClose, onSaved }: { user: AppUser | null; meI
           {ROLE_ORDER.map((r) => {
             const on = role === r;
             return (
-              <label key={r} className={clsx("flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5", on ? "border-[#3099a4] bg-[#3099a4]/5" : "border-ink-200 bg-white", isMe && !on && "cursor-not-allowed opacity-50")}>
+              <label key={r} className={clsx("flex cursor-pointer gap-3 rounded-xl border px-3 py-2.5", on ? "border-[#0D2A5E] bg-[#0D2A5E]/5" : "border-ink-200 bg-white", isMe && !on && "cursor-not-allowed opacity-50")}>
                 <span className="radio min-h-0 pt-0.5">
                   <input type="radio" name="u-role" checked={on} disabled={isMe} onChange={() => setRole(r)} />
                 </span>

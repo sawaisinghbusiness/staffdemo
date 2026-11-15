@@ -262,12 +262,12 @@ function DayTab({ canWrite }: { canWrite: boolean }) {
                 <Check className="h-4 w-4" aria-hidden /> {L({ hi: "सब उपस्थित", en: "Mark all present" })}
               </button>
               <label className="flex min-h-[40px] cursor-pointer items-center gap-2 text-[13.5px] text-ink-600">
-                <input type="checkbox" checked={showTimes} onChange={(e) => toggleTimes(e.target.checked)} className="h-[18px] w-[18px] accent-[#3099a4]" />
+                <input type="checkbox" checked={showTimes} onChange={(e) => toggleTimes(e.target.checked)} className="h-[18px] w-[18px] accent-[#0D2A5E]" />
                 {L({ hi: "आने/जाने का समय", en: "In/out time" })}
               </label>
             </div>
           )}
-          <div className="grid grid-cols-[1fr_36px_36px_36px_36px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
+          <div className="grid grid-cols-[minmax(0,1fr)_44px_44px_44px_44px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
             <span>{L({ hi: "नाम", en: "Name" })}</span>
             {STATUS.map((o) => (
               <span key={o.key} className="text-center">
@@ -283,7 +283,7 @@ function DayTab({ canWrite }: { canWrite: boolean }) {
               const times = ((showTimes && canWrite) || e.inTime || e.outTime) && works(e.status);
               return (
                 <li key={s.id} className={clsx("roll-row px-1", e.status !== "Present" && "roll-row-on")}>
-                  <div className="grid min-h-[52px] grid-cols-[1fr_36px_36px_36px_36px] items-center text-[15px]">
+                  <div className="grid min-h-[52px] grid-cols-[minmax(0,1fr)_44px_44px_44px_44px] items-center text-[15px]">
                     <span className="min-w-0 py-1">
                       <span className="block truncate">{s.name}</span>
                       <span className="block truncate text-[11.5px] text-ink-400">
@@ -576,7 +576,7 @@ function LeaveTab({ canWrite, res }: { canWrite: boolean; res: ReturnType<typeof
     <div className="space-y-3 pb-4">
       <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4" role="tablist" aria-label={L({ hi: "दिखाएँ", en: "Show" })}>
         {FILTERS.map(([k, t]) => (
-          <button key={k} type="button" role="tab" aria-selected={filter === k} onClick={() => setFilter(k)} className={clsx("min-h-[40px] shrink-0 rounded-full border bg-white px-3.5 text-[14px]", filter === k ? "border-[#3099a4] font-semibold text-[#3099a4]" : "border-ink-200 text-ink-700")}>
+          <button key={k} type="button" role="tab" aria-selected={filter === k} onClick={() => setFilter(k)} className={clsx("min-h-[40px] shrink-0 rounded-full border bg-white px-3.5 text-[14px]", filter === k ? "border-[#0D2A5E] font-semibold text-[#0D2A5E]" : "border-ink-200 text-ink-700")}>
             {L(t)}
             {k !== "all" && list ? <span className="tnum ml-1 text-ink-400">{count(k)}</span> : null}
           </button>
@@ -723,7 +723,7 @@ function RecordLeaveSheet({ staff, today, onClose, onSaved }: { staff: LeaveList
         </p>
         <textarea id="lv-reason" value={reason} maxLength={500} onChange={(e) => setReason(e.target.value)} rows={2} placeholder={L({ hi: "कारण, जैसे जोधपुर में बहन की शादी", en: "Reason, e.g. Sister's wedding at Jodhpur" })} className="textarea-box" />
         <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border border-ink-200 bg-white p-3 text-[14px] text-ink-700">
-          <input type="checkbox" checked={approve} onChange={(e) => setApprove(e.target.checked)} className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#3099a4]" />
+          <input type="checkbox" checked={approve} onChange={(e) => setApprove(e.target.checked)} className="mt-0.5 h-[18px] w-[18px] shrink-0 accent-[#0D2A5E]" />
           <span>
             <b className="font-semibold text-ink-900">{L({ hi: "पहले से मंज़ूर", en: "Already approved" })}</b>
             <span className="block text-[13px] text-ink-500">{L({ hi: "ये दिन स्टाफ़ हाज़िरी में छुट्टी पर लग जाएँगे। जो दिन पहले से लगे हैं, वे नहीं बदलेंगे।", en: "Marks these days On leave in staff attendance. Days already marked are not changed." })}</span>

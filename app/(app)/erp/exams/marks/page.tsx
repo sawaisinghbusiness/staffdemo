@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Lock, Search } from "lucide-react";
+import { ChevronRight, Lock, Search } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import type { Exam, SectionProgress } from "@/lib/erpExams";
@@ -97,7 +97,7 @@ export default function ErpMarksEntryPage() {
               {s.subjects.length === 0 ? (
                 <p className="text-[13px] text-marigold-700">{L({ hi: "विषय नहीं डले", en: "No subjects set" })}</p>
               ) : (
-                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <div className="mt-2 divide-y divide-ink-100">
                   {s.subjects.map((sub) => {
                     const full = s.students > 0 && sub.entered >= s.students;
                     const some = sub.entered > 0 && !full;
@@ -105,12 +105,12 @@ export default function ErpMarksEntryPage() {
                       <Link
                         key={sub.name}
                         href={`/erp/exams/marks/sheet/?${new URLSearchParams({ exam: examId, section: s.classSec, subject: sub.name })}`}
-                        className={clsx("flex min-h-[38px] items-center gap-1.5 rounded-lg px-2.5 text-[13px] font-semibold", full ? "bg-jade-50 text-jade-800 ring-1 ring-jade-200" : some ? "bg-marigold-50 text-ink-900 ring-1 ring-marigold-300" : "bg-white text-ink-700 ring-1 ring-ink-200")}
+                        className="flex min-h-[48px] items-center gap-3 py-2 text-[14px] font-medium text-ink-900 active:bg-ink-50"
                       >
-                        {sub.name}
+                        <span className="min-w-0 flex-1">{sub.name}</span>
                         <span className={clsx("tnum text-[12px] font-medium", full ? "text-jade-600" : some ? "text-marigold-700" : "text-ink-400")}>
                           {sub.entered}/{s.students}
-                        </span>
+                        </span><ChevronRight className="h-4 w-4 shrink-0 text-brand-600" aria-hidden />
                       </Link>
                     );
                   })}

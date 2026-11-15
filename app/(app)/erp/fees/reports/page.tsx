@@ -122,7 +122,7 @@ export default function ErpFeeReportsPage() {
         {report ? ` · ${num(report.totals.receipts)} ${L({ hi: "रसीदें", en: "receipts" })}` : ""} · {L({ hi: "रद्द रसीदें नहीं गिनीं", en: "cancelled receipts not counted" })}
       </p>
 
-      <div className="grid grid-cols-2 gap-2">
+      <div className="staff-summary grid grid-cols-2">
         <Figure label={L({ hi: "जमा", en: "Collected" })} value={fig(t?.total)} note={t ? `${num(t.receipts)} ${L({ hi: "रसीदें", en: "receipts" })}${t.byMode.Other ? ` · ${inr(t.byMode.Other)} other` : ""}` : ""} dot="bg-jade-500" />
         <Figure label={L({ hi: "नकद", en: "Cash" })} value={fig(t?.byMode.Cash)} note={t ? share(t.byMode.Cash) : ""} color={MODE_COLOR.Cash} />
         <Figure label="UPI" value={fig(t?.byMode.UPI)} note={t ? share(t.byMode.UPI) : ""} color={MODE_COLOR.UPI} />

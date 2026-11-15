@@ -378,7 +378,7 @@ function WorkSheet({ s, all, classes, onClose, onSaved }: { s: StaffMember; all:
                     {x.subjects.map((sub) => {
                       const on = subs.some((a) => a.classSec === x.classSec && a.subject === sub);
                       return (
-                        <button key={sub} type="button" aria-pressed={on} onClick={() => toggle(x.classSec, sub)} className={clsx("inline-flex min-h-[40px] items-center gap-1 rounded-full border bg-white px-3 text-[14px]", on ? "border-[#3099a4] font-semibold text-[#3099a4]" : "border-ink-200 text-ink-700")}>
+                        <button key={sub} type="button" aria-pressed={on} onClick={() => toggle(x.classSec, sub)} className={clsx("inline-flex min-h-[40px] items-center gap-1 rounded-full border bg-white px-3 text-[14px]", on ? "border-[#0D2A5E] font-semibold text-[#0D2A5E]" : "border-ink-200 text-ink-700")}>
                           {on && <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />}
                           {sub}
                         </button>

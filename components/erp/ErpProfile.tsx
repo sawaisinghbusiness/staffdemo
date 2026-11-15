@@ -55,8 +55,8 @@ export function InfoRow({ text, value, last }: { text: string; value: string; la
 export function Group({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 className="mx-1 mb-1.5 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{title}</h2>
-      <div className="rounded-2xl border border-ink-100 bg-white pl-4">{children}</div>
+      <h2 className="mx-1 mb-2.5 text-[14px] font-semibold text-[#242628]">{title}</h2>
+      <div className="rounded-xl border border-[#DCE4ED] bg-white pl-4">{children}</div>
     </section>
   );
 }

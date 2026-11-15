@@ -92,22 +92,22 @@ export default function StudentDetailPage() {
 
       <section className="grid grid-cols-3 rounded-xl border border-ink-100 bg-white py-3 text-center">
         <span>
-          <b className="tnum block text-[18px] font-extrabold">{data.attendancePct == null ? "—" : `${num(data.attendancePct)}%`}</b>
+          <b className="tnum block text-[20px] font-semibold">{data.attendancePct == null ? "—" : `${num(data.attendancePct)}%`}</b>
           <span className="text-[12px] text-ink-600">{L({ hi: "हाज़िरी", en: "Attendance" })}</span>
         </span>
         <span className="border-x border-ink-100">
-          <b className="tnum block text-[18px] font-extrabold">{data.absentDays ?? "—"}</b>
+          <b className="tnum block text-[20px] font-semibold">{data.absentDays ?? "—"}</b>
           <span className="text-[12px] text-ink-600">{L({ hi: "अनुपस्थित दिन", en: "Absent days" })}</span>
         </span>
         <span>
-          <b className="tnum block text-[18px] font-extrabold">{data.avgPct == null ? "—" : `${num(data.avgPct)}%`}</b>
+          <b className="tnum block text-[20px] font-semibold">{data.avgPct == null ? "—" : `${num(data.avgPct)}%`}</b>
           <span className="text-[12px] text-ink-600">{L({ hi: "औसत अंक", en: "Avg. marks" })}</span>
         </span>
       </section>
 
       {details.length > 0 && (
         <section>
-          <h2 className="mx-1 mb-1.5 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{L({ hi: "ज़रूरी जानकारी", en: "Important details" })}</h2>
+          <h2 className="mx-1 mb-1.5 teacher-section-heading">{L({ hi: "ज़रूरी जानकारी", en: "Important details" })}</h2>
           <dl className="grid grid-cols-2 rounded-xl border border-ink-100 bg-white pl-3.5">
             {details.map(([k, v, wide]) => (
               <div key={k} className={clsx("border-b border-ink-100 py-2 pr-3 last:border-b-0", wide && "col-span-2")}>
@@ -121,7 +121,7 @@ export default function StudentDetailPage() {
 
       {!!data.siblings?.length && (
         <section>
-          <h2 className="mx-1 mb-1.5 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{L({ hi: "भाई-बहन", en: "Brothers & sisters" })}</h2>
+          <h2 className="mx-1 mb-1.5 teacher-section-heading">{L({ hi: "भाई-बहन", en: "Brothers & sisters" })}</h2>
           <ul className="rounded-xl border border-ink-100 bg-white pl-3.5">
             {data.siblings.map((b) => {
               const inner = (
@@ -154,7 +154,7 @@ export default function StudentDetailPage() {
       )}
 
       <section className="space-y-2">
-        <h2 className="mx-1 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{L({ hi: "परीक्षा के अंक", en: "Exam results" })}</h2>
+        <h2 className="mx-1 teacher-section-heading">{L({ hi: "परीक्षा के अंक", en: "Exam results" })}</h2>
         {data.exams.length === 0 ? (
           <Empty>{L({ hi: "अभी कोई अंक नहीं।", en: "No marks yet." })}</Empty>
         ) : (
@@ -162,7 +162,7 @@ export default function StudentDetailPage() {
             {data.exams.map((e) => {
               const isOpen = open === e.id;
               return (
-                <li key={e.id} className="glass-line card-in">
+                <li key={e.id} className="glass-line">
                   <button onClick={() => setOpen(isOpen ? null : e.id)} aria-expanded={isOpen} className="flex min-h-[60px] w-full items-center gap-3 px-3.5 py-2.5 text-left">
                     <span className="min-w-0 flex-1">
                       <span className="block text-[15px] font-bold">{e.title}</span>

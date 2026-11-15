@@ -1,0 +1,53 @@
+/* Shared task screens extend the approved StaffHome, without changing its composition. */
+.staff-workspace{--staff-ink:#242628;--staff-muted:#666A6E;--staff-line:#DCE4ED;--staff-brand:#0D2A5E;--staff-paper:#F7F9FC;font-family:'Plus Jakarta Sans Variable','Noto Sans Devanagari Variable',system-ui,sans-serif;color:var(--staff-ink);color-scheme:light}
+.staff-workspace.app-page{background:var(--staff-paper)}
+.staff-workspace.app-page::before{display:none}
+.staff-workspace .staff-task-main{padding-top:16px}
+.staff-workspace h1,.staff-workspace h2,.staff-workspace h3{color:var(--staff-ink)}
+.staff-workspace h2{font-size:17px;line-height:1.45;font-weight:600;letter-spacing:-.015em}
+.staff-workspace .font-title{font-family:inherit}
+.staff-workspace .tnum.font-extrabold{font-weight:600}
+.staff-workspace .text-ink-400{color:#6A7078}
+.staff-workspace .text-ink-500{color:var(--staff-muted)}
+.staff-workspace .text-ink-900{color:var(--staff-ink)}
+.staff-workspace .glass-line,.staff-workspace .row-card{border:1px solid var(--staff-line);border-radius:14px;background:#fff;box-shadow:none;backdrop-filter:none;-webkit-backdrop-filter:none;animation:none}
+.staff-workspace .row-card{padding:16px}
+.staff-workspace .row-card .row-card,.staff-workspace .row-card .glass-line{border-radius:0;box-shadow:none}
+.staff-workspace .teacher-form{padding:16px;border:1px solid var(--staff-line);border-radius:14px;background:#fff}
+.staff-workspace .teacher-register{overflow:hidden;border:1px solid var(--staff-line);border-radius:14px;background:#fff}
+.staff-workspace .teacher-register>li,.staff-workspace .teacher-register>.roll-row{padding-inline:14px}
+.staff-workspace .teacher-section-heading{font-size:15px;font-weight:600;color:var(--staff-ink)}
+.staff-workspace .field,.staff-workspace .field-box,.staff-workspace .textarea-box{border:1px solid #C8D2DE;border-radius:10px;background:#fff;box-shadow:none;color:var(--staff-ink)}
+.staff-workspace .field,.staff-workspace .field-box{min-height:48px}
+.staff-workspace .field:focus,.staff-workspace .field-box:focus-within,.staff-workspace .textarea-box:focus{border-color:var(--staff-brand);box-shadow:0 0 0 2px #E8EFF7;outline:none}
+.staff-workspace input,.staff-workspace select,.staff-workspace textarea{caret-color:var(--staff-brand)}
+.staff-workspace input::placeholder,.staff-workspace textarea::placeholder{color:#69727D;opacity:1}
+.staff-workspace .btn,.staff-workspace .btn-primary,.staff-workspace .btn-go,.staff-workspace .btn-line,.staff-workspace .btn-quiet{min-height:46px;border-radius:10px;font-family:inherit;font-size:14px;font-weight:600;box-shadow:none;transition:background-color .15s,color .15s,border-color .15s}
+.staff-workspace .btn-primary,.staff-workspace .btn-go{background:#0D2A5E;color:#fff;background-image:none}
+.staff-workspace .btn-primary:hover,.staff-workspace .btn-go:hover{background:#0A224C}
+.staff-workspace .btn-line,.staff-workspace .btn-quiet{border-color:#C8D2DE;background:#fff;color:#0D2A5E}
+.staff-workspace .btn-line:hover,.staff-workspace .btn-quiet:hover{background:#EEF3F9}
+.staff-workspace .tabs-line,.staff-workspace .stick-chips{background:var(--staff-paper);border-color:var(--staff-line)}
+.staff-workspace main .tabs-line{box-shadow:-16px 0 0 var(--staff-paper),16px 0 0 var(--staff-paper)}
+.staff-workspace .tabs-line>button{min-height:46px;color:#666A6E;font-size:14px}
+.staff-workspace .tabs-line>[aria-selected=true]{color:var(--staff-brand)}
+.staff-workspace .tabs-line-bar{background:var(--staff-brand);height:2px}
+.staff-workspace .roll-row{border-width:1px;border-radius:8px}
+.staff-workspace .roll-row-on{border-color:#B7C5D5;box-shadow:none}
+.staff-workspace .cal{border:1px solid var(--staff-line);border-radius:14px;background:#fff;box-shadow:none;backdrop-filter:none}
+.staff-workspace .staff-summary{display:flex;flex-wrap:wrap;gap:0;border:1px solid var(--staff-line);border-radius:14px;background:#fff;overflow:hidden}
+.staff-workspace .staff-summary>*{flex:1 1 90px;min-width:0;padding:14px 10px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.staff-workspace .staff-summary>*+*{border-left:1px solid var(--staff-line)}
+.staff-workspace .staff-summary .tnum{font-variant-numeric:tabular-nums;font-weight:600}
+.staff-workspace ::selection{background:#DCE7F5;color:#0D2A5E}
+.staff-workspace :focus-visible{outline:2px solid #0D2A5E;outline-offset:3px;box-shadow:none}
+.staff-workspace .enter,.staff-workspace .reveal,.staff-workspace .page-next,.staff-workspace .page-back{animation:none}
+.staff-workspace .drop-in{border:1px solid #C8D2DE;border-radius:10px}
+.staff-workspace .kv dd{overflow-wrap:anywhere}
+.staff-workspace .staff-save-bar{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+@media(prefers-reduced-motion:reduce){.staff-workspace *, .staff-workspace *::before,.staff-workspace *::after{animation:none!important;transition:none!important}}
+
+.staff-workspace .teacher-register .roll-row{border:0;border-bottom:1px solid var(--staff-line);border-radius:0;box-shadow:none}
+.staff-workspace .teacher-register .roll-row:last-child{border-bottom:0}
+.staff-workspace .teacher-register .roll-row-on{background:#F1F5FA}
+.staff-workspace [tabindex="-1"]:focus{outline:none}

@@ -1,0 +1,24 @@
+[
+  {
+    "route": "notes",
+    "file": "notes.png",
+    "url": "http://127.0.0.1:3301/notes",
+    "text": "Teacher's Note\nClass - 5th - B\nStudent - Aarav Choudhary\n\nThis note will be visible to the student's parent.\n\nSend note\nEarlier notes\n\nMahi Garg · 5th - B\n\nVery good in mental maths. Needs practice in word problems.\n\n9 Nov\n\nLokesh Gehlot · 5th - B\n\nHomework copy not brought for a week. Spoke to father.\n\n5 Nov\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 360,
+    "scrollWidth": 345,
+    "heading": "Teacher's Note",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "students",
+    "file": "students.png",
+    "url": "http://127.0.0.1:3301/students",
+    "text": "Students\n\n5th - B · 14 / 14 students\n\nAC\nAarav Choudhary\nRoll 01\nAS\nAnanya Sharma\nRoll 02\nBR\nBhavesh Rathore\nRoll 03\nCM\nChetna Meena\nRoll 04\nDS\nDevendra Singh\nRoll 05\nDB\nDivya Bishnoi\nRoll 06\nFK\nFarhan Khan\nRoll 07\nGK\nGeeta Kanwar\nRoll 08\nHV\nHarsh Vyas\nRoll 09\nIJ\nIshita Jain\nRoll 10\nJS\nJayant Soni\nRoll 11\nKP\nKavya Panwar\nRoll 12\nLG\nLokesh Gehlot\nRoll 13\nMG\nMahi Garg\nRoll 14\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 360,
+    "scrollWidth": 345,
+    "heading": "Students",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

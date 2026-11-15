@@ -58,7 +58,7 @@ export default function ErpClassesPage() {
     if (res.data) setClasses(cleanClassList(res.data.data));
   }, [res.data]);
   const counts = useMemo<Counts | null>(() => {
-    if (!day.data && !day.error) return null;
+    if (!day.data) return null;
     const c: Counts = {};
     for (const s of day.data?.sections || []) c[`${s.class}|${s.section}`] = (c[`${s.class}|${s.section}`] || 0) + (s.students || 0);
     return c;
@@ -290,7 +290,7 @@ export default function ErpClassesPage() {
         <SectionSheet
           cls={drawerClass}
           section={drawerSection}
-          students={secCount(drawerClass.name, drawerSection.name)}
+          students={counts ? secCount(drawerClass.name, drawerSection.name) : null}
           streams={streams}
           setupNotice={setupNotice}
           onSetupNotice={setSetupNotice}
@@ -433,7 +433,7 @@ function QuickLetters({ letters, picked, onToggle }: { letters: string[]; picked
       {letters.map((s) => {
         const on = picked.includes(s);
         return (
-          <button key={s} type="button" aria-pressed={on} onClick={() => onToggle(s)} className={clsx("h-11 w-11 rounded-lg border text-[15px] font-semibold", on ? "border-[#3099a4] bg-[#3099a4] text-white" : "border-ink-200 bg-white text-ink-600")}>
+          <button key={s} type="button" aria-pressed={on} onClick={() => onToggle(s)} className={clsx("h-11 w-11 rounded-lg border text-[15px] font-semibold", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-200 bg-white text-ink-600")}>
             {s}
           </button>
         );
@@ -720,7 +720,7 @@ function SectionSheet({
 }: {
   cls: ClassItem;
   section: SectionItem;
-  students: number;
+  students: number | null;
   streams: string[];
   setupNotice: string | null;
   onSetupNotice: (msg: string) => void;
@@ -814,7 +814,7 @@ function SectionSheet({
           {label} {L({ hi: "बन जाएगा", en: "becomes" })} <b className="text-ink-900">{cls.name} - {newName}</b>.
         </p>
         <p className="mb-4 text-[14px] text-ink-600">
-          {students > 0
+          {students === null ? L({hi:"\u092c\u091a\u094d\u091a\u094b\u0902 \u0915\u0940 \u0938\u0902\u0916\u094d\u092f\u093e \u0905\u092d\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",en:"Student count is unavailable."}) : students > 0
             ? L({ hi: `${label} के सारे ${stu} नए नाम में चले जाएँगे। रिकॉर्ड, हाज़िरी और फ़ीस वैसे ही रहेंगे।`, en: `Renaming moves all ${stu} of ${label} to the new name. Their records, attendance and fees stay the same.` })
             : L({ hi: "इस सेक्शन में अभी कोई बच्चा नहीं।", en: "No students are in this section yet." })}
         </p>
@@ -888,11 +888,11 @@ function SectionSheet({
 
         <p className="mlabel pt-2">{L({ hi: "सेक्शन हटाएँ", en: "Delete section" })}</p>
         <p className="text-[12.5px] text-ink-500">
-          {students
+          {students === null ? L({hi:"\u092c\u091a\u094d\u091a\u094b\u0902 \u0915\u0940 \u0938\u0902\u0916\u094d\u092f\u093e \u0905\u092d\u0940 \u0909\u092a\u0932\u092c\u094d\u0927 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",en:"Student count is unavailable. Reload before deleting a section."}) : students
             ? L({ hi: `${label} में ${stu} हैं। पहले प्रमोट और ट्रांसफ़र से उन्हें भेजें।`, en: `${stu} ${students === 1 ? "is" : "are"} in ${label}. Move them from Promote & transfer first.` })
             : L({ hi: "सेक्शन हट जाएगा। यह वापस नहीं होगा।", en: "Removes the section. This cannot be undone." })}
         </p>
-        <button type="button" onClick={() => setConfirm("delete")} disabled={!!students || busy} className="btn-line w-full !border-rose-200 !text-rose-600">
+        <button type="button" onClick={() => setConfirm("delete")} disabled={students === null || !!students || busy} className="btn-line w-full !border-rose-200 !text-rose-600">
           <Trash2 className="h-4 w-4" aria-hidden /> {L({ hi: "हटाएँ", en: "Delete" })}
         </button>
       </div>

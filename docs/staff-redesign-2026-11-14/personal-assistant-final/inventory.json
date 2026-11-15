@@ -1,0 +1,12 @@
+[
+  {
+    "route": "assistant",
+    "file": "assistant.png",
+    "url": "http://127.0.0.1:3301/assistant",
+    "text": "School Sahayak\n\nHello, Rakesh!\n\nWhat would you like to know?\n\nWho is absent today?\nMy timetable today?\nLeave requests waiting?\nHow much leave do I have?\nQuestion",
+    "width": 443,
+    "scrollWidth": 443,
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

@@ -97,7 +97,7 @@ export default function MessageChatPage() {
   const sub = s ? [`${L({ hi: "अभिभावक", en: "Parent" })} · ${s.classSec}`, s.rollNo && `${L({ hi: "रोल", en: "Roll" })} ${s.rollNo}`].filter(Boolean).join(" · ") : "";
 
   return (
-    <div className="flex min-h-[100dvh] flex-col bg-ink-50">
+    <div className="staff-workspace flex min-h-[100dvh] flex-col bg-[#F7F9FC]">
       <header className="pt-safe sticky top-0 z-20 border-b border-ink-100 bg-white">
         <div className="flex h-14 items-center gap-2 pl-1.5 pr-4">
           <Link href="/messages/" className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={L({ hi: "वापस", en: "Back" })}>
@@ -195,9 +195,9 @@ export default function MessageChatPage() {
 function Bubble({ m, lang }: { m: ChatMessage; lang: Lang }) {
   const mine = m.from === "teacher";
   return (
-    <div className={mine ? "max-w-[80%] self-end rounded-2xl rounded-br-md border-[1.5px] border-ink-900 bg-brand-700 px-3.5 pb-1.5 pt-2 text-white" : "max-w-[80%] self-start rounded-2xl rounded-bl-md border-[1.5px] border-ink-900 bg-white px-3.5 pb-1.5 pt-2 text-ink-900"}>
+    <div className={mine ? "max-w-[80%] self-end rounded-2xl rounded-br-md border border-[#0D2A5E] bg-[#0D2A5E] px-3.5 pb-1.5 pt-2 text-white" : "max-w-[80%] self-start rounded-2xl rounded-bl-md border border-[#DCE4ED] bg-white px-3.5 pb-1.5 pt-2 text-ink-900"}>
       <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.text}</p>
-      <p className={clsx("mt-0.5 flex items-center justify-end gap-1 text-[11px]", mine ? "text-white/70" : "text-ink-400")}>
+      <p className={clsx("mt-0.5 flex items-center justify-end gap-1 text-[12px]", mine ? "text-white/85" : "text-ink-400")}>
         {clockOf(m.at, lang)}
         {mine && (m.pending ? <Clock3 className="h-3 w-3" aria-label="Sending" /> : <CheckCheck className="h-3.5 w-3.5" aria-hidden />)}
       </p>
@@ -220,7 +220,7 @@ function SentTime({ m, lang }: { m: ChatMessage; lang: Lang }) {
         ? { dot: "bg-ink-400", text: "text-ink-500", word: L({ hi: "दूसरा समय माँगा", en: "Asked for another time" }) }
         : { dot: "bg-marigold-500", text: "text-marigold-600", word: L({ hi: "जवाब का इंतज़ार", en: "Waiting for the parent" }) };
   return (
-    <div className="w-[84%] max-w-[320px] self-end overflow-hidden rounded-2xl border-[1.5px] border-ink-900 bg-white">
+    <div className="w-[84%] max-w-[320px] self-end overflow-hidden rounded-2xl border border-[#DCE4ED] bg-white">
       <p className="px-4 pt-3 text-[12.5px] font-semibold text-ink-500">{L({ hi: "मिलने का समय भेजा", en: "Meeting time sent" })}</p>
       <div className="flex items-center gap-3 px-4 pb-3 pt-1">
         <b className="tnum text-[32px] font-bold leading-none text-brand-700">{+x.date.slice(8)}</b>

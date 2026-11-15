@@ -100,7 +100,7 @@ export default function ErpMeetingsPage() {
               return (
                 <li key={m.id} className="overflow-hidden rounded-2xl border border-ink-100 bg-white">
                   <div className="flex gap-3 px-3.5 pb-3 pt-3.5">
-                    <span className={clsx("flex w-[52px] shrink-0 flex-col items-center justify-center rounded-xl py-1.5", over ? "bg-ink-100 text-ink-700" : "bg-[#e6f3f4] text-[#1f6f78]")}>
+                    <span className={clsx("flex w-[52px] shrink-0 flex-col items-center justify-center rounded-xl py-1.5", over ? "bg-ink-100 text-ink-700" : "bg-[#E8EFF7] text-[#0D2A5E]")}>
                       <small className="text-[11px] font-semibold">{dayPart(m.date, "weekday")}</small>
                       <b className="tnum text-[20px] font-extrabold leading-tight">{dayPart(m.date, "day")}</b>
                       <small className="text-[11px] font-semibold">{dayPart(m.date, "month")}</small>
@@ -126,7 +126,7 @@ export default function ErpMeetingsPage() {
                           <b className="tnum text-ink-900">{L({ hi: `${m.slotCount} में से ${m.booked.length}`, en: `${m.booked.length} of ${m.slotCount} slots` })}</b>
                         </div>
                         <span className="block h-1.5 overflow-hidden rounded-full bg-ink-100" aria-hidden>
-                          <span className="block h-full rounded-full bg-[#3099a4]" style={{ width: `${pct}%` }} />
+                          <span className="block h-full rounded-full bg-[#0D2A5E]" style={{ width: `${pct}%` }} />
                         </span>
                       </>
                     ) : (

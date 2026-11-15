@@ -1,0 +1,56 @@
+[
+  {
+    "route": "",
+    "file": "home.png",
+    "url": "http://127.0.0.1:3301/",
+    "text": "Mother Teresa Nobles Academy\nBarmer\n4\nGood Evening\nRB\nRakesh Bishnoi\nTeacher • Class teacher 5th - B\nToday\n·\nAttendance not marked\nAttendance\nHomework\nStudents\nMarks\nToday at school\nClass attendance\n5th - B not marked yet\n1\nLeave requests\nWaiting for your answer\n3\nParent enquiries\nNew messages\n3\nToday's lectures\nView All\n\nAll of today's classes are done.\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "attendance",
+    "file": "attendance.png",
+    "url": "http://127.0.0.1:3301/attendance",
+    "text": "Attendance\nStudents\nTeacher\nClass - 5th - B\nDate\nSave · 14 present, 0 absent\nNo.\nName\nP\nA\nL\n01\nAarav Choudhary\n02\nAnanya Sharma\n03\nBhavesh Rathore\n04\nChetna Meena\n05\nDevendra Singh\n06\nDivya Bishnoi\n07\nFarhan Khan\n08\nGeeta Kanwar\n09\nHarsh Vyas\n10\nIshita Jain\n11\nJayant Soni\n12\nKavya Panwar\n13\nLokesh Gehlot\n14\nMahi Garg\nSave · 14 present, 0 absent\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Attendance",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "homework",
+    "file": "homework.png",
+    "url": "http://127.0.0.1:3301/homework",
+    "text": "Homework\nCreate\nCheck\nClass - 5th - B\nSubject - Maths\nTitle\nSubmit by\nAttach photo or PDF\nSend homework\nRecently given\n\nMaths - 5th - B\n\n13 Nov\n\nExercise 4.2 — Q 1 to 10\n\nShow all steps.\n\nDue 14 Nov\n\nMaths - 5th - A\n\n12 Nov\n\nTable of 13 and 14\n\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Homework",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "profile",
+    "file": "profile.png",
+    "url": "http://127.0.0.1:3301/profile",
+    "text": "Profile\nRB\nRakesh Bishnoi\nTeacher · T-014\nMother Teresa Nobles Academy\nMy details\nClass teacher of\n5th - B\nTeaches\nMaths, Science · 5th - B, 5th - A, 6th - A\nJoined\n15 Jun 2019\nMobile\n94140 00000\nMine\nSalary slips\nMy attendance\nMy leave\nSettings\nLanguage\nEnglish\nHelp\nCall school office\n94600 62543\nAsk School Sahayak\nLog out\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Profile",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  },
+  {
+    "route": "messages",
+    "file": "messages.png",
+    "url": "http://127.0.0.1:3301/messages",
+    "text": "Parent Enquiries\nAll\n5th - A\n5th - B\nWaiting for your reply\n2\nLS\nLaxman Singh · 5th - B\n1\nMa'am, Laxman is finding fractions hard. How can we practise at…\n14 hours ago\nKP\nKavya Purohit · 5th - A\n2\nCan she give the Maths test on Monday?\n3 hours ago\nReplied\n1\nAM\nAarav Mali · 5th - B\nYou: Yes, please send the form tomorrow.\nThu\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 443,
+    "scrollWidth": 443,
+    "heading": "Parent Enquiries",
+    "font": "\"Inter Variable\", \"Noto Sans Devanagari Variable\", system-ui, sans-serif",
+    "loading": false
+  }
+]

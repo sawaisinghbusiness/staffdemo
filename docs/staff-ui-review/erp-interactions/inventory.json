@@ -1,0 +1,33 @@
+[
+  {
+    "route": "erp/students/id-cards",
+    "file": "erp-students-id-cards.png",
+    "url": "http://127.0.0.1:3301/erp/students/id-cards",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "ID Cards\nAarav Sharma\nSR-1200\nFront\nBack\n\nIf found, please return to\n\nSB\nSMS Barmer Review School\nSample address, Barmer, Rajasthan 344001\nIn emergency, call\nRajesh Sharma\n—\nAddress\nBarmer, Rajasthan\nTransport\nSchool bus\nThis card belongs to the school and cannot be transferred.\nCarry it every day and show it when asked.\nTell the school office at once if it is lost.\nValid till 31 Mar 2027\nClass - 6th (8)\nSection - All\nEveryone\n8 selected\nAS\nAarav Sharma\n1\nAS\nAditi Soni\n7\nDS\nDiya Singh\n13\nTD\nTara Desai\n19\nVS\nVihaan Singh\n4\nAJ\nArjun Joshi\n10\nAB\nAditya Bhat\n16\nYV\nYash Verma\n22\nHome\nStudents\nReport\nAttendance\nProfile\nPrint 8 cards",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "ID Cards",
+      "Aarav Sharma"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  },
+  {
+    "route": "erp/settings",
+    "file": "erp-settings.png",
+    "url": "http://127.0.0.1:3301/erp/settings",
+    "title": "SMS Barmer Review School · Staff",
+    "text": "School & Session\nSchool\nSession & holidays\nHow it prints\n\nSchool\n\nSchool name *\nShort name (e.g. SPS)\nPrincipal's name (under the signature)\nSB\nLogo\nNo logo yet: the crest with your short name is used\nUpload\nNo photo\nSchool photo\nShown at the top of the parent and staff apps' Home\nUpload\n\nBoard and registration\n\nBoard - CBSE\nAffiliation no.\nSchool no. / code\nUDISE+ code (11 digits)\n\nAddress and contact\n\nAddress (street / area)\nCity\nDistrict\nState\nPIN code\nOffice phone\nSecond phone\nE-mail\nWebsite\nHome\nStudents\nReport\nAttendance\nProfile",
+    "width": 390,
+    "scrollWidth": 375,
+    "headings": [
+      "School & Session"
+    ],
+    "loading": false,
+    "errors": [],
+    "missingFixtures": []
+  }
+]

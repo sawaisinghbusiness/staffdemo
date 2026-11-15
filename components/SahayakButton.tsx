@@ -36,6 +36,7 @@ const column = () => {
 export function SahayakButton() {
   const L = useL();
   const router = useRouter();
+  const [clearance, setClearance] = useState(NAV + GAP);
   const [spot, setSpot] = useState<Spot | null>(null);
   const [drag, setDrag] = useState<{ x: number; y: number } | null>(null);
   const [, setSize] = useState(0);
@@ -47,12 +48,23 @@ export function SahayakButton() {
     window.addEventListener("resize", resize);
     return () => window.removeEventListener("resize", resize);
   }, []);
+  useEffect(() => {
+    const measure = () => {
+      const bar = document.querySelector<HTMLElement>('.staff-save-bar');
+      setClearance(bar ? Math.max(NAV + GAP, window.innerHeight - bar.getBoundingClientRect().top + GAP) : NAV + GAP);
+    };
+    const observer = new MutationObserver(measure);
+    observer.observe(document.body, { childList: true, subtree: true });
+    window.addEventListener('resize', measure);
+    measure();
+    return () => { observer.disconnect(); window.removeEventListener('resize', measure); };
+  }, []);
   if (!spot) return null;
 
   const col = column();
   const restX = spot.side === "left" ? col.left + GAP : col.left + col.width - GAP - SIZE;
   const maxBottom = window.innerHeight - SIZE - 120; // clear of the top bar
-  const bottom = Math.min(Math.max(spot.bottom, NAV + GAP), maxBottom);
+  const bottom = Math.min(Math.max(spot.bottom, clearance), maxBottom);
   const restY = window.innerHeight - bottom - SIZE;
 
   function down(e: React.PointerEvent<HTMLButtonElement>) {
@@ -78,7 +90,7 @@ export function SahayakButton() {
     const x = e.clientX - t.dx + SIZE / 2;
     const next: Spot = {
       side: x < col.left + col.width / 2 ? "left" : "right",
-      bottom: Math.min(Math.max(window.innerHeight - (e.clientY - t.dy) - SIZE, NAV + GAP), maxBottom),
+      bottom: Math.min(Math.max(window.innerHeight - (e.clientY - t.dy) - SIZE, clearance), maxBottom),
     };
     setDrag(null);
     setSpot(next);

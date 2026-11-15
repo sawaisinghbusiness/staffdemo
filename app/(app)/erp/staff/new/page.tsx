@@ -172,7 +172,7 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
       {text("designation", L({ hi: "पद *", en: "Designation *" }), { max: 100, placeholder: teaching ? "TGT" : "Office Clerk" })}
       <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1" aria-label={L({ hi: "पद चुनें", en: "Pick a designation" })}>
         {DESIGNATIONS[f.staffType].map((d) => (
-          <button key={d} type="button" onClick={() => set("designation", d)} className={clsx("min-h-[36px] shrink-0 rounded-full border bg-white px-3 text-[13.5px]", f.designation === d ? "border-[#3099a4] font-semibold text-[#3099a4]" : "border-ink-200 text-ink-700")}>
+          <button key={d} type="button" onClick={() => set("designation", d)} className={clsx("min-h-[36px] shrink-0 rounded-full border bg-white px-3 text-[13.5px]", f.designation === d ? "border-[#0D2A5E] font-semibold text-[#0D2A5E]" : "border-ink-200 text-ink-700")}>
             {d}
           </button>
         ))}

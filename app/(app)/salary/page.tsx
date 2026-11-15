@@ -32,23 +32,23 @@ export default function SalaryPage() {
   const shown = open ?? data.slips[0].month;
 
   return (
-    <ul className="animate-rise space-y-2">
+    <ul className="space-y-3">
       {data.slips.map((s) => {
         const isOpen = shown === s.month;
         return (
-          <li key={s.month} className="glass-line card-in">
-            <button onClick={() => setOpen(isOpen ? "" : s.month)} aria-expanded={isOpen} className="flex min-h-[64px] w-full items-center gap-3 px-3.5 py-3 text-left">
+          <li key={s.month} className="overflow-hidden rounded-xl border border-[#DCE4ED] bg-white">
+            <button onClick={() => setOpen(isOpen ? "" : s.month)} aria-expanded={isOpen} className="flex min-h-[76px] w-full items-center gap-3 px-3.5 py-3 text-left">
               <span className="min-w-0 flex-1">
-                <span className="block text-[15.5px] font-bold">{monthYear(s.month, lang)}</span>
+                <span className="block text-[16px] font-semibold">{monthYear(s.month, lang)}</span>
                 <span className="block text-[13px] text-ink-500">
                   {L({ hi: "भुगतान", en: "Paid on" })} {fullDate(s.paidOn, lang)}
                 </span>
               </span>
-              <span className="tnum text-[18px] font-extrabold">{rupees(s.net)}</span>
+              <span className="tnum text-[20px] font-semibold text-[#0D2A5E]">{rupees(s.net)}</span>
               <ChevronDown className={clsx("h-5 w-5 shrink-0 text-ink-400 transition", isOpen && "rotate-180")} aria-hidden />
             </button>
             {isOpen && (
-              <dl className="kv tnum animate-fadeIn border-t border-ink-100 px-3.5 pb-1">
+              <dl className="kv tnum border-t border-ink-100 px-3.5 pb-1">
                 <div>
                   <dt>{L({ hi: "मूल वेतन", en: "Basic" })}</dt>
                   <dd>{rupees(s.basic)}</dd>
@@ -65,7 +65,7 @@ export default function SalaryPage() {
                 ))}
                 <div>
                   <dt className="!font-bold !text-ink-900">{L({ hi: "हाथ में", en: "Take-home" })}</dt>
-                  <dd className="!font-extrabold">{rupees(s.net)}</dd>
+                  <dd className="!font-semibold">{rupees(s.net)}</dd>
                 </div>
               </dl>
             )}

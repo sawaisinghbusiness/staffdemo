@@ -49,8 +49,8 @@ const brand = {
   300: "#9AB6EE",
   400: "#5E88DD",
   500: "#2F63C8",
-  600: "#1446A0",
-  700: "#103A86",
+  600: "#0D2A5E",
+  700: "#0A224C",
   800: "#0F2F6E",
   900: "#0B2252",
 };
@@ -110,13 +110,13 @@ const config: Config = {
       colors: { slate: ink, ink, jade, emerald: jade, marigold, brand, night, rose, red: rose, canvas: "#FFFFFF", drv, ajk },
       fontFamily: {
         // One face like the parent app: Inter for Latin and numbers, Noto Sans Devanagari for Hindi.
-        sans: ["'Inter Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
+        sans: ["'Plus Jakarta Sans Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
         // Names on cards (Teacher's Note): Figtree, rounder than Inter.
-        title: ["Figtree", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
+        title: ["'Plus Jakarta Sans Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
         // The driver's screens: Inter like ride apps, Noto Sans Devanagari for Hindi.
         drv: ["'Inter Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
         // Parent messages: Baloo 2 (made for Indian scripts, Latin and Devanagari together).
-        ajk: ["'Baloo 2'", "Hind", "system-ui", "sans-serif"],
+        ajk: ["'Plus Jakarta Sans Variable'", "'Noto Sans Devanagari Variable'", "system-ui", "sans-serif"],
       },
       fontSize: {
         // Parents read on small phones, often outdoors: the floor is 13px, body is 16px.

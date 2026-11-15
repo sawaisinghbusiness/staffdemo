@@ -65,7 +65,7 @@ export default function ErpMessagesPage() {
           {groups.length === 0 && <Empty>{L({ hi: "यहाँ कोई मैसेज नहीं।", en: "No messages here." })}</Empty>}
           {groups.map((g) => (
             <section key={g.key}>
-              <h2 className="mb-1.5 mt-1 text-[12.5px] font-semibold uppercase tracking-wide text-ink-500">{g.title}</h2>
+              <h2 className="mb-2 mt-1 text-[14px] font-semibold text-ink-700">{g.title}</h2>
               <ul className="-mx-4 border-y border-ink-100 bg-white pl-4">
                 {g.items.map((m) => {
                   const done = isDone(m);
@@ -82,14 +82,14 @@ export default function ErpMessagesPage() {
                           {m.body.replace(/\s+/g, " ")}
                         </span>
                         <span className="flex items-center gap-1.5 truncate text-[12.5px] text-ink-600">
-                          <i className={done ? "h-[7px] w-[7px] shrink-0 rounded-full bg-jade-500" : "h-[7px] w-[7px] shrink-0 rounded-full bg-[#3099a4]"} aria-hidden />
+                          <i className={done ? "h-[7px] w-[7px] shrink-0 rounded-full bg-jade-500" : "h-[7px] w-[7px] shrink-0 rounded-full bg-[#0D2A5E]"} aria-hidden />
                           {done
                             ? L({ hi: `${fmt(m.total)} माता-पिता को गया · ${m.audience_label}`, en: `Sent to ${fmt(m.total)} parents · ${m.audience_label}` })
                             : L({ hi: `जा रहा · ${fmt(m.total)} में से ${fmt(m.sent)}`, en: `Sending · ${fmt(m.sent)} of ${fmt(m.total)} parents` })}
                         </span>
                         {!done && (
                           <span className="block h-1 overflow-hidden rounded-full bg-ink-100" aria-hidden>
-                            <span className="block h-full rounded-full bg-[#3099a4]" style={{ width: `${pct}%` }} />
+                            <span className="block h-full rounded-full bg-[#0D2A5E]" style={{ width: `${pct}%` }} />
                           </span>
                         )}
                       </Link>

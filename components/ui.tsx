@@ -4,20 +4,12 @@ import { Children, isValidElement, useCallback, useEffect, useRef, useState } fr
 import { createPortal } from "react-dom";
 import clsx from "clsx";
 import { Check, ChevronDown, Phone, RotateCw, Search, WifiOff, X } from "lucide-react";
+import { useDialog } from "@/lib/useDialog";
 import { initials } from "@/lib/format";
 import { useL } from "@/lib/i18n";
 
-/** Soft pastel pairs (background, text) for avatars, subject marks and the home grid. Never the same hue as a status. */
-export const TINTS: [string, string][] = [
-  ["#E8EFFC", "#103A86"],
-  ["#E0F2FE", "#0369A1"],
-  ["#DCFCE7", "#15803D"],
-  ["#FEF3C7", "#B45309"],
-  ["#FCE7F3", "#BE185D"],
-  ["#E0E7FF", "#4338CA"],
-  ["#FFEDD5", "#C2410C"],
-  ["#CCFBF1", "#0F766E"],
-];
+/** Identity uses one neutral pair; semantic colours belong to actual status. */
+export const TINTS: [string, string][] = [["#E8EFF7", "#0D2A5E"]];
 
 /** A stable tint for a name, so the same child always gets the same colour. */
 export const tintOf = (s: string) => Array.from(s).reduce((a, c) => a + c.charCodeAt(0), 0) % TINTS.length;
@@ -131,8 +123,8 @@ export function SelectBox({ label, value, onChange, children, className }: { lab
   }, [open, close]);
 
   return (
-    <div ref={wrap} className={clsx("relative", open && "z-30")}>
-      <button type="button" onClick={() => (open ? close() : setOpen(true))} disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} className={clsx("field-box text-left disabled:opacity-60", open && "!border-[#3099a4]", className)}>
+    <div ref={wrap} className={clsx("relative min-w-0", open && "z-30")}>
+      <button type="button" onClick={() => (open ? close() : setOpen(true))} disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} className={clsx("field-box text-left disabled:opacity-60", open && "!border-[#0D2A5E]", className)}>
         {/* One line: "Class - 5th B". */}
         <span className="min-w-0 flex-1 truncate text-[15.5px]">
           <span className="text-ink-500">{label} - </span>
@@ -167,10 +159,10 @@ export function SelectBox({ label, value, onChange, children, className }: { lab
                         onChange(o.value);
                         close();
                       }}
-                      className={clsx("flex min-h-[44px] w-full items-center gap-2.5 px-3 text-left active:bg-ink-100", on && "bg-[#3099a4]/10")}
+                      className={clsx("flex min-h-[44px] w-full items-center gap-2.5 px-3 text-left active:bg-ink-100", on && "bg-[#0D2A5E]/10")}
                     >
-                      <span className={clsx("min-w-0 flex-1 truncate text-[15px]", on ? "font-semibold text-[#3099a4]" : "text-ink-900")}>{o.text}</span>
-                      {on && <Check className="h-4 w-4 shrink-0 text-[#3099a4]" strokeWidth={2.6} aria-hidden />}
+                      <span className={clsx("min-w-0 flex-1 truncate text-[15px]", on ? "font-semibold text-[#0D2A5E]" : "text-ink-900")}>{o.text}</span>
+                      {on && <Check className="h-4 w-4 shrink-0 text-[#0D2A5E]" strokeWidth={2.6} aria-hidden />}
                     </button>
                   </li>
                 );
@@ -245,28 +237,20 @@ export function CallOffice({ phone, className }: { phone?: string; className?: s
  * otherwise pin this "fixed" bar to the end of the list instead of the screen.
  */
 export function StickyBar({ children }: { children: React.ReactNode }) {
-  const bar = <div className="fixed inset-x-0 bottom-[calc(104px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
+  const bar = <div className="staff-workspace staff-save-bar fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
   return typeof document === "undefined" ? bar : createPortal(bar, document.body);
 }
 
 /** Bottom sheet with a grab handle. Closes on the dim area, the X and Escape. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
   const L = useL();
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", esc);
-    return () => {
-      document.body.style.overflow = prev;
-      window.removeEventListener("keydown", esc);
-    };
-  }, [onClose]);
+  const panel = useRef<HTMLDivElement>(null);
+  useDialog(true, panel, onClose);
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
+    <div className="staff-workspace fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
       <button className="absolute inset-0 animate-fadeIn bg-night-950/45" onClick={onClose} aria-label={L({ hi: "बंद करें", en: "Close" })} />
-      <div className="pb-safe relative max-h-[92dvh] w-full max-w-[560px] animate-slide-up overflow-y-auto rounded-t-[22px] bg-white">
+      <div ref={panel} tabIndex={-1} className="pb-safe relative max-h-[92dvh] w-full max-w-[560px] animate-slide-up overflow-y-auto rounded-t-[22px] bg-white">
         <div className="sticky top-0 z-10 bg-white px-4 pt-2">
           <div className="mx-auto h-1 w-10 rounded-full bg-ink-200" aria-hidden />
           <div className="flex items-center justify-between pb-1 pt-1.5">

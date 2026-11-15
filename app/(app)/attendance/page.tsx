@@ -76,7 +76,7 @@ function Students() {
 
   return (
     <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="teacher-form grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
         <SelectBox label={L({ hi: "कक्षा", en: "Class" })} value={id} onChange={setId}>
           {data.sections.map((s) => (
             <option key={s.id} value={s.id}>
@@ -161,12 +161,13 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
       {/* The "14 students · already marked" line is gone (user's ask); only a teacher who can't mark is told why. */}
       {!editable && <p className="text-[13px] text-ink-500">{L({ hi: "सिर्फ़ क्लास टीचर हाज़िरी लगा सकते हैं।", en: "Only the class teacher can mark this class." })}</p>}
 
-      <div className="grid grid-cols-[28px_1fr_40px_40px_40px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
+      <div className="teacher-register">
+      <div className="grid grid-cols-[28px_1fr_40px_40px_40px] items-center border-b border-ink-100 bg-ink-50 px-3.5 py-3 text-[12px] font-medium text-ink-500">
         <span>{L({ hi: "रोल", en: "No." })}</span>
         <span>{L({ hi: "नाम", en: "Name" })}</span>
-        <span className="text-center">P</span>
-        <span className="text-center">A</span>
-        <span className="text-center">L</span>
+        <abbr className="text-center no-underline" title={L({hi:"\u0909\u092a\u0938\u094d\u0925\u093f\u0924",en:"Present"})}>P</abbr>
+        <abbr className="text-center no-underline" title={L({hi:"\u0905\u0928\u0941\u092a\u0938\u094d\u0925\u093f\u0924",en:"Absent"})}>A</abbr>
+        <abbr className="text-center no-underline" title={L({hi:"\u091b\u0941\u091f\u094d\u091f\u0940",en:"Leave"})}>L</abbr>
       </div>
       <ul>
         {data.students.map((s) => {
@@ -179,7 +180,7 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
           return (
             // Absent or leave: no fill, just a black outline round the row (user's ask, 2026-10-14).
             // The outline fades in and the reason box slides open, so nothing jumps.
-            <li key={s.id} className={clsx("roll-row px-1", m !== "P" && "roll-row-on")}>
+            <li key={s.id} className={clsx("roll-row px-3.5", m !== "P" && "roll-row-on")}>
               <div className="grid min-h-[52px] grid-cols-[28px_1fr_40px_40px_40px] items-center text-[15px]">
                 <span className="tnum text-[13px] text-ink-400">{s.rollNo}</span>
                 <button type="button" onClick={() => toggle(s.id)} disabled={!editable} className="min-h-[44px] min-w-0 truncate text-left">
@@ -209,6 +210,7 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
           );
         })}
       </ul>
+      </div>
 
       {/* Save at the end of the list too, in the page, not floating (user, 2026-10-26). */}
       {editable && (
