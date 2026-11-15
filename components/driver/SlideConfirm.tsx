@@ -2,6 +2,7 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, Check, LoaderCircle } from "lucide-react";
 import { slideGrab, slideDrag, resetSlideDrag } from "@/lib/slideFeedback";
+import { vibrate, DONE_BUZZ } from "@/lib/haptics";
 import { useL } from "@/lib/i18n";
 import "./slide-confirm.css";
 
@@ -12,7 +13,7 @@ export function SlideConfirm({label,onConfirm,disabled=false,tone="dark",sound="
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;drag.current=null}},[]);
  const paint=(value:number)=>{progress.current=value;track.current?.style.setProperty("--slide-progress",String(value));const max=Math.max(1,(track.current?.clientWidth||300)-64);track.current?.style.setProperty("--slide-x",`${value*max}px`)};
  async function confirm(){
-  if(disabled||locked.current)return;locked.current=true;setPending(true);paint(1);navigator.vibrate?.(sound==="latch"?10:[35,45,70]);
+  if(disabled||locked.current)return;locked.current=true;setPending(true);paint(1);vibrate(sound==="latch"?40:DONE_BUZZ);
   let accepted=false;
   try{await new Promise(resolve=>setTimeout(resolve,170));if(!mounted.current)return;const result=await onConfirm();if(result===false){paint(0)}else if(mounted.current){accepted=true;setComplete(true);setTimeout(()=>{locked.current=false;if(mounted.current){setComplete(false);paint(0)}},450)}}catch{paint(0)}finally{if(!accepted)locked.current=false;if(mounted.current){setPending(false);setAlternate(false)}}
  }

@@ -29,6 +29,7 @@ import {
 } from "@/lib/bus";
 import { SlideConfirm } from "@/components/driver/SlideConfirm";
 import { askForLocation } from "@/lib/slideFeedback";
+import { ALERT_BUZZ, DONE_BUZZ, useHapticsReady, vibrate } from "@/lib/haptics";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
 import { DropAlert } from "@/components/driver/DropAlert";
@@ -300,8 +301,15 @@ export default function TripPage() {
     reached.current = false;
     setAlertFor(next.name);
     ding(2);
-    navigator.vibrate?.([300, 120, 300, 120, 300]);
+    vibrate(ALERT_BUZZ);
   }, [next?.name, dist !== null && dist <= NEAR_M]); // eslint-disable-line react-hooks/exhaustive-deps
+  // The alert keeps buzzing every few seconds until it is closed, so a glance away does not miss it.
+  useEffect(() => {
+    if (!alertFor) return;
+    const id = setInterval(() => vibrate(ALERT_BUZZ), 3500);
+    return () => clearInterval(id);
+  }, [alertFor]);
+  const hapticsReady = useHapticsReady();
   // Manual mode: once the bus has stood at the stop and driven on, the alert goes by itself.
   const reached = useRef(false);
   useEffect(() => { warned.current = null; reached.current = false; setAlertFor(null); }, [trip?.id]);
@@ -366,7 +374,7 @@ export default function TripPage() {
     setFail("");
     try {
       await api("/bus/trip/end", { body: {} });
-      navigator.vibrate?.([35, 45, 70]);
+      vibrate(DONE_BUZZ);
       window.location.replace("/");
     } catch (problem: any) {
       setFail(problem?.message || L({ hi: "\u091f\u094d\u0930\u093f\u092a \u092c\u0902\u0926 \u0928\u0939\u0940\u0902 \u0939\u0941\u0908", en: "Could not end the trip. Try again." }));
@@ -671,6 +679,11 @@ export default function TripPage() {
         </div>
       )}
 
+      {!hapticsReady && (
+        <p className="pointer-events-none absolute inset-x-4 top-16 z-[700] rounded-[10px] bg-[#111] px-3 py-2 text-center text-[12.5px] font-medium text-white shadow-lg" role="status">
+          {L({ hi: "वाइब्रेशन चालू करने के लिए स्क्रीन को एक बार छूएँ।", en: "Touch the screen once to turn vibration on." })}
+        </p>
+      )}
       {alertStop && (
         <DropAlert
           key={alertStop.name}
