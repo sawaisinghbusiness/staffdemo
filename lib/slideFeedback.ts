@@ -54,11 +54,13 @@ function melody(notes: [number, number, number, OscillatorType?][]) {
 
 /** Slide finished, trip starting: C5 E5 G5 climbing, then a bright high C. "Go." */
 export function playTripStart() {
+  if (playSample("start", 1)) return;
   melody([[523.25, 0, 0.2], [659.25, 0.09, 0.2], [783.99, 0.18, 0.2], [1046.5, 0.27, 0.5], [523.25, 0.27, 0.5, "triangle"]]);
 }
 
 /** Trip ended: G5 E5 C5 coming down, then a soft low C+G to close it. "Done, well driven." */
 export function playTripEnd() {
+  if (playSample("end", 1)) return;
   melody([[783.99, 0, 0.22], [659.25, 0.11, 0.22], [523.25, 0.22, 0.24], [261.63, 0.36, 0.7, "triangle"], [392, 0.36, 0.7, "triangle"]]);
 }
 
@@ -75,3 +77,82 @@ export function askForLocation(done?: (state: "ok" | "denied") => void) {
     done?.("denied");
   }
 }
+
+/* ───────── recorded sounds (CC0, public/sounds/driver) ─────────
+ * start.mp3 and end.mp3 play when the slide is finished; grab.mp3 when the thumb is touched; tick.mp3 is
+ * repeated while dragging, a little higher the further along. To change a sound, replace its file.
+ */
+const SAMPLE_URL = { start: "/sounds/driver/start.mp3", end: "/sounds/driver/end.mp3", grab: "/sounds/driver/grab.mp3", tick: "/sounds/driver/tick.mp3" } as const;
+type Sample = keyof typeof SAMPLE_URL;
+const samples: Partial<Record<Sample, AudioBuffer>> = {};
+let loading = false;
+
+/** Fetch and decode the sounds once, after the first touch (so they are ready before the slide ends). */
+export function preloadSamples() {
+  if (loading || !context) return;
+  loading = true;
+  const audio = context;
+  (Object.keys(SAMPLE_URL) as Sample[]).forEach((name) => {
+    fetch(SAMPLE_URL[name])
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
+      .then((data) => audio.decodeAudioData(data))
+      .then((buffer) => {
+        samples[name] = buffer;
+      })
+      .catch(() => {
+        /* the built-in tones below are the fallback */
+      });
+  });
+}
+
+function playSample(name: Sample, gain = 1, rate = 1): boolean {
+  const audio = context;
+  const buffer = samples[name];
+  if (!audio || !buffer || audio.state !== "running") return false;
+  try {
+    const source = audio.createBufferSource();
+    const volume = audio.createGain();
+    source.buffer = buffer;
+    source.playbackRate.value = rate;
+    volume.gain.value = gain;
+    source.connect(volume);
+    volume.connect(audio.destination);
+    source.start();
+    source.onended = () => {
+      source.disconnect();
+      volume.disconnect();
+    };
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Thumb touched: a soft grab sound and a small buzz. */
+export function slideGrab() {
+  primeSlideFeedback();
+  preloadSamples();
+  playSample("grab", 0.7);
+  try {
+    navigator.vibrate?.(12);
+  } catch {
+    /* no vibration */
+  }
+}
+
+let lastStep = 0;
+/** Dragging: a light tick and buzz every few percent, rising in pitch as the thumb nears the end. */
+export function slideDrag(progress: number) {
+  const step = Math.floor(progress * 14); // about every 7% of the track
+  if (step === lastStep) return;
+  lastStep = step;
+  playSample("tick", 0.45, 0.85 + progress * 0.55);
+  try {
+    navigator.vibrate?.(6);
+  } catch {
+    /* no vibration */
+  }
+}
+export const resetSlideDrag = () => {
+  lastStep = 0;
+};
