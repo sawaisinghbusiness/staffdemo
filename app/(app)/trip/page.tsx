@@ -189,6 +189,11 @@ export default function TripPage() {
       const line = ptsRef.current;
       let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || { lat: 25.75, lng: 71.4 };
       let i = 0;
+      // The road line can arrive or change after the trip has started (the phone fetches the road route when
+      // the backend only had straight lines). Then find the bus again on the new line instead of following
+      // the old index, which would send it back to the start or straight across.
+      let cur = line;
+      let onLine = line.length > 0;
       place(p);
       setGps("on");
       setKmh(28);
@@ -196,6 +201,14 @@ export default function TripPage() {
         const to = target.current;
         if (!to) return;
         const ln = ptsRef.current;
+        if (ln !== cur) {
+          cur = ln;
+          if (ln.length && !onLine) {
+            p = { lat: ln[0][0], lng: ln[0][1] };
+            i = 0;
+            onLine = true;
+          } else if (ln.length) i = nearestIdx(ln, p);
+        }
         const ti = ln.length ? nearestIdx(ln, to) : -1;
         let budget = 10;
         for (let guard = 0; guard < 80 && budget > 0; guard++) {
