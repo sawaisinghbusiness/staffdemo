@@ -98,6 +98,26 @@ export const resetSlideDrag = () => {
   lastProgress = null;
 };
 
+/**
+ * The one sound in the driver app: when the trip ends ("Electro success sound", public/sounds/driver/end.mp3).
+ * Resolves after the sound has had time to play, so the screen can leave afterwards. Silent if the file is missing.
+ */
+export function playTripEnd(): Promise<void> {
+  return new Promise((resolve) => {
+    try {
+      const a = new Audio("/sounds/driver/end.mp3");
+      a.volume = 1;
+      const done = () => resolve();
+      a.addEventListener("ended", done, { once: true });
+      a.addEventListener("error", done, { once: true });
+      setTimeout(done, 2500); // never hold the driver on this screen
+      void a.play().catch(done);
+    } catch {
+      resolve();
+    }
+  });
+}
+
 /** Ask the phone for its location now (the "Allow location?" question), so it is not asked mid-trip. */
 export function askForLocation(done?: (state: "ok" | "denied") => void) {
   try {
