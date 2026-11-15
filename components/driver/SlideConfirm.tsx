@@ -1,18 +1,18 @@
 "use client";
 import { useEffect, useId, useRef, useState } from "react";
 import { ArrowRight, Check, LoaderCircle } from "lucide-react";
-import { primeSlideFeedback, playSlideFeedback } from "@/lib/slideFeedback";
+import { primeSlideFeedback, playSlideFeedback, playTripStart, playTripEnd } from "@/lib/slideFeedback";
 import { useL } from "@/lib/i18n";
 import "./slide-confirm.css";
 
 /** Pointer release confirms only after a deliberate right swipe. No action on tap. */
-export function SlideConfirm({label,onConfirm,disabled=false,tone="dark"}:{label:string;onConfirm:()=>void|boolean|Promise<void|boolean>;disabled?:boolean;tone?:"dark"|"yellow"}){
+export function SlideConfirm({label,onConfirm,disabled=false,tone="dark",sound="latch"}:{label:string;onConfirm:()=>void|boolean|Promise<void|boolean>;disabled?:boolean;tone?:"dark"|"yellow";sound?:"latch"|"start"|"end"}){
  const helpId=useId();const L=useL();const track=useRef<HTMLDivElement>(null);const drag=useRef<{id:number;start:number;max:number}|null>(null);const progress=useRef(0);const locked=useRef(false);const mounted=useRef(true);
  const [pending,setPending]=useState(false);const [complete,setComplete]=useState(false);const [alternate,setAlternate]=useState(false);
  useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;drag.current=null}},[]);
  const paint=(value:number)=>{progress.current=value;track.current?.style.setProperty("--slide-progress",String(value));const max=Math.max(1,(track.current?.clientWidth||300)-64);track.current?.style.setProperty("--slide-x",`${value*max}px`)};
  async function confirm(){
-  if(disabled||locked.current)return;locked.current=true;setPending(true);paint(1);playSlideFeedback();navigator.vibrate?.(10);
+  if(disabled||locked.current)return;locked.current=true;setPending(true);paint(1);(sound==="start"?playTripStart:sound==="end"?playTripEnd:playSlideFeedback)();navigator.vibrate?.(sound==="latch"?10:[35,45,70]);
   let accepted=false;
   try{await new Promise(resolve=>setTimeout(resolve,170));if(!mounted.current)return;const result=await onConfirm();if(result===false){paint(0)}else if(mounted.current){accepted=true;setComplete(true);setTimeout(()=>{locked.current=false;if(mounted.current){setComplete(false);paint(0)}},450)}}catch{paint(0)}finally{if(!accepted)locked.current=false;if(mounted.current){setPending(false);setAlternate(false)}}
  }

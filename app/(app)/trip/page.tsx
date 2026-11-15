@@ -28,6 +28,7 @@ import {
   type TripKind,
 } from "@/lib/bus";
 import { SlideConfirm } from "@/components/driver/SlideConfirm";
+import { askForLocation, playTripEnd } from "@/lib/slideFeedback";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
 import { DropAlert } from "@/components/driver/DropAlert";
@@ -242,6 +243,17 @@ export default function TripPage() {
     return () => { watching = false; navigator.geolocation.clearWatch(id); };
   }, [trip?.id, route?.id, gpsTry]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Ask for the phone's location before the trip, not after it has started.
+  const [loc, setLoc] = useState<"ask" | "ok" | "denied">("ask");
+  useEffect(() => {
+    if (DEMO || trip || !route) return;
+    let gone = false;
+    askForLocation((state) => !gone && setLoc(state));
+    return () => {
+      gone = true;
+    };
+  }, [!!trip, route?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Publish only fresh fixes; a response failure must not be presented as live sharing.
   useEffect(() => {
     if (!trip) return;
@@ -354,6 +366,8 @@ export default function TripPage() {
     setFail("");
     try {
       await api("/bus/trip/end", { body: {} });
+      playTripEnd();
+      await new Promise((r) => setTimeout(r, 1000)); // leave after the closing sound has played
       window.location.replace("/");
     } catch (problem: any) {
       setFail(problem?.message || L({ hi: "\u091f\u094d\u0930\u093f\u092a \u092c\u0902\u0926 \u0928\u0939\u0940\u0902 \u0939\u0941\u0908", en: "Could not end the trip. Try again." }));
@@ -442,7 +456,7 @@ export default function TripPage() {
             </p>
           )}
           {fail && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
-          <div className="my-4"><SlideConfirm tone="yellow" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={busy||!order.length} onConfirm={start}/></div>
+          <div className="my-4"><SlideConfirm tone="yellow" sound="start" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={busy||!order.length} onConfirm={start}/></div>
         </div>
       </Shell>
     );
