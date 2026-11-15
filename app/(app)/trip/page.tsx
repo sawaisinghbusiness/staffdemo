@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { Bus, ChevronDown, ChevronLeft, ChevronRight, Info, MapPin, Play, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { api, useApi } from "@/lib/api";
 import { useDialog } from "@/lib/useDialog";
-import { DEMO } from "@/lib/demo";
+import { SIMULATE_BUS } from "@/lib/demo";
 import { useL } from "@/lib/i18n";
 import { readAlertClose } from "@/lib/driverPrefs";
 import {
@@ -168,7 +168,7 @@ export default function TripPage() {
     setHeading(null);
     setKmh(null);
     setGpsProblem(null);
-    if (DEMO) {
+    if (SIMULATE_BUS) {
       // A pretend bus that drives along the road line towards the next stop and waits there.
       const line = ptsRef.current;
       let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || { lat: 25.75, lng: 71.4 };
@@ -255,7 +255,7 @@ export default function TripPage() {
   // Ask for the phone's location before the trip, not after it has started.
   const [loc, setLoc] = useState<"ask" | "ok" | "denied">("ask");
   useEffect(() => {
-    if (DEMO || trip || !route) return;
+    if (SIMULATE_BUS || trip || !route) return;
     let gone = false;
     askForLocation((state) => !gone && setLoc(state));
     return () => {
