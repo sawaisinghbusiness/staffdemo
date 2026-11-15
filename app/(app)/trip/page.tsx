@@ -28,7 +28,7 @@ import {
   type TripKind,
 } from "@/lib/bus";
 import { SlideConfirm } from "@/components/driver/SlideConfirm";
-import { askForLocation, markTripStartSound, playTripEnd, playTripStartIfNew } from "@/lib/slideFeedback";
+import { askForLocation, markTripStartSound, playTripEnd, playTripStartIfNew, startTripClicks } from "@/lib/slideFeedback";
 import { ALERT_BUZZ, DONE_BUZZ, useHapticsReady, vibrate } from "@/lib/haptics";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
@@ -243,6 +243,9 @@ export default function TripPage() {
     );
     return () => { watching = false; navigator.geolocation.clearWatch(id); };
   }, [trip?.id, route?.id, gpsTry]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // A soft snap on every tap while the trip screen is open.
+  useEffect(() => startTripClicks(), []);
 
   // The trip screen is up and a trip was just started: play the start sound once.
   useEffect(() => {

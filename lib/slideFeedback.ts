@@ -152,6 +152,55 @@ export function playTripStartIfNew() {
   });
 }
 
+/**
+ * A soft finger-snap on every tap inside the trip screen ("Soft Two-Finger Snap", public/sounds/driver/click.mp3):
+ * buttons, links, options, sheets and alerts. The slide handle has its own bump feel and is left out.
+ * Call once when the trip screen opens; it returns the function that switches it off again.
+ * Silent if the file is missing.
+ */
+export function startTripClicks(): () => void {
+  let buffer: AudioBuffer | null = null;
+  let gone = false;
+  const c = audio();
+  if (c) {
+    fetch("/sounds/driver/click.mp3")
+      .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
+      .then((data) => c.decodeAudioData(data))
+      .then((b) => {
+        if (!gone) buffer = b;
+      })
+      .catch(() => {
+        /* no click file: taps stay silent */
+      });
+  }
+  const onClick = (e: Event) => {
+    const el = (e.target as Element | null)?.closest?.("button, a, [role=button], [role=radio], [role=tab], summary, label");
+    if (!el || el.closest(".slide-confirm-thumb") || (el as HTMLButtonElement).disabled || el.getAttribute("aria-disabled") === "true") return;
+    const ctx2 = audio();
+    if (!ctx2 || !buffer || ctx2.state !== "running") return;
+    try {
+      const src = ctx2.createBufferSource();
+      const gain = ctx2.createGain();
+      src.buffer = buffer;
+      gain.gain.value = 0.9;
+      src.connect(gain);
+      gain.connect(ctx2.destination);
+      src.start();
+      src.onended = () => {
+        src.disconnect();
+        gain.disconnect();
+      };
+    } catch {
+      /* silent */
+    }
+  };
+  document.addEventListener("click", onClick, true);
+  return () => {
+    gone = true;
+    document.removeEventListener("click", onClick, true);
+  };
+}
+
 /** Ask the phone for its location now (the "Allow location?" question), so it is not asked mid-trip. */
 export function askForLocation(done?: (state: "ok" | "denied") => void) {
   try {
