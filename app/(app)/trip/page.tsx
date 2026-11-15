@@ -28,7 +28,7 @@ import {
   type TripKind,
 } from "@/lib/bus";
 import { SlideConfirm } from "@/components/driver/SlideConfirm";
-import { askForLocation, playTripEnd } from "@/lib/slideFeedback";
+import { askForLocation, markTripStartSound, playTripEnd, playTripStartIfNew } from "@/lib/slideFeedback";
 import { ALERT_BUZZ, DONE_BUZZ, useHapticsReady, vibrate } from "@/lib/haptics";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
@@ -244,6 +244,11 @@ export default function TripPage() {
     return () => { watching = false; navigator.geolocation.clearWatch(id); };
   }, [trip?.id, route?.id, gpsTry]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // The trip screen is up and a trip was just started: play the start sound once.
+  useEffect(() => {
+    if (trip) playTripStartIfNew();
+  }, [trip?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Ask for the phone's location before the trip, not after it has started.
   const [loc, setLoc] = useState<"ask" | "ok" | "denied">("ask");
   useEffect(() => {
@@ -357,7 +362,7 @@ export default function TripPage() {
 
   async function start() {
     const saved=await act("/bus/trip", { kind: planKind });
-    if(saved)window.history.replaceState(null,"","/trip/");
+    if(saved){markTripStartSound();window.history.replaceState(null,"","/trip/")}
     return saved;
   }
 

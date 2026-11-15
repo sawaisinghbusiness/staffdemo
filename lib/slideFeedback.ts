@@ -118,6 +118,40 @@ export function playTripEnd(): Promise<void> {
   });
 }
 
+/**
+ * Trip start sound ("success_low", public/sounds/driver/start.mp3). It plays when the trip screen has loaded,
+ * not while the thumb is still sliding on the Home screen: the slide only leaves a note, and the trip screen
+ * plays the sound once when it sees the note. Silent if the file is missing.
+ */
+const START_FLAG = "driver:startSound";
+export function markTripStartSound() {
+  try {
+    sessionStorage.setItem(START_FLAG, "1");
+  } catch {
+    /* private mode: no start sound */
+  }
+}
+export function playTripStartIfNew() {
+  try {
+    if (sessionStorage.getItem(START_FLAG) !== "1") return;
+    sessionStorage.removeItem(START_FLAG);
+  } catch {
+    return;
+  }
+  const a = new Audio("/sounds/driver/start.mp3");
+  const play = () => a.play();
+  play().catch(() => {
+    // The phone held the sound back because the new page has not been touched yet: play it on the first touch
+    // (for the next 15 seconds only), so it is still heard.
+    const t = setTimeout(() => window.removeEventListener("pointerdown", again, true), 15_000);
+    function again() {
+      clearTimeout(t);
+      void play().catch(() => {});
+    }
+    window.addEventListener("pointerdown", again, { once: true, capture: true });
+  });
+}
+
 /** Ask the phone for its location now (the "Allow location?" question), so it is not asked mid-trip. */
 export function askForLocation(done?: (state: "ok" | "denied") => void) {
   try {

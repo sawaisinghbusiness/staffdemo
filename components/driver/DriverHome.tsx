@@ -5,7 +5,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { Bell, ChevronDown, ArrowRight, BusFront, UsersRound, Check, School } from "lucide-react";
 import { SlideConfirm } from "./SlideConfirm";
-import { askForLocation } from "@/lib/slideFeedback";
+import { askForLocation, markTripStartSound } from "@/lib/slideFeedback";
 import { DEMO } from "@/lib/demo";
 import { api, useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
@@ -135,7 +135,7 @@ export function DriverHome() {
           <div className="dispatch-manifest"><span><UsersRound size={16} aria-hidden/>{kids} {L({hi:"बच्चे",en:kids===1?"child":"children"})}</span><span>{order.length} {L({hi:"स्टॉप",en:"stops"})}</span>{km && <span>{km} km <small>{L({hi:"रूट",en:"route"})}</small></span>}</div>
           {running && <p className="dispatch-recorded">{L({hi:`${done} स्टॉप पूरे · ${marked} बच्चों की एंट्री`,en:`${done} stops completed · ${marked} children marked`})}</p>}
           {startError&&<p role="alert" className="mb-3 text-[13px] text-rose-700">{startError}</p>}
-          {running?<Link href="/trip/" className="dispatch-start">{L({hi:"ट्रिप जारी रखें",en:"Resume trip"})}<ArrowRight size={20}/></Link>:<SlideConfirm tone="yellow" sound="start" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={!order.length} onConfirm={async()=>{setStartError("");try{await api("/bus/trip",{body:{kind}});window.location.assign("/trip/");return true}catch(e){setStartError(e instanceof Error?e.message:L({hi:"ट्रिप शुरू नहीं हुई",en:"Could not start trip"}));return false}}}/>}
+          {running?<Link href="/trip/" className="dispatch-start">{L({hi:"ट्रिप जारी रखें",en:"Resume trip"})}<ArrowRight size={20}/></Link>:<SlideConfirm tone="yellow" sound="start" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={!order.length} onConfirm={async()=>{setStartError("");try{await api("/bus/trip",{body:{kind}});markTripStartSound();window.location.assign("/trip/");return true}catch(e){setStartError(e instanceof Error?e.message:L({hi:"ट्रिप शुरू नहीं हुई",en:"Could not start trip"}));return false}}}/>}
         </section>
         {r.absent.length>0 && <p className="dispatch-absence">{L({hi:`आज ${r.absent.length} बच्चे नहीं आएँगे। लिस्ट से हटा दिए हैं।`,en:`${r.absent.length} absent today, already excluded from the list.`})}</p>}
         <section className="dispatch-stops"><h2><button type="button" className="dispatch-stops-toggle" aria-expanded={stopsOpen} aria-controls="driver-todays-stops" onClick={()=>setStopsOpen(open=>!open)}><span>{L({hi:"आज के स्टॉप",en:"Today's stops"})}</span><ChevronDown size={19} aria-hidden className={stopsOpen?"is-open":""}/></button></h2><div className="dispatch-stops-reveal" data-open={stopsOpen} aria-hidden={!stopsOpen}><div id="driver-todays-stops"><ol>
