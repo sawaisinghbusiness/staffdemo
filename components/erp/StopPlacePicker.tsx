@@ -1,5 +1,6 @@
 "use client";
 
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -99,7 +100,8 @@ export function StopPlacePicker({ name, value, near, onSave, onClose }: { name: 
     );
   }
 
-  return (
+  // Rendered on <body>: the drawer / page around it may use a CSS transform, which would trap a fixed panel.
+  return createPortal(
     <div className="fixed inset-0 z-[1000] flex flex-col bg-white" role="dialog" aria-modal="true" aria-label={L({ hi: `${name} की जगह`, en: `Place of ${name}` })}>
       <div className="pt-safe flex items-center gap-2 border-b border-ink-100 px-3 py-2">
         <button type="button" onClick={onClose} className="grid h-11 w-11 place-items-center rounded-full active:bg-ink-100" aria-label={L({ hi: "बंद करें", en: "Close" })}>
@@ -146,6 +148,7 @@ export function StopPlacePicker({ name, value, near, onSave, onClose }: { name: 
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
