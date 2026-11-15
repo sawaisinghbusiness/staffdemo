@@ -79,10 +79,10 @@ export function askForLocation(done?: (state: "ok" | "denied") => void) {
 }
 
 /* ───────── recorded sounds (CC0, public/sounds/driver) ─────────
- * start.mp3 and end.mp3 play when the slide is finished; grab.mp3 when the thumb is touched; tick.mp3 is
- * repeated while dragging, a little higher the further along. To change a sound, replace its file.
+ * start.mp3 (a car starting) and end.mp3 (a pay-app style success tick) play when the slide is finished.
+ * Dragging itself makes no sound, only a light vibration that follows the thumb. To change a sound, replace its file.
  */
-const SAMPLE_URL = { start: "/sounds/driver/start.mp3", end: "/sounds/driver/end.mp3", grab: "/sounds/driver/grab.mp3", tick: "/sounds/driver/tick.mp3" } as const;
+const SAMPLE_URL = { start: "/sounds/driver/start.mp3", end: "/sounds/driver/end.mp3" } as const;
 type Sample = keyof typeof SAMPLE_URL;
 const samples: Partial<Record<Sample, AudioBuffer>> = {};
 let loading = false;
@@ -128,11 +128,10 @@ function playSample(name: Sample, gain = 1, rate = 1): boolean {
   }
 }
 
-/** Thumb touched: a soft grab sound and a small buzz. */
+/** Thumb touched: a small buzz, no sound. */
 export function slideGrab() {
   primeSlideFeedback();
   preloadSamples();
-  playSample("grab", 0.7);
   try {
     navigator.vibrate?.(12);
   } catch {
@@ -141,14 +140,13 @@ export function slideGrab() {
 }
 
 let lastStep = 0;
-/** Dragging: a light tick and buzz every few percent, rising in pitch as the thumb nears the end. */
+/** Dragging: a very light buzz every few percent, so the slide is felt in the hand. */
 export function slideDrag(progress: number) {
-  const step = Math.floor(progress * 14); // about every 7% of the track
+  const step = Math.floor(progress * 24); // about every 4% of the track
   if (step === lastStep) return;
   lastStep = step;
-  playSample("tick", 0.45, 0.85 + progress * 0.55);
   try {
-    navigator.vibrate?.(6);
+    navigator.vibrate?.(5);
   } catch {
     /* no vibration */
   }
