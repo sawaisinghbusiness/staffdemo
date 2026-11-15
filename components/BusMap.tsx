@@ -9,7 +9,6 @@ import { splitPath, type LatLng } from "@/lib/bus";
 
 /** Where the map starts before the route or the bus is known. */
 const BARMER: [number, number] = [71.3967, 25.7521];
-/** Free vector map (OpenFreeMap, OpenStreetMap data), light grey so the route stands out. No key. */
 // A full street map (roads in colour, names, buildings), not the pale grey one: the driver should see real roads.
 const STYLE = "https://tiles.openfreemap.org/styles/liberty";
 

@@ -11,6 +11,9 @@
 export interface Stop {
   name: string;
   time: string;
+  /** The stop's place on the map (picked in the ERP, or saved from the bus app); missing until then. */
+  lat?: number | null;
+  lng?: number | null;
 }
 
 export interface BusRoute {
