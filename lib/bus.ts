@@ -154,3 +154,41 @@ export const DELAY_REASONS: { id: string; hi: string; en: string; why: { hi: str
   { id: "other", hi: "दूसरी वजह", en: "Something else", why: { hi: "किसी वजह से", en: "For a reason on the road" } },
 ];
 export const DELAY_MINUTES = [10, 20, 30];
+
+/**
+ * The road line through these points (morning order), asked for from this phone's browser when the backend
+ * could only give straight lines (its server could not reach the road service). The same free road service
+ * (OSRM) the backend uses; kept in this browser so it is asked for once per set of stop places.
+ * Null if it cannot be reached either: the straight lines stay.
+ */
+export async function roadPathFromPhone(points: [number, number][]): Promise<RoutePath | null> {
+  if (points.length < 2) return null;
+  const key = "sa:road-path:" + points.map((p) => p.map((x) => x.toFixed(5)).join(",")).join("|");
+  try {
+    const hit = localStorage.getItem(key);
+    if (hit) return JSON.parse(hit) as RoutePath;
+  } catch {
+    /* storage blocked: ask again */
+  }
+  try {
+    const coords = points.map(([lat, lng]) => `${lng},${lat}`).join(";");
+    const res = await fetch(`https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=false`, { signal: AbortSignal.timeout(10_000) });
+    if (!res.ok) return null;
+    const r = (await res.json())?.routes?.[0];
+    if (!r?.geometry?.coordinates?.length) return null;
+    const path: RoutePath = {
+      pts: r.geometry.coordinates.map(([lng, lat]: number[]) => [Math.round(lat * 1e5) / 1e5, Math.round(lng * 1e5) / 1e5] as [number, number]),
+      m: Math.round(r.distance),
+      s: Math.round(r.duration),
+      road: true,
+    };
+    try {
+      localStorage.setItem(key, JSON.stringify(path));
+    } catch {
+      /* not kept: asked again next time */
+    }
+    return path;
+  } catch {
+    return null;
+  }
+}

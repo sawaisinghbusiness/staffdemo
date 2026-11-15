@@ -19,6 +19,7 @@ import {
   metres,
   minutesFor,
   nearestIdx,
+  roadPathFromPhone,
   tripPath,
   tripStops,
   type BusRoute,
@@ -100,6 +101,21 @@ export default function TripPage() {
     setRoute(data.route);
     setTrip(data.trip);
   }, [data]);
+
+  // The backend gives straight lines between stops when its server cannot reach the road service. Then this
+  // phone asks for the real road line itself, so the map and the bus follow the roads (as in the demo).
+  useEffect(() => {
+    if (!route || route.path?.road) return;
+    const points = [...route.stops, route.school].filter((p) => p.lat !== null && p.lng !== null).map((p) => [p.lat!, p.lng!] as [number, number]);
+    if (points.length < 2) return;
+    let gone = false;
+    void roadPathFromPhone(points).then((road) => {
+      if (road && !gone) setRoute((r) => (r && r.id === route.id ? { ...r, path: road } : r));
+    });
+    return () => {
+      gone = true;
+    };
+  }, [route?.id, route?.path?.road, route?.path?.pts.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const kind = trip?.kind || planKind;
   const morning = kind === "morning";
