@@ -19,7 +19,6 @@ import {
   metres,
   minutesFor,
   nearestIdx,
-  guessStopPlaces,
   roadPathFromPhone,
   tripPath,
   tripStops,
@@ -105,27 +104,6 @@ export default function TripPage() {
     setTrip(data.trip);
   }, [data]);
 
-  // Demo: stops whose place the school has not saved get a place looked up by name (see guessStopPlaces), so
-  // the pretend bus reaches every stop and the pick-up / drop-off screen comes at each one.
-  const placedCount = route ? route.stops.filter((s) => s.lat !== null && s.lng !== null).length : 0;
-  useEffect(() => {
-    if (!SIMULATE_BUS || !route || placedCount === route.stops.length) return;
-    const known = [route.school, ...route.stops].find((p) => p.lat !== null && p.lng !== null);
-    if (!known) return;
-    let gone = false;
-    void guessStopPlaces(route.stops, { lat: known.lat!, lng: known.lng! }).then((found) => {
-      if (gone || !Object.keys(found).length) return;
-      setRoute((r) =>
-        r && r.id === route.id
-          ? { ...r, path: r.path?.road ? r.path : null, stops: r.stops.map((s) => (s.lat === null && found[s.name] ? { ...s, lat: found[s.name].lat, lng: found[s.name].lng } : s)) }
-          : r
-      );
-    });
-    return () => {
-      gone = true;
-    };
-  }, [route?.id, placedCount]); // eslint-disable-line react-hooks/exhaustive-deps
-
   // The backend gives straight lines between stops when its server cannot reach the road service. Then this
   // phone asks for the real road line itself, so the map and the bus follow the roads (as in the demo).
   useEffect(() => {
@@ -139,7 +117,7 @@ export default function TripPage() {
     return () => {
       gone = true;
     };
-  }, [route?.id, route?.path?.road, route?.path?.pts.length, placedCount]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [route?.id, route?.path?.road, route?.path?.pts.length]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const kind = trip?.kind || planKind;
   const morning = kind === "morning";
