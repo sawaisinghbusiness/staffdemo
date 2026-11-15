@@ -3,10 +3,11 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { ArrowDown, ArrowUp, Check, Phone, Plus, Printer, Search, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Check, MapPin, Phone, Plus, Printer, Search, Trash2, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
+import { StopPlacePicker } from "@/components/erp/StopPlacePicker";
 import { blankRoute, fmtPhone, routeToInput, type BusRoute, type Rider, type RouteInput, type Stop, type TransportList } from "@/lib/erpTransport";
 import { Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, Sheet, StickyBar } from "@/components/ui";
 import { PrintSheet } from "@/components/erp/certs/SheetPreview";
@@ -79,6 +80,7 @@ export default function ErpTransportRoutePage() {
     ridersRes.reload();
   };
 
+  const [picking, setPicking] = useState<number | null>(null);
   const setStop = (i: number, patch: Partial<Stop>) => setF((pr) => ({ ...pr, stops: pr.stops.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
   const moveStopRow = (i: number, d: number) =>
     setF((pr) => {
@@ -286,9 +288,36 @@ export default function ErpTransportRoutePage() {
                       <input type="time" value={s.time} onChange={(e) => setStop(i, { time: e.target.value })} disabled={!isAdmin} aria-label={L({ hi: `स्टॉप ${i + 1} पर लेने का समय`, en: `Pickup time at stop ${i + 1}` })} className="tnum" />
                     </label>
                   </div>
+                  {/* The stop's place on the map: the bus app drives to it and the pick-up / drop-off alert comes there. */}
+                  <button
+                    type="button"
+                    onClick={() => s.name.trim() && setPicking(i)}
+                    disabled={!isAdmin || !s.name.trim()}
+                    className={clsx("mt-2 flex min-h-[44px] w-full items-center gap-2 rounded-xl border px-3 text-left text-[13.5px] font-medium", typeof s.lat === "number" ? "border-[#CFE3D6] bg-[#F1F8F3] text-[#21613F]" : "border-dashed border-ink-200 text-ink-600")}
+                  >
+                    <MapPin className="h-4 w-4 shrink-0" aria-hidden />
+                    <span className="min-w-0 flex-1 truncate">
+                      {typeof s.lat === "number" ? L({ hi: "नक्शे पर जगह सेव है · बदलें", en: "Place on map saved · Change" }) : L({ hi: "नक्शे पर जगह चुनें", en: "Choose place on map" })}
+                    </span>
+                  </button>
                 </li>
               ))}
             </ol>
+            {picking !== null && f.stops[picking] && (
+              <StopPlacePicker
+                name={f.stops[picking].name}
+                value={typeof f.stops[picking].lat === "number" ? { lat: f.stops[picking].lat as number, lng: f.stops[picking].lng as number } : null}
+                near={(() => {
+                  const o = f.stops.find((x) => typeof x.lat === "number");
+                  return o ? { lat: o.lat as number, lng: o.lng as number } : null;
+                })()}
+                onClose={() => setPicking(null)}
+                onSave={(p) => {
+                  setStop(picking, p ? { lat: p.lat, lng: p.lng } : { lat: null, lng: null });
+                  setPicking(null);
+                }}
+              />
+            )}
             {isAdmin && (
               <button type="button" onClick={() => setF((pr) => ({ ...pr, stops: [...pr.stops, { name: "", time: "" }] }))} className="btn-line w-full">
                 <Plus className="h-4 w-4" aria-hidden /> {L({ hi: "स्टॉप जोड़ें", en: "Add a stop" })}
