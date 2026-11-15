@@ -36,3 +36,8 @@ Teacher personal screens keep the approved cool canvas and homepage composition.
 ## Operational primary-action refinement
 
 Filled Save/Submit/Pay actions use shared evergreen #294E43; hover #203F36; pressed #18332B; disabled #D7DFD8/#43564C. Navy remains navigation/selection identity. ActionPalette React context scopes ordinary routes and portals; AI assistant and driver opt out. No global brand replacement. See the web repo docs/action-colour-2026-11-15/REPORT.md for comparison and verification.
+
+
+## Driver working interface
+
+Driver is scoped by .drv and .driver-shell; app/driver-interface.css owns warm canvas #F5F6F2, border #D8DED7, green #0C7158, secondary text #59665E, yellow #FFCB00 start and black task controls. Keep Inter/Noto, 16px gutters, 14px surfaces and 48-52px task controls. Personal salary/attendance/leave/notices inherit driver tokens; other roles stay unchanged. Trip owns its viewport: no general header or bottom navigation above task controls. Identity must resolve from server before role chrome; active trip state must not hydrate from persisted cache. See web docs/driver-review-2026-11-15/REPORT.md for research, implemented flow fixes, screenshots and verification limits. No assistant changes.

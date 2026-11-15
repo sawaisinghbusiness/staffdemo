@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useDialog } from "@/lib/useDialog";
 import { AUTO_CLOSE_MS } from "@/lib/driverPrefs";
 import { Check, MapPin, X } from "lucide-react";
 import { useL } from "@/lib/i18n";
@@ -13,6 +14,8 @@ import { Face } from "./parts";
  */
 export function DropAlert({ stop, kind, dist, auto, onClose, onOk }: { stop: BusStop; kind: TripKind; dist: number | null; auto: boolean; onClose: () => void; onOk: () => void }) {
   const L = useL();
+  const panel = useRef<HTMLDivElement>(null);
+  useDialog(true, panel, onClose);
   const morning = kind === "morning";
   const kid = stop.kids[0];
   const rest = stop.kids.slice(1);
@@ -34,7 +37,7 @@ export function DropAlert({ stop, kind, dist, auto, onClose, onOk }: { stop: Bus
   if (!kid) return null;
 
   return (
-    <div role="alertdialog" aria-modal="true" aria-labelledby="drop-name" className="drv fixed inset-0 z-[900] mx-auto flex max-w-[560px] animate-fadeIn flex-col items-center bg-white px-6 pb-9 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top) + 48px)" }}>
+    <div ref={panel} tabIndex={-1} role="alertdialog" aria-modal="true" aria-labelledby="drop-name" className="drv driver-proximity-alert fixed inset-0 z-[900] mx-auto flex max-w-[560px] animate-fadeIn flex-col items-center bg-white px-6 pb-9 text-center" style={{ paddingTop: "calc(env(safe-area-inset-top) + 48px)" }}>
       <span className="d-chip px-3 py-1.5 text-[12.5px]">
         <MapPin className="h-[14px] w-[14px] text-drv-green" aria-hidden />
         {stop.name}
@@ -76,10 +79,10 @@ export function DropAlert({ stop, kind, dist, auto, onClose, onOk }: { stop: Bus
           {auto && left > 0 ? ` (${left})` : ""}
         </span>
         <span className="flex flex-col items-center gap-2 text-[12.5px] font-medium text-drv-mute">
-          <button ref={okRef} onClick={onOk} className="grid h-[68px] w-[68px] place-items-center rounded-full bg-drv-mint text-white shadow-[0_8px_20px_rgba(77,203,127,.35)] active:translate-y-px" aria-label="Got it">
+          <button ref={okRef} onClick={onOk} className="grid h-[68px] w-[68px] place-items-center rounded-full bg-drv-green text-white shadow-[0_6px_16px_rgba(0,0,0,.12)] active:translate-y-px" aria-label={L({ hi: "\u0938\u092e\u091d \u0917\u092f\u093e", en: "Got it" })}>
             <Check className="h-7 w-7" strokeWidth={2.6} aria-hidden />
           </button>
-          Got it
+          {L({ hi: "\u0938\u092e\u091d \u0917\u092f\u093e", en: "Got it" })}
         </span>
       </div>
     </div>

@@ -3,8 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { Bell, ChevronRight, Play } from "lucide-react";
-import { useApi } from "@/lib/api";
+import { Bell, ChevronDown, ArrowRight, BusFront, UsersRound, Check, School } from "lucide-react";
+import { SlideConfirm } from "./SlideConfirm";
+import { api, useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { clock } from "@/lib/format";
@@ -21,6 +22,8 @@ export function DriverHome() {
   const { lang, setLang } = useLang();
   const { me } = useStaff();
   const { data, error, reload } = useApi<RouteData>("/bus/route");
+  const [stopsOpen,setStopsOpen]=useState(false);
+  const [startError,setStartError]=useState("");
   const [kind, setKind] = useState<TripKind>(defaultKind);
   const first = me?.name.split(" ")[0] || "";
 
@@ -67,7 +70,7 @@ export function DriverHome() {
     // 404/403: the office hasn't put this phone as any route's driver yet.
     const none = error?.status === 404 || error?.status === 403;
     return (
-      <div className="drv">
+      <div className="drv driver-home">
         {head}
         <div className="px-4 pt-4">
           {none ? (
@@ -88,7 +91,7 @@ export function DriverHome() {
   const r = data.route;
   if (!r)
     return (
-      <div className="drv">
+      <div className="drv driver-home">
         {head}
         <div className="px-4 pt-4">
           <NoRoute />
@@ -106,105 +109,39 @@ export function DriverHome() {
   const from = morning ? firstStop : r.school.name;
   const to = morning ? r.school.name : lastStop;
   const km = r.path ? (r.path.m / 1000).toFixed(1) : null;
-  const short = (s?: string) => (s && s.length > 22 ? s.slice(0, 21) + "…" : s || "");
-
+  const next = order.find(s => !running?.done.includes(s.name));
+  const marked = running ? Object.keys(running.marks).length : 0;
+  const done = running ? order.filter(s => running.done.includes(s.name)).length : 0;
   return (
-    <div className="drv">
+    <div className="drv driver-home driver-dispatch">
       {head}
-      <div className="space-y-3 px-4 pt-4">
-        <section className="d-card px-4 pt-3.5">
-          <div className="flex items-center justify-between gap-2">
-            <h2 className="truncate text-[16px] font-semibold">{r.name}</h2>
-            {running && (
-              <span className="d-chip">
-                <span className="d-live" />
-                {L({ hi: "ट्रिप चल रही है", en: "Trip running" })}
-              </span>
-            )}
+      <div className="dispatch-main">
+        <div className="dispatch-title"><h1>{L({hi:"आज का सफ़र",en:"Today's route"})}</h1><span>{new Date().toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN",{day:"numeric",month:"short"})}</span></div>
+        {!running && <div className="dispatch-tabs" role="radiogroup" aria-label={L({hi:"ट्रिप चुनें",en:"Which trip"})}>{(["morning","afternoon"] as const).map(x=><button key={x} role="radio" aria-checked={kind===x} onClick={()=>setKind(x)}>{x==="morning"?L({hi:"सुबह · स्कूल",en:"Morning · school"}):L({hi:"छुट्टी · घर",en:"Afternoon · home"})}</button>)}</div>}
+        <section className="dispatch-sheet">
+          <div className="dispatch-vehicle"><span><BusFront size={19} aria-hidden/>{r.vehicleNo || L({hi:"बस नंबर नहीं जुड़ा",en:"Vehicle not added"})}</span><span className={running?"dispatch-running":"dispatch-ready"}>{running?L({hi:"ट्रिप जारी",en:"Trip in progress"}):L({hi:"शुरू नहीं हुई",en:"Not started"})}</span></div>
+          <h2>{r.name}</h2>
+          <p className="dispatch-direction">{morning?L({hi:"बच्चों को स्कूल ले जाना",en:"Pick up children for school"}):L({hi:"बच्चों को घर छोड़ना",en:"Take children home"})}</p>
+          <div className="dispatch-destination">
+            <span className="dispatch-route-mark" aria-hidden><span/><i/><span/></span>
+            <div><p>{running?L({hi:"अगला स्टॉप",en:"Next stop"}):L({hi:"यहाँ से शुरू",en:"Start from"})}</p><strong>{running?(next?.name || r.school.name):from || L({hi:"स्टॉप नहीं जुड़ा",en:"No stop added"})}</strong><p className="dispatch-end">{L({hi:"मंज़िल",en:"Finish at"})} · {to}</p></div>
           </div>
-          <p className="mt-0.5 truncate text-[13px] text-drv-mute">
-            {r.vehicleNo}
-            {from && to ? ` · ${short(from)} → ${short(to)}` : ""}
-          </p>
-          <dl className="mt-3 grid grid-cols-3 border-t border-drv-line text-center">
-            <div className="py-2.5">
-              <dd className="text-[17px] font-semibold">{kids}</dd>
-              <dt className="text-[11.5px] text-drv-mute">
-                {L({ hi: "बच्चे", en: "Children" })}
-                {r.absent.length > 0 && <span className="font-medium text-drv-gold"> · {L({ hi: `${r.absent.length} अनुपस्थित`, en: `${r.absent.length} absent` })}</span>}
-              </dt>
-            </div>
-            <div className="border-l border-drv-line py-2.5">
-              <dd className="text-[17px] font-semibold">{order.length}</dd>
-              <dt className="text-[11.5px] text-drv-mute">{L({ hi: "स्टॉप", en: "Stops" })}</dt>
-            </div>
-            <div className="border-l border-drv-line py-2.5">
-              <dd className="text-[17px] font-semibold">{km ? `${km}` : "—"}</dd>
-              <dt className="text-[11.5px] text-drv-mute">{L({ hi: "किलोमीटर", en: "km" })}</dt>
-            </div>
-          </dl>
+          <div className="dispatch-manifest"><span><UsersRound size={16} aria-hidden/>{kids} {L({hi:"बच्चे",en:kids===1?"child":"children"})}</span><span>{order.length} {L({hi:"स्टॉप",en:"stops"})}</span>{km && <span>{km} km <small>{L({hi:"रूट",en:"route"})}</small></span>}</div>
+          {running && <p className="dispatch-recorded">{L({hi:`${done} स्टॉप पूरे · ${marked} बच्चों की एंट्री`,en:`${done} stops completed · ${marked} children marked`})}</p>}
+          {startError&&<p role="alert" className="mb-3 text-[13px] text-rose-700">{startError}</p>}
+          {running?<Link href="/trip/" className="dispatch-start">{L({hi:"ट्रिप जारी रखें",en:"Resume trip"})}<ArrowRight size={20}/></Link>:<SlideConfirm tone="yellow" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={!order.length} onConfirm={async()=>{setStartError("");try{await api("/bus/trip",{body:{kind}});window.location.assign("/trip/");return true}catch(e){setStartError(e instanceof Error?e.message:L({hi:"ट्रिप शुरू नहीं हुई",en:"Could not start trip"}));return false}}}/>}
         </section>
-
-        {running ? (
-          <Link href="/trip/" className="d-btn d-btn-y w-full">
-            {L({ hi: "चल रही ट्रिप खोलें", en: "Open the running trip" })}
-            <ChevronRight className="h-[18px] w-[18px]" aria-hidden />
-          </Link>
-        ) : (
-          <>
-            <div className="grid grid-cols-2 rounded-[12px] bg-drv-soft p-[3px]" role="radiogroup" aria-label={L({ hi: "कौन सी ट्रिप", en: "Which trip" })}>
-              {(["morning", "afternoon"] as const).map((x) => (
-                <button
-                  key={x}
-                  role="radio"
-                  aria-checked={kind === x}
-                  onClick={() => setKind(x)}
-                  className={clsx("h-[38px] rounded-[10px] text-[13px] transition-colors", kind === x ? "bg-white font-semibold text-drv-ink shadow-[0_1px_3px_rgba(0,0,0,.1)]" : "font-medium text-drv-mute")}
-                >
-                  {x === "morning" ? L({ hi: "सुबह · स्कूल ले जाना", en: "Morning · to school" }) : L({ hi: "छुट्टी · घर छोड़ना", en: "Afternoon · home" })}
-                </button>
-              ))}
-            </div>
-            <Link href={`/trip/?kind=${kind}`} className="d-btn d-btn-y w-full">
-              <Play className="h-[14px] w-[14px]" fill="currentColor" aria-hidden />
-              {L({ hi: "ट्रिप शुरू करें", en: "Start trip" })}
-            </Link>
-          </>
-        )}
-
-        <section className="pt-1">
-          <div className="mb-1 flex items-baseline justify-between">
-            <h2 className="text-[14px] font-semibold">{L({ hi: "आज के स्टॉप", en: "Today's stops" })}</h2>
-            <span className="text-[12px] font-medium text-drv-mute">{L({ hi: `${kids} बच्चे`, en: `${kids} children` })}</span>
-          </div>
-          <ol>
-            {[
-              ...(morning ? [] : [{ key: "school", name: r.school.name, time: "", note: L({ hi: "यहाँ से निकलना", en: "Leave from here" }) }]),
-              ...order.map((s) => ({
-                key: s.name,
-                name: s.name,
-                time: morning ? s.time : "",
-                note: L({ hi: `${s.kids.length} बच्चे`, en: `${s.kids.length} ${s.kids.length === 1 ? "child" : "children"}` }),
-              })),
-              ...(morning ? [{ key: "school", name: r.school.name, time: "", note: L({ hi: "स्कूल पहुँचना", en: "Reach school" }) }] : []),
-            ].map((s, i, all) => {
-              const tone = i === 0 ? "border-drv-green bg-drv-mint" : i === all.length - 1 ? "border-drv-gold bg-drv-yellow" : "border-drv-ink bg-white";
-              return (
-                <li key={s.key + i} className="relative grid h-11 grid-cols-[52px_14px_1fr_auto] items-center gap-x-2.5">
-                  <span className="text-[12.5px] text-drv-mute">{s.time ? clock(s.time) : ""}</span>
-                  <span className={clsx("relative z-[1] h-2.5 w-2.5 justify-self-center rounded-full border-2", tone)} aria-hidden />
-                  {i < all.length - 1 && <span className="absolute left-[68px] top-[27px] h-[34px] border-l-[1.5px] border-dashed border-[#CFCFCB]" aria-hidden />}
-                  <span className="truncate text-[13.5px] font-medium">{s.name}</span>
-                  <span className="text-[12px] text-drv-mute">{s.note}</span>
-                </li>
-              );
-            })}
-          </ol>
-        </section>
+        {r.absent.length>0 && <p className="dispatch-absence">{L({hi:`आज ${r.absent.length} बच्चे नहीं आएँगे। लिस्ट से हटा दिए हैं।`,en:`${r.absent.length} absent today, already excluded from the list.`})}</p>}
+        <section className="dispatch-stops"><h2><button type="button" className="dispatch-stops-toggle" aria-expanded={stopsOpen} aria-controls="driver-todays-stops" onClick={()=>setStopsOpen(open=>!open)}><span>{L({hi:"आज के स्टॉप",en:"Today's stops"})}</span><ChevronDown size={19} aria-hidden className={stopsOpen?"is-open":""}/></button></h2><div className="dispatch-stops-reveal" data-open={stopsOpen} aria-hidden={!stopsOpen}><div id="driver-todays-stops"><ol>
+          {!morning && (<li className="dispatch-school"><School size={19} aria-hidden/><div><strong>{r.school.name}</strong><span>{morning?L({hi:"स्कूल पहुँचें",en:"Arrive at school"}):L({hi:"स्कूल से निकलें",en:"Depart from school"})}</span></div></li>)}
+          {order.map((stop,i)=>{const passed=!!running?.done.includes(stop.name);const current=!!running&&next?.name===stop.name;return <li key={stop.name} className={clsx(passed&&"is-done",current&&"is-next")}><span className="dispatch-stop-number" aria-label={passed?L({hi:"पूरा",en:"Completed"}):undefined}>{passed?<Check size={15} aria-hidden/>:i+1}</span><div><strong>{stop.name}</strong><span>{stop.kids.length} {L({hi:"बच्चे",en:stop.kids.length===1?"child":"children"})}{current?` · ${L({hi:"अगला स्टॉप",en:"Next stop"})}`:""}</span></div><time>{morning&&stop.time?clock(stop.time):""}</time></li>})}
+          {morning && (<li className="dispatch-school"><School size={19} aria-hidden/><div><strong>{r.school.name}</strong><span>{morning?L({hi:"स्कूल पहुँचें",en:"Arrive at school"}):L({hi:"स्कूल से निकलें",en:"Depart from school"})}</span></div></li>)}
+        </ol></div></div></section>
       </div>
     </div>
   );
 }
+
 
 function NoRoute() {
   const L = useL();

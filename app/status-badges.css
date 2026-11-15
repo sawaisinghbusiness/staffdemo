@@ -1,0 +1,24 @@
+/* Operational status vocabulary: neutral label + outline; colour belongs to the trailing dot.
+   Scoped away from public/login and the restored AI assistant. */
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.status-ok,.status-bad,.status-wait,.status-mute,.badge-emerald,.badge-amber,.badge-orange,.badge-rose,.badge-sky,.badge-violet,.badge-pink,.badge-slate,.badge-brand,.status-dot,.fleet-state,.dispatch-running,.dispatch-ready,.history-trip header>span,.ui-status-badge){
+ display:inline-flex;align-items:center;gap:7px;flex-shrink:0;white-space:nowrap;
+ background:#fff!important;color:#202124!important;border:1px solid #30363A!important;
+ border-radius:999px;padding:2px 9px;font-size:12px;font-weight:550;line-height:1.5;box-shadow:none!important;
+
+}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.status-ok,.status-bad,.status-wait,.status-mute,.badge-emerald,.badge-amber,.badge-orange,.badge-rose,.badge-sky,.badge-violet,.badge-pink,.badge-slate,.badge-brand,.status-dot,.fleet-state,.dispatch-running,.dispatch-ready,.history-trip header>span,.ui-status-badge)::before{content:none!important;display:none!important}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.status-ok,.status-bad,.status-wait,.status-mute,.badge-emerald,.badge-amber,.badge-orange,.badge-rose,.badge-sky,.badge-violet,.badge-pink,.badge-slate,.badge-brand,.status-dot,.fleet-state,.dispatch-running,.dispatch-ready,.history-trip header>span,.ui-status-badge)::after{
+ content:"";display:block;flex:none;order:10;width:7px;height:7px;border-radius:50%;background:var(--status-dot,#788078);
+}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.status-ok,.badge-emerald,.history-trip header>.is-complete,.fleet-state.is-complete){--status-dot:#21A04F}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.status-bad,.badge-rose,.fleet-state.is-delay,.ui-status-badge[data-status-variant="destructive"]){--status-dot:#D93636}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.status-wait,.badge-amber,.badge-orange){--status-dot:#B57916}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) :is(.fleet-state.is-running,.dispatch-running,.history-trip header>.is-running,.badge-violet,.badge-brand){--status-dot:#7755B7}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .badge-sky{--status-dot:#3174B9}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .badge-pink{--status-dot:#B64B7A}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .status-dot:is([class*="emerald"],[class*="green"]){--status-dot:#21A04F}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .status-dot:is([class*="rose"],[class*="red"]){--status-dot:#D93636}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .status-dot:is([class*="amber"],[class*="orange"]){--status-dot:#B57916}
+:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .ui-status-badge[data-status-variant="default"]{--status-dot:#7755B7}
+/* Compact rows retain readable type; the label must never disappear before its dot. */
+@media(max-width:400px){:is([data-action-theme="evergreen"],.driver-shell,.erp-dialog,.erp-parity) .fleet-state{font-size:11px;padding:2px 7px;gap:6px}}

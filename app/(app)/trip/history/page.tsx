@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowRight } from "lucide-react";
 import { useState } from "react";
 import clsx from "clsx";
 import { useApi } from "@/lib/api";
@@ -21,11 +22,13 @@ export default function TripHistoryPage() {
     return d;
   });
   const [day, setDay] = useState(iso(week[6]));
-  const { data, error, reload } = useApi<History>(`/bus/history?date=${day}`);
+  const { data: response, error, reload, stale } = useApi<History>(`/bus/history?date=${day}`);
+  const data = response?.date === day ? response : undefined;
   const ran = new Set(data?.days || []);
 
   return (
     <div className="drv space-y-4">
+      {stale && data && <p role="status" className="rounded-xl bg-drv-note p-3 text-[14px] text-drv-ink">{L({ hi: "\u092a\u0941\u0930\u093e\u0928\u093e \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0926\u093f\u0916 \u0930\u0939\u093e \u0939\u0948\u0964", en: "Showing a saved record. Reconnect and refresh for updates." })}</p>}
       <div className="grid grid-cols-7 gap-1" role="radiogroup" aria-label={L({ hi: "दिन चुनें", en: "Pick a day" })}>
         {week.map((d) => {
           const k = iso(d);
@@ -36,7 +39,7 @@ export default function TripHistoryPage() {
               role="radio"
               aria-checked={on}
               onClick={() => setDay(k)}
-              className={clsx("flex flex-col items-center gap-1.5 rounded-full pb-2.5 pt-2 text-[11px] font-medium", on ? "bg-drv-black text-[#B5B5B5]" : "text-drv-mute")}
+              className={clsx("driver-history-date flex flex-col items-center gap-1.5 rounded-full pb-2.5 pt-2 text-[11px] font-medium", on ? "bg-drv-black text-[#B5B5B5]" : "text-drv-mute")}
             >
               {d.toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { weekday: "short" })}
               <b className={clsx("text-[14px] font-semibold", on ? "text-white" : "text-drv-ink")}>{d.getDate()}</b>
@@ -46,11 +49,13 @@ export default function TripHistoryPage() {
         })}
       </div>
 
-      <div>
-        <h2 className="text-[14px] font-semibold">{weekdayDate(day, lang)}</h2>
-        <p className="text-[12px] text-drv-mute">{L({ hi: "रूट की जानकारी", en: "Route info" })}</p>
+      <div key={day} className="driver-history-day">
+      <div className="driver-history-heading">
+        <h2>{weekdayDate(day, lang)}</h2>
+        <p className="text-[12px] text-drv-mute">{L({ hi: "रूट की जानकारी", en: data ? `${data.trips.length} trip records` : "Loading records…" })}</p>
       </div>
 
+      <div key={data ? `${day}:loaded` : `${day}:loading`} className="driver-history-records" aria-live="polite" aria-busy={!data}>
       {!data ? (
         error && error.status !== 401 ? (
           <ErrorCard offline={error.status === 0} onRetry={reload} />
@@ -69,7 +74,7 @@ export default function TripHistoryPage() {
           <dl className="grid grid-cols-3 rounded-[12px] bg-drv-soft py-2.5 text-center">
             <div>
               <dd className="text-[15px] font-semibold">{data.km !== null ? `${(data.km * data.trips.length).toFixed(1)} km` : "—"}</dd>
-              <dt className="text-[11px] text-drv-mute">{L({ hi: "कुल दूरी", en: "Distance" })}</dt>
+              <dt className="text-[11px] text-drv-mute">{L({ hi: "\u0930\u0942\u091f \u0915\u093e \u0905\u0928\u0941\u092e\u093e\u0928", en: "Route estimate" })}</dt>
             </div>
             <div className="border-l border-[#E2E2DE]">
               <dd className="text-[15px] font-semibold">{data.trips.filter((t) => t.delay).length}</dd>
@@ -80,43 +85,15 @@ export default function TripHistoryPage() {
               <dt className="text-[11px] text-drv-mute">{L({ hi: "चढ़े / उतरे", en: "On / off" })}</dt>
             </div>
           </dl>
+          <p className="text-[13px] leading-relaxed text-drv-mute">{L({ hi: "\u0926\u0942\u0930\u0940 \u0930\u0942\u091f \u0915\u0947 \u0905\u0928\u0941\u0938\u093e\u0930 \u0905\u0928\u0941\u092e\u093e\u0928 \u0939\u0948\u0964", en: "Distance is an estimate from the route length, not measured GPS distance travelled." })}</p>
         </>
       )}
+      </div></div>
     </div>
   );
 }
 
 function TripRow({ t }: { t: DayTrip }) {
-  const L = useL();
-  const morning = t.kind === "morning";
-  const why = t.delay ? DELAY_REASONS.find((r) => r.id === t.delay!.reason) : null;
-  return (
-    <section>
-      <h3 className="mb-2 text-[11.5px] font-semibold uppercase tracking-[0.04em] text-drv-faint">{morning ? L({ hi: "सुबह · स्कूल ले जाना", en: "Morning · to school" }) : L({ hi: "छुट्टी · घर छोड़ना", en: "Afternoon · home" })}</h3>
-      <div className="grid grid-cols-[30px_1fr] gap-x-2.5">
-        <div className="relative flex flex-col items-center pt-0.5">
-          <Pin tone="start" />
-          <svg className="my-1" width="26" height="40" viewBox="0 0 26 40" aria-hidden>
-            <path d="M13 0 C 2 14, 24 26, 13 40" fill="none" stroke="#C4C4C0" strokeWidth="1.4" strokeDasharray="3 4" />
-          </svg>
-          <Pin tone="end" />
-        </div>
-        <div>
-          <div className="pb-3">
-            <p className="text-[12px] font-medium text-drv-mute">{morning ? L({ hi: "निकले", en: "Started" }) : L({ hi: "स्कूल से निकले", en: "Left school" })}</p>
-            <p className="text-[17px] font-semibold leading-tight text-drv-green">{timeOf(t.startedAt)}</p>
-            <p className="text-[12px] text-drv-mute">{morning && t.firstStop ? t.firstStop : L({ hi: `${t.stopsDone} स्टॉप पूरे`, en: `${t.stopsDone} stops done` })}</p>
-          </div>
-          <div>
-            <p className="text-[12px] font-medium text-drv-mute">{t.endedAt ? (morning ? L({ hi: "स्कूल पहुँचे", en: "Reached school" }) : L({ hi: "आखिरी ड्रॉप", en: "Last drop" })) : L({ hi: "अभी चल रही है", en: "Still running" })}</p>
-            <p className="text-[17px] font-semibold leading-tight text-drv-gold">{t.endedAt ? timeOf(t.endedAt) : "—"}</p>
-            <p className="text-[12px] text-drv-mute">
-              {morning ? L({ hi: `${t.ticked} बच्चे चढ़े`, en: `${t.ticked} got on` }) : `${t.lastStop ? t.lastStop + " · " : ""}${L({ hi: `${t.ticked} बच्चे उतरे`, en: `${t.ticked} got off` })}`}
-            </p>
-          </div>
-          {t.delay && why && <p className="mt-2 text-[12px] text-drv-gold">{L({ hi: `${t.delay.minutes} मिनट देरी · ${why.hi}`, en: `${t.delay.minutes} min late · ${why.en}` })}</p>}
-        </div>
-      </div>
-    </section>
-  );
+  const L=useL();const morning=t.kind==="morning";const why=t.delay?DELAY_REASONS.find(r=>r.id===t.delay!.reason):null;
+  return <article className="history-trip"><header><h3>{morning?L({hi:"सुबह का पिकअप",en:"Morning pickup"}):L({hi:"छुट्टी का ड्रॉप",en:"Afternoon drop"})}</h3><span className={t.endedAt?"is-complete":"is-running"}>{t.endedAt?L({hi:"पूरी हुई",en:"Completed"}):L({hi:"जारी है",en:"Running"})}</span></header><div className="history-trip-times"><div><span>{L({hi:"शुरू हुई",en:"Started"})}</span><time dateTime={t.startedAt}>{timeOf(t.startedAt)}</time></div><ArrowRight size={18} aria-hidden/><div><span>{L({hi:"बंद हुई",en:"Ended"})}</span><time dateTime={t.endedAt||undefined}>{t.endedAt?timeOf(t.endedAt):"—"}</time></div></div>{(t.firstStop||t.lastStop)&&<p className="history-trip-route">{[t.firstStop,t.lastStop].filter(Boolean).join(" → ")}</p>}<footer>{t.stopsDone} {L({hi:"स्टॉप पूरे",en:"stops completed"})}<span>·</span>{t.ticked} {morning?L({hi:"बच्चे चढ़े",en:"marked on"}):L({hi:"बच्चे उतरे",en:"marked off"})}</footer>{t.delay&&why&&<p className="history-trip-delay">{t.delay.minutes} {L({hi:"मिनट देरी",en:"min delay"})} · {L(why)}</p>}</article>;
 }

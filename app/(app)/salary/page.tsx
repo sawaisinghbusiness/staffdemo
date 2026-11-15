@@ -37,7 +37,7 @@ export default function SalaryPage() {
         const isOpen = shown === s.month;
         return (
           <li key={s.month} className="overflow-hidden rounded-xl border border-[#DCE4ED] bg-white">
-            <button onClick={() => setOpen(isOpen ? "" : s.month)} aria-expanded={isOpen} className="flex min-h-[76px] w-full items-center gap-3 px-3.5 py-3 text-left">
+            <button onClick={() => setOpen(isOpen ? "" : s.month)} aria-expanded={isOpen} aria-controls={`salary-${s.month}`} className="flex min-h-[76px] w-full items-center gap-3 px-3.5 py-3 text-left">
               <span className="min-w-0 flex-1">
                 <span className="block text-[16px] font-semibold">{monthYear(s.month, lang)}</span>
                 <span className="block text-[13px] text-ink-500">
@@ -45,9 +45,9 @@ export default function SalaryPage() {
                 </span>
               </span>
               <span className="tnum text-[20px] font-semibold text-[#0D2A5E]">{rupees(s.net)}</span>
-              <ChevronDown className={clsx("h-5 w-5 shrink-0 text-ink-400 transition", isOpen && "rotate-180")} aria-hidden />
+              <ChevronDown className={clsx("h-5 w-5 shrink-0 text-ink-400 salary-slip-arrow", isOpen && "rotate-180")} aria-hidden />
             </button>
-            {isOpen && (
+            <div id={`salary-${s.month}`} className="salary-slip-detail" data-open={isOpen} aria-hidden={!isOpen}><div>
               <dl className="kv tnum border-t border-ink-100 px-3.5 pb-1">
                 <div>
                   <dt>{L({ hi: "मूल वेतन", en: "Basic" })}</dt>
@@ -68,7 +68,7 @@ export default function SalaryPage() {
                   <dd className="!font-semibold">{rupees(s.net)}</dd>
                 </div>
               </dl>
-            )}
+            </div></div>
           </li>
         );
       })}

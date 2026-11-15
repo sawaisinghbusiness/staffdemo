@@ -5,6 +5,7 @@ import Link from "next/link";
 import clsx from "clsx";
 import { Bus, ChevronDown, ChevronLeft, ChevronRight, Info, MapPin, Play, RefreshCw, TriangleAlert, X } from "lucide-react";
 import { api, useApi } from "@/lib/api";
+import { useDialog } from "@/lib/useDialog";
 import { DEMO } from "@/lib/demo";
 import { useL } from "@/lib/i18n";
 import { readAlertClose } from "@/lib/driverPrefs";
@@ -26,6 +27,7 @@ import {
   type Trip,
   type TripKind,
 } from "@/lib/bus";
+import { SlideConfirm } from "@/components/driver/SlideConfirm";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
 import { DropAlert } from "@/components/driver/DropAlert";
@@ -34,6 +36,8 @@ import { DelaySheet } from "@/components/driver/DelaySheet";
 import { Faces, ding, timeOf } from "@/components/driver/parts";
 
 const SEND_EVERY_MS = 10_000;
+/** Never publish a stationary old fix as a current bus position. */
+const MAX_FIX_AGE_MS = 30_000;
 /** In manual-close mode the alert still goes once the bus has stood at the stop and driven this far on. */
 const LEFT_STOP_M = 80;
 
@@ -66,6 +70,12 @@ export default function TripPage() {
   const [kmh, setKmh] = useState<number | null>(null);
   const [gps, setGps] = useState<"wait" | "on" | "off">("wait");
   const [gpsTry, setGpsTry] = useState(0);
+  const [gpsProblem, setGpsProblem] = useState<"denied" | "timeout" | "unavailable" | "stale" | "unsupported" | null>(null);
+  const [syncState, setSyncState] = useState<"waiting" | "sending" | "synced" | "error">("waiting");
+  const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
+  const lastFix = useRef<(LatLng & { receivedAt: number }) | null>(null);
+  const mutation = useRef(false);
+  const confirmation = useRef<HTMLDivElement>(null);
   const [alertFor, setAlertFor] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"stop" | "delay" | null>(null);
   const [card, setCard] = useState(false);
@@ -74,6 +84,8 @@ export default function TripPage() {
   const [sure, setSure] = useState(false);
   const [fail, setFail] = useState("");
   const [, tick] = useState(0);
+  const closeConfirmation = useCallback(() => { if (!mutation.current) setSure(false); }, []);
+  useDialog(sure, confirmation, closeConfirmation, busy);
 
   useEffect(() => {
     const k = new URLSearchParams(window.location.search).get("kind");
@@ -101,17 +113,26 @@ export default function TripPage() {
   useEffect(() => {
     if (!trip) return;
     let lock: any = null;
+    let active = true;
+    let requesting = false;
     const ask = async () => {
+      if (!active || requesting || lock?.released === false || document.visibilityState !== "visible") return;
+      requesting = true;
       try {
-        lock = await (navigator as any).wakeLock?.request("screen");
+        const acquired = await (navigator as any).wakeLock?.request("screen");
+        if (!active) { await acquired?.release?.(); return; }
+        lock = acquired;
       } catch {
-        /* not allowed (low battery, old phone): the driver keeps it on by hand */
+        /* Unsupported or battery-constrained: the rest of the trip remains usable. */
+      } finally {
+        requesting = false;
       }
     };
     const back = () => document.visibilityState === "visible" && ask();
     ask();
     document.addEventListener("visibilitychange", back);
     return () => {
+      active = false;
       document.removeEventListener("visibilitychange", back);
       lock?.release?.().catch(() => {});
     };
@@ -124,6 +145,9 @@ export default function TripPage() {
   ptsRef.current = pts;
   const lastTurn = useRef<LatLng | null>(null);
   const place = useCallback((p: LatLng) => {
+    if (!Number.isFinite(p.lat) || !Number.isFinite(p.lng) || Math.abs(p.lat) > 90 || Math.abs(p.lng) > 180) return;
+    lastFix.current = { ...p, receivedAt: Date.now() };
+    setGpsProblem(null);
     setPos(p);
     // Turn only after a few metres, so standing still (GPS wobble) doesn't spin the map.
     const from = lastTurn.current;
@@ -136,10 +160,16 @@ export default function TripPage() {
 
   useEffect(() => {
     if (!trip || !route) return;
+    lastFix.current = null;
+    lastTurn.current = null;
+    setPos(null);
+    setHeading(null);
+    setKmh(null);
+    setGpsProblem(null);
     if (DEMO) {
       // A pretend bus that drives along the road line towards the next stop and waits there.
       const line = ptsRef.current;
-      let p: LatLng = line.length ? { lat: line[0][0] - 0.0009, lng: line[0][1] - 0.0007 } : schoolAt || { lat: 25.75, lng: 71.4 };
+      let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || { lat: 25.75, lng: 71.4 };
       let i = 0;
       place(p);
       setGps("on");
@@ -149,7 +179,7 @@ export default function TripPage() {
         if (!to) return;
         const ln = ptsRef.current;
         const ti = ln.length ? nearestIdx(ln, to) : -1;
-        let budget = 45;
+        let budget = 10;
         for (let guard = 0; guard < 80 && budget > 0; guard++) {
           const goal: LatLng = ti >= 0 && i <= ti ? { lat: ln[i][0], lng: ln[i][1] } : to;
           const d = metres(p, goal);
@@ -164,18 +194,30 @@ export default function TripPage() {
           }
         }
         place(p);
-        setKmh(metres(p, to) < 8 ? 0 : 28 + Math.round(Math.random() * 6));
+        setKmh(metres(p, to) < 8 ? 0 : 50);
       }, 700);
       return () => clearInterval(t);
     }
     if (!("geolocation" in navigator)) {
       setGps("off");
+      setGpsProblem("unsupported");
       return;
     }
     setGps("wait");
     let last: { p: LatLng; t: number } | null = null;
+    let watching = true;
     const id = navigator.geolocation.watchPosition(
       (g) => {
+        if (!watching) return;
+        if (!Number.isFinite(g.coords.latitude) || !Number.isFinite(g.coords.longitude) || Math.abs(g.coords.latitude) > 90 || Math.abs(g.coords.longitude) > 180) return;
+        if (Date.now() - g.timestamp > MAX_FIX_AGE_MS) {
+          lastFix.current = null;
+          setPos(null);
+          setKmh(null);
+          setGps("off");
+          setGpsProblem("stale");
+          return;
+        }
         const p = { lat: g.coords.latitude, lng: g.coords.longitude };
         place(p);
         if (g.coords.heading !== null && !Number.isNaN(g.coords.heading) && (g.coords.speed || 0) > 1.5) setHeading(g.coords.heading);
@@ -185,22 +227,54 @@ export default function TripPage() {
         else if (last && g.timestamp > last.t) setKmh(Math.round((metres(last.p, p) / ((g.timestamp - last.t) / 1000)) * 3.6));
         last = { p, t: g.timestamp };
       },
-      () => setGps("off"),
+      (problem) => {
+        if (!watching) return;
+        lastFix.current = null;
+        last = null;
+        setPos(null);
+        setHeading(null);
+        setKmh(null);
+        setGps("off");
+        setGpsProblem(problem.code === 1 ? "denied" : problem.code === 3 ? "timeout" : "unavailable");
+      },
       { enableHighAccuracy: true, maximumAge: 5_000, timeout: 20_000 }
     );
-    return () => navigator.geolocation.clearWatch(id);
+    return () => { watching = false; navigator.geolocation.clearWatch(id); };
   }, [trip?.id, route?.id, gpsTry]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tell the school where the bus is, every 10 seconds.
-  const lastPos = useRef<LatLng | null>(null);
-  lastPos.current = pos;
+  // Publish only fresh fixes; a response failure must not be presented as live sharing.
   useEffect(() => {
     if (!trip) return;
-    const t = setInterval(() => {
-      const p = lastPos.current;
-      if (p) api("/bus/position", { body: { tripId: trip.id, lat: p.lat, lng: p.lng } }).catch(() => {});
-    }, SEND_EVERY_MS);
-    return () => clearInterval(t);
+    let active = true;
+    let sending = false;
+    setSyncState("waiting");
+    setLastSyncedAt(null);
+    const send = async () => {
+      if (!active || sending) return;
+      const fix = lastFix.current;
+      if (!fix) return;
+      if (Date.now() - fix.receivedAt > MAX_FIX_AGE_MS) {
+        lastFix.current = null;
+        setPos(null);
+        setKmh(null);
+        setGps("off");
+        setGpsProblem("stale");
+        setSyncState("waiting");
+        return;
+      }
+      sending = true;
+      setSyncState("sending");
+      try {
+        const result = await api<{ success: boolean }>("/bus/position", { body: { tripId: trip.id, lat: fix.lat, lng: fix.lng } });
+        if (!result.success) throw new Error("The trip is no longer accepting location updates.");
+        if (active) { setSyncState("synced"); setLastSyncedAt(Date.now()); }
+      } catch {
+        if (active) setSyncState("error");
+      } finally { sending = false; }
+    };
+    void send();
+    const timer = setInterval(() => { void send(); }, SEND_EVERY_MS);
+    return () => { active = false; clearInterval(timer); };
   }, [trip?.id]); // eslint-disable-line react-hooks/exhaustive-deps
 
   /* ── about 100 m before a stop: the full screen alert, once per stop ── */
@@ -218,6 +292,7 @@ export default function TripPage() {
   }, [next?.name, dist !== null && dist <= NEAR_M]); // eslint-disable-line react-hooks/exhaustive-deps
   // Manual mode: once the bus has stood at the stop and driven on, the alert goes by itself.
   const reached = useRef(false);
+  useEffect(() => { warned.current = null; reached.current = false; setAlertFor(null); }, [trip?.id]);
   useEffect(() => {
     if (!alertFor || dist === null) return;
     if (dist <= AT_M) reached.current = true;
@@ -226,10 +301,16 @@ export default function TripPage() {
 
   /* ── actions ── */
   const act = useCallback(
-    async (path: string, body: unknown) => {
+    async (path: string, body: unknown, before?: { path: string; body: unknown }) => {
+      if (mutation.current) return false;
+      mutation.current = true;
       setBusy(true);
       setFail("");
       try {
+        if (before) {
+          const prepared = await api<{ route?: BusRoute }>(before.path, { body: before.body });
+          if (prepared.route) setRoute(prepared.route);
+        }
         const r = await api<{ trip?: Trip; route?: BusRoute }>(path, { body });
         if (r.trip) setTrip(r.trip);
         if (r.route) setRoute(r.route);
@@ -238,6 +319,7 @@ export default function TripPage() {
         setFail(e?.status === 0 ? L({ hi: "इंटरनेट नहीं है, फिर दबाएँ।", en: "No internet. Tap again." }) : e?.message || L({ hi: "नहीं हो पाया, फिर दबाएँ।", en: "Could not save. Tap again." }));
         return false;
       } finally {
+        mutation.current = false;
         setBusy(false);
       }
     },
@@ -245,33 +327,45 @@ export default function TripPage() {
   );
 
   /** A stop without a saved place gets the bus's place the first time the driver works there. */
-  async function savePlaceIfNew() {
-    if (next && !nextAt && pos) await act("/bus/stop-location", { stop: next.name, lat: pos.lat, lng: pos.lng });
+  function newStopPlace() {
+    const fix = lastFix.current;
+    if (next && !nextAt && fix && Date.now() - fix.receivedAt <= MAX_FIX_AGE_MS) {
+      return { path: "/bus/stop-location", body: { stop: next.name, lat: fix.lat, lng: fix.lng } };
+    }
+    return undefined;
   }
 
   async function start() {
-    if (await act("/bus/trip", { kind: planKind })) window.history.replaceState(null, "", "/trip/");
+    const saved=await act("/bus/trip", { kind: planKind });
+    if(saved)window.history.replaceState(null,"","/trip/");
+    return saved;
   }
 
-  async function endTrip() {
-    if (!sure) {
-      setSure(true);
-      setTimeout(() => setSure(false), 4000);
-      return;
-    }
+  function endTrip() {
+    if (mutation.current) return;
+    setFail("");
+    setSure(true);
+  }
+
+  async function confirmEndTrip() {
+    if (mutation.current) return;
+    mutation.current = true;
     setBusy(true);
+    setFail("");
     try {
       await api("/bus/trip/end", { body: {} });
       window.location.replace("/");
-    } catch {
+    } catch (problem: any) {
+      setFail(problem?.message || L({ hi: "\u091f\u094d\u0930\u093f\u092a \u092c\u0902\u0926 \u0928\u0939\u0940\u0902 \u0939\u0941\u0908", en: "Could not end the trip. Try again." }));
+    } finally {
+      mutation.current = false;
       setBusy(false);
-      setFail(L({ hi: "ट्रिप बंद नहीं हुई, फिर दबाएँ।", en: "Could not end the trip. Tap again." }));
     }
   }
 
   /* ── screens ── */
   if (!data || !route) {
-    const none = error?.status === 404 || error?.status === 403 || (data && !route);
+    const none = error?.status === 404 || error?.status === 403 || (data && data.route === null);
     return (
       <Shell>
         <div className="pt-safe space-y-3 p-4">
@@ -311,12 +405,13 @@ export default function TripPage() {
       <Shell>
         <BusMap stops={pins} path={pts} bus={null} className="absolute inset-0" label={L({ hi: "रूट का नक्शा", en: "Route map" })} bottomInset={230} />
         <div className="pt-safe absolute inset-x-4 top-0 z-[600] flex gap-2">
-          <Link href="/" className="mt-3 grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.06),0_4px_14px_rgba(0,0,0,.08)]" aria-label={L({ hi: "होम", en: "Home" })}>
+          <Link href="/" className="mt-3 grid h-12 w-12 shrink-0 place-items-center rounded-full bg-white shadow-[0_1px_2px_rgba(0,0,0,.06),0_4px_14px_rgba(0,0,0,.08)]" aria-label={L({ hi: "होम", en: "Home" })}>
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </Link>
           <button
             onClick={() => setPlanKind(morning ? "afternoon" : "morning")}
-            className="mt-3 flex h-10 min-w-0 flex-1 items-center gap-2 rounded-full bg-white pl-4 pr-3 text-left text-[13.5px] font-semibold shadow-[0_1px_2px_rgba(0,0,0,.06),0_4px_14px_rgba(0,0,0,.08)]"
+            disabled={busy}
+            className="mt-3 flex min-h-[48px] min-w-0 flex-1 items-center gap-2 rounded-full bg-white pl-4 pr-3 text-left text-[13.5px] font-semibold shadow-[0_1px_2px_rgba(0,0,0,.06),0_4px_14px_rgba(0,0,0,.08)]"
             aria-label={L({ hi: "सुबह / छुट्टी बदलें", en: "Switch morning / afternoon" })}
           >
             <span className="min-w-0 flex-1 truncate">
@@ -347,10 +442,7 @@ export default function TripPage() {
             </p>
           )}
           {fail && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
-          <button onClick={start} disabled={busy || !order.length} className="d-btn d-btn-y my-4 w-full">
-            <Play className="h-[14px] w-[14px]" fill="currentColor" aria-hidden />
-            {L({ hi: "ट्रिप शुरू करें", en: "Start trip" })}
-          </button>
+          <div className="my-4"><SlideConfirm tone="yellow" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={busy||!order.length} onConfirm={start}/></div>
         </div>
       </Shell>
     );
@@ -376,7 +468,7 @@ export default function TripPage() {
   const alertStop = alertFor ? order.find((s) => s.name === alertFor) || null : null;
   const pct = order.length ? Math.round((doneCount / order.length) * 100) : 0;
   // How much of the map the bottom sheet covers (the driving view keeps the bus above it).
-  const inset = !next ? 250 : open ? 380 : 172;
+  const inset = !next ? 250 : open ? 440 : 235;
 
   return (
     <Shell>
@@ -438,11 +530,14 @@ export default function TripPage() {
               <dd className="text-[14px] font-semibold">{onBoard}</dd>
             </div>
           </dl>
+          <p role="status" className="border-t border-drv-line py-2 text-[12.5px] leading-snug text-drv-mute">
+            {syncState === "error" ? L({hi:"\u0932\u094b\u0915\u0947\u0936\u0928 \u0928\u0939\u0940\u0902 \u092d\u0947\u091c\u0940 \u0917\u0908",en:"Location not sent"}) : syncState === "sending" ? L({hi:"\u0932\u094b\u0915\u0947\u0936\u0928 \u092d\u0947\u091c \u0930\u0939\u0947 \u0939\u0948\u0902...",en:"Sending location..."}) : lastSyncedAt ? L({hi:"\u0906\u0916\u093c\u093f\u0930\u0940 \u0905\u092a\u0921\u0947\u091f",en:"Last location sent"}) + ": " + timeOf(new Date(lastSyncedAt).toISOString()) : L({hi:"\u0932\u094b\u0915\u0947\u0936\u0928 \u0905\u092d\u0940 \u0928\u0939\u0940\u0902 \u092d\u0947\u091c\u0940",en:"No location sent yet"})}
+          </p>
           <div className="flex items-center justify-between border-t border-drv-line py-2.5">
             <span className="text-[12px] text-drv-mute">
               {label} · {L({ hi: `${sinceMin} मिनट से`, en: `${sinceMin} min` })}
             </span>
-            <button onClick={endTrip} disabled={busy} className={clsx("rounded-full px-3 py-1.5 text-[12.5px] font-semibold", sure ? "bg-rose-600 text-white" : "text-rose-600 active:bg-rose-50")}>
+            <button onClick={endTrip} disabled={busy || !card} tabIndex={card ? 0 : -1} className="min-h-[48px] rounded-[10px] px-3 text-[13px] font-semibold text-rose-700 active:bg-rose-50">
               {sure ? L({ hi: "पक्का, बंद करें", en: "Yes, end" }) : L({ hi: "ट्रिप बंद करें", en: "End trip" })}
             </button>
           </div>
@@ -450,17 +545,25 @@ export default function TripPage() {
       </div>
 
       {/* What the map can't show yet: no GPS, or a route with no saved stop places. */}
-      {(gps !== "on" || (!pts.length && !pins.length)) && !card && (
+      {(gps !== "on" || syncState === "error" || (!pts.length && !pins.length)) && !card && (
         <div className="pt-safe pointer-events-none absolute inset-x-3 top-0 z-[590] flex justify-center">
           {gps === "off" ? (
             <div className="pointer-events-auto mt-[68px] w-full rounded-[14px] bg-drv-black px-3.5 py-3 text-white shadow-[0_8px_24px_rgba(0,0,0,.25)]">
               <p className="text-[14px] font-semibold">{L({ hi: "फ़ोन की लोकेशन नहीं मिल रही", en: "Can't get the phone's location" })}</p>
-              <p className="mt-0.5 text-[12.5px] leading-snug text-white/70">
+              <p className="mt-1 text-[13px] leading-snug text-white/85">
+                {gpsProblem === "denied" ? L({ hi: "\u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u0940 \u0907\u091c\u093e\u091c\u093c\u0924 \u0926\u0947\u0902\u0964", en: "Location permission is blocked. Allow it in your browser or phone settings." }) : gpsProblem === "stale" ? L({ hi: "\u0928\u0908 \u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u093e \u0907\u0902\u0924\u091c\u093c\u093e\u0930 \u0939\u0948\u0964", en: "The last location is too old. Waiting for a fresh fix." }) : null}
+              </p>
+              <p className="mt-1 text-[13px] leading-snug text-white/85">
                 {L({ hi: "फ़ोन में Location चालू करें और इस ऐप को लोकेशन की इजाज़त दें। तभी बस नक्शे पर दिखेगी और स्टॉप का अलर्ट आएगा।", en: "Turn on Location and allow this app to use it. Only then the bus shows on the map and stop alerts come." })}
               </p>
-              <button onClick={() => setGpsTry((x) => x + 1)} className="mt-2.5 rounded-[10px] bg-drv-yellow px-3.5 py-2 text-[13px] font-semibold text-black active:translate-y-px">
+              <button onClick={() => setGpsTry((x) => x + 1)} className="mt-2.5 min-h-[48px] rounded-[10px] bg-drv-yellow px-3.5 py-2 text-[14px] font-semibold text-black active:translate-y-px">
                 {L({ hi: "फिर कोशिश करें", en: "Try again" })}
               </button>
+            </div>
+          ) : syncState === "error" ? (
+            <div role="status" className="pointer-events-auto mt-[68px] w-full rounded-[14px] bg-drv-black px-4 py-3 text-white">
+              <p className="text-[14px] font-semibold">{L({ hi: "\u0932\u094b\u0915\u0947\u0936\u0928 \u0928\u0939\u0940\u0902 \u092d\u0947\u091c\u0940 \u0917\u0908", en: "Location has not reached the school" })}</p>
+              <p className="mt-1 text-[13px] leading-snug text-white/85">{L({ hi: "\u0907\u0902\u091f\u0930\u0928\u0947\u091f \u091c\u093e\u0901\u091a\u0947\u0902\u0964", en: "Check your connection. Fresh location updates will retry automatically." })}{lastSyncedAt ? ` ${L({hi:"\u0906\u0916\u093c\u093f\u0930\u0940 \u0905\u092a\u0921\u0947\u091f",en:"Last sent"})}: ${timeOf(new Date(lastSyncedAt).toISOString())}` : ""}</p>
             </div>
           ) : gps === "wait" ? (
             <span className="d-chip mt-[72px] bg-white px-3 py-1.5 text-[12.5px] shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)]">{L({ hi: "बस की लोकेशन ढूँढ रहे हैं…", en: "Finding the bus's location…" })}</span>
@@ -474,25 +577,25 @@ export default function TripPage() {
 
       {/* Bottom sheet: small while driving; the handle opens the rest. */}
       <div className="pb-safe absolute inset-x-0 bottom-0 z-[600] rounded-t-[20px] bg-white px-4 shadow-[0_-4px_20px_rgba(0,0,0,.08)]">
-        <button onClick={() => setOpen((o) => !o)} className="flex w-full justify-center pb-2 pt-2.5" aria-expanded={open} aria-label={open ? L({ hi: "छोटा करें", en: "Show less" }) : L({ hi: "और दिखाएँ", en: "Show more" })}>
+        <button onClick={() => setOpen((o) => !o)} className="flex min-h-[44px] w-full justify-center pb-2 pt-2.5" aria-expanded={open} aria-label={open ? L({ hi: "छोटा करें", en: "Show less" }) : L({ hi: "और दिखाएँ", en: "Show more" })}>
           <span className="h-1 w-9 rounded-full bg-[#DEDEDA]" aria-hidden />
         </button>
 
         {next ? (
           <>
-            <button onClick={() => setSheet("stop")} className="flex w-full items-start justify-between gap-3 text-left">
+            <div className="flex w-full items-start justify-between gap-3 text-left">
               <span className="min-w-0">
                 <span className="block text-[11.5px] font-semibold text-drv-green">
                   {L({ hi: `अगला स्टॉप · ${nextIdx + 1}/${order.length}`, en: `Next stop · ${nextIdx + 1}/${order.length}` })}
                 </span>
-                <span className="block truncate text-[17px] font-semibold">{next.name}</span>
+                <span className="block break-words text-[17px] font-semibold leading-snug">{next.name}</span>
                 <span className="block text-[12.5px] text-drv-mute">
                   {morning ? L({ hi: `${next.kids.length} बच्चे चढ़ेंगे`, en: `${next.kids.length} getting on` }) : L({ hi: `${next.kids.length} बच्चे उतरेंगे`, en: `${next.kids.length} getting off` })}
                   {minsNext !== null ? L({ hi: ` · करीब ${minsNext} मिनट`, en: ` · about ${minsNext} min` }) : ""}
                 </span>
               </span>
               {toNext !== null && <span className="shrink-0 pt-3 text-[20px] font-semibold text-drv-green">{distText(toNext)}</span>}
-            </button>
+            </div>
 
             <div className={clsx("grid transition-[grid-template-rows] duration-300 ease-out", open ? "grid-rows-[1fr]" : "grid-rows-[0fr]")}>
               <div className="min-h-0 overflow-hidden">
@@ -510,26 +613,14 @@ export default function TripPage() {
                 {delay && trip.delay && (
                   <button onClick={() => setSheet("delay")} className="mt-3 flex w-full items-center gap-2 rounded-[10px] bg-drv-note px-3 py-2 text-left text-[12.5px] text-[#4A3F00]">
                     <TriangleAlert className="h-4 w-4 shrink-0 text-drv-gold" aria-hidden />
-                    <span className="min-w-0 flex-1">{L({ hi: `पैरेंट्स को बताया: ${trip.delay.minutes} मिनट देर · ${delay.hi}`, en: `Parents told: ${trip.delay.minutes} min late · ${delay.en}` })}</span>
+                    <span className="min-w-0 flex-1">{L({ hi: `देरी की जानकारी: ${trip.delay.minutes} मिनट देर · ${delay.hi}`, en: `Delay update: ${trip.delay.minutes} min late · ${delay.en}` })}</span>
                   </button>
                 )}
               </div>
             </div>
 
             {fail && !sheet && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
-            <div className="mt-3 flex gap-2 pb-4">
-              <button onClick={() => setSheet("delay")} className="d-btn d-btn-line shrink-0 px-3.5">
-                <TriangleAlert className="h-4 w-4 text-drv-gold" aria-hidden />
-                {L({ hi: "देरी", en: "Late" })}
-              </button>
-              <button onClick={() => setSheet("stop")} className="d-btn d-btn-k flex-1">
-                {L({ hi: "स्टॉप पर पहुँचे", en: "At the stop" })}
-                <ChevronRight className="h-4 w-4" aria-hidden />
-              </button>
-              <button onClick={() => setOpen((o) => !o)} className="d-btn d-btn-line shrink-0 px-3" aria-label={open ? L({ hi: "छोटा करें", en: "Show less" }) : L({ hi: "और दिखाएँ", en: "Show more" })}>
-                <ChevronDown className={clsx("h-4 w-4 transition-transform duration-300", !open && "rotate-180")} aria-hidden />
-              </button>
-            </div>
+            <div className="mt-3 pb-3"><SlideConfirm label={L({hi:"स्टॉप पर पहुँचने पर स्वाइप करें",en:"Slide at the stop"})} disabled={busy} onConfirm={()=>setSheet("stop")}/><div className="flex items-center justify-between"><button onClick={()=>setSheet("delay")} className="driver-trip-secondary"><TriangleAlert size={16} aria-hidden/>{L({hi:"देरी की जानकारी",en:"Report delay"})}</button><button onClick={()=>setOpen(o=>!o)} className="driver-trip-secondary" aria-label={open?"Show less":"Show more"}><ChevronDown className={open?"rotate-180":""} size={18}/>{open?L({hi:"कम दिखाएँ",en:"Less"}):L({hi:"और दिखाएँ",en:"More"})}</button></div></div>
           </>
         ) : (
           <div className="pb-4">
@@ -551,6 +642,21 @@ export default function TripPage() {
           </div>
         )}
       </div>
+
+      {sure && (
+        <div role="dialog" aria-modal="true" aria-labelledby="finish-trip-title" className="absolute inset-0 z-[1000] flex items-end justify-center bg-black/50 p-4 pb-[max(16px,env(safe-area-inset-bottom))]">
+          <div ref={confirmation} tabIndex={-1} className="w-full max-w-[520px] rounded-[16px] bg-white p-5 outline-none">
+            <h2 id="finish-trip-title" className="text-[20px] font-semibold">{L({ hi: "\u091f\u094d\u0930\u093f\u092a \u092c\u0902\u0926 \u0915\u0930\u0947\u0902?", en: "End this trip?" })}</h2>
+            <p className="mt-2 text-[15px] text-drv-mute">{doneCount} / {order.length} {L({hi:"\u0938\u094d\u091f\u0949\u092a \u092a\u0942\u0930\u0947",en:"stops recorded"})}. {ticked} / {kidsAll.length} {L({hi:"\u092c\u091a\u094d\u091a\u0947 \u091f\u093f\u0915 \u0939\u0941\u090f",en:"children marked"})}.</p>
+            <p className="mt-3 text-[14px] leading-relaxed">{L({hi:"\u092c\u0938 \u091c\u093e\u0901\u091a\u0915\u0930 \u092a\u0915\u094d\u0915\u093e \u0915\u0930\u0947\u0902 \u0915\u093f \u0938\u092d\u0940 \u092c\u091a\u094d\u091a\u0947 \u0938\u0941\u0930\u0915\u094d\u0937\u093f\u0924 \u0939\u0948\u0902\u0964",en:"Check the bus and confirm every child is accounted for before ending."})}</p>
+            {fail && <p role="alert" className="mt-3 text-[14px] leading-relaxed text-rose-700">{fail}</p>}
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <button type="button" onClick={closeConfirmation} disabled={busy} className="d-btn d-btn-line">{L({hi:"\u0935\u093e\u092a\u0938",en:"Keep trip open"})}</button>
+              <button type="button" onClick={confirmEndTrip} disabled={busy} className="d-btn bg-rose-700 text-white">{busy ? L({hi:"\u092c\u0902\u0926 \u0939\u094b \u0930\u0939\u0940 \u0939\u0948...",en:"Ending..."}) : L({hi:"\u0939\u093e\u0901, \u092c\u0902\u0926 \u0915\u0930\u0947\u0902",en:"End trip"})}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {alertStop && (
         <DropAlert
@@ -576,12 +682,10 @@ export default function TripPage() {
           busy={busy}
           fail={fail}
           onTick={async (kidId, on) => {
-            await savePlaceIfNew();
-            act("/bus/mark", { kidId, on });
+            await act("/bus/mark", { kidId, on }, newStopPlace());
           }}
           onDone={async () => {
-            await savePlaceIfNew();
-            if (await act("/bus/stop-done", { stop: next.name })) setSheet(null);
+            if (await act("/bus/stop-done", { stop: next.name }, newStopPlace())) setSheet(null);
           }}
           onClose={() => setSheet(null)}
         />
@@ -590,7 +694,7 @@ export default function TripPage() {
       {sheet === "delay" && (
         <DelaySheet
           routeName={route.name}
-          onBoard={kidsAll.length}
+          onBoard={onBoard}
           current={trip.delay}
           busy={busy}
           fail={fail}

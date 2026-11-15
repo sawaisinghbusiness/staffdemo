@@ -145,17 +145,18 @@ function DriverNav({ path }: { path: string }) {
         aria-label={L(text)}
         aria-current={on ? "page" : undefined}
         className={clsx(
-          "grid place-items-center rounded-full",
-          mid ? "-mt-[22px] h-[52px] w-[52px] bg-drv-yellow text-black shadow-[0_0_0_5px_#0A0A0A]" : clsx("h-11 w-11", on ? "text-drv-yellow" : "text-[#9A9A9A]")
+          "flex min-w-[72px] flex-col items-center justify-center gap-1.5 rounded-xl px-2",
+          mid ? "min-h-[56px] bg-drv-yellow text-black" : clsx("min-h-[56px]", on ? "text-drv-yellow" : "text-[#9A9A9A]")
         )}
       >
         <Icon className="h-5 w-5" strokeWidth={on || mid ? 2.2 : 1.9} aria-hidden />
+        <span className="text-[11.5px] font-medium leading-tight">{L(text)}</span>
       </Link>
     );
   };
   return (
     <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-[560px] justify-center" aria-label="Main">
-      <div className="mb-5 flex h-[52px] w-[184px] items-center justify-between rounded-full bg-drv-black px-4 shadow-[0_8px_20px_rgba(0,0,0,.18)]">
+      <div className="mb-3 flex min-h-[68px] w-[280px] max-w-[calc(100%-32px)] items-center justify-between gap-1 rounded-[18px] bg-drv-black p-1.5 shadow-[0_8px_20px_rgba(0,0,0,.18)]">
         {item("/trip/history/", { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, History)}
         {item("/", { hi: "होम", en: "Home" }, Home, true)}
         {item("/profile/", { hi: "प्रोफ़ाइल", en: "Profile" }, UserRound)}
@@ -178,7 +179,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [menu, setMenu] = useState(false);
   const page = PAGES[path];
   const isHome = path === "/";
-  const own = !!page?.own;
+  const driverTrip = me?.role === "driver" && path.replace(/\/$/, "") === "/trip";
+  const own = !!page?.own || driverTrip;
   const teacher = !me || me.role === "teacher";
   const driver = me?.role === "driver";
   const [erp] = useState(isErpMode);
@@ -202,7 +204,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // not for drivers, and not when the swipe starts on something that scrolls sideways, like the lectures strip).
   const touch = useRef<{ x: number; y: number; t: number } | null>(null);
   useEffect(() => {
-    if (page?.bare || driver) return;
+    if (!me || page?.bare || driver) return;
     const sideways = (el: Element | null) => {
       for (let n = el; n && n !== document.body; n = n.parentElement) {
         if (n.hasAttribute("data-swipe")) return true;
@@ -230,13 +232,25 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       window.removeEventListener("touchstart", start);
       window.removeEventListener("touchend", end);
     };
-  }, [page?.bare, driver]);
+  }, [page?.bare, driver, !!me]);
+
+  // No role-specific chrome until the authoritative identity request succeeds.
+  // Home guards alone do not prevent a previous mode's tabs/header from flashing.
+  if (!me) return (
+    <div className="staff-workspace mx-auto min-h-[100dvh] max-w-[560px] bg-white px-4 py-8">
+      {error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : (
+        <div role="status" aria-busy="true" aria-label={L({ hi: "\u0916\u093e\u0924\u093e \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948", en: "Loading your account" })}>
+          <div className="h-4 w-32 animate-pulse rounded bg-ink-100 motion-reduce:animate-none" aria-hidden="true" />
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <ActionPalette.Provider value={!driver && !path.startsWith("/assistant/")}>
     <ErpAppearance.Provider value={erp && !driver}>
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div data-action-theme={!driver && !path.startsWith("/assistant/") ? "evergreen" : undefined} className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", erp && !driver && "erp-interface", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
+    <div data-action-theme={!driver && !path.startsWith("/assistant/") ? "evergreen" : undefined} className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", erp && !driver && "erp-interface", driver ? "drv driver-shell bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 border-b border-[#DCE4ED] bg-white">
           {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
@@ -272,7 +286,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main className={clsx("relative z-10 flex-1",!page?.bare && "pb-28", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
+      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", driver && "driver-route-enter",!page?.bare && !driverTrip && "pb-28", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
         {!isHome && !own && <OfflineNote show={stale && !!me} />}
         {blocked ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
@@ -295,7 +309,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           switched on in the side menu (as on the parent app). Not for drivers. */}
       {!page?.bare && !driver && owlEnabled && <SahayakButton />}
 
-      {page?.bare ? null : driver ? (
+      {page?.bare || driverTrip ? null : driver ? (
         <DriverNav path={path} />
       ) : (
       // Teachers and other staff: the parent app's flat bar (user, 2026-11-13): white, a hairline on top,

@@ -1,0 +1,31 @@
+/* Driver tasks keep their own green/yellow authority and glanceable layout. */
+.drv{--driver-canvas:#F5F6F2;--driver-line:#D8DED7;--driver-green:#0C7158;--driver-muted:#59665E;line-height:1.45}
+.driver-shell,.driver-home{background:var(--driver-canvas)}
+.drv .text-drv-green{color:var(--driver-green)}
+.drv .bg-drv-green{background:var(--driver-green)}
+.drv .text-drv-gold{color:#795900}
+.drv .text-drv-mute,.drv .text-drv-faint{color:var(--driver-muted)}
+.drv .d-card{border:1px solid var(--driver-line);border-radius:14px;box-shadow:0 2px 5px rgba(20,38,27,.04)}
+.drv .d-btn{min-height:52px;font-size:16px;line-height:1.35;padding:12px 16px;border-radius:12px}
+.drv .d-btn-y{background:#FFCB00;color:#111}
+.drv input,.drv select,.drv textarea{font-size:16px}
+.drv :focus-visible{outline:2px solid #0C7158;outline-offset:3px;box-shadow:none}
+.drv [tabindex="-1"]:focus{outline:none}
+.drv ::selection{background:#CDEAD9;color:#132D22}
+@media(prefers-reduced-motion:reduce){.drv *,.drv *::before,.drv *::after{animation:none!important;transition:none!important}}
+
+/* Shared personal pages inherit the driver's neutral/green language, without changing other roles. */
+.driver-shell{color:#18231D}
+.drv .text-ink-400,.drv .text-ink-500,.drv .text-ink-600{color:var(--driver-muted)}
+.drv .text-ink-900,.drv [class~="text-[#0D2A5E]"]{color:#18231D}
+.drv .border-ink-100,.drv [class~="border-[#DCE4ED]"],.drv [class~="border-[#DFE5EF]"]{border-color:var(--driver-line)}
+.drv .bg-ink-50,.drv .bg-ink-100{background:#EEF1EB}
+.drv [class~="bg-[#0D2A5E]"],.drv .btn-primary{background:#0C7158;color:#fff}
+.drv .btn-primary:disabled{background:#DDE4DD;color:#58645D}
+.drv .staff-task-main{padding-top:12px}
+.drv .staff-task-main input:not([type="radio"]):not([type="checkbox"]),.drv .staff-task-main select{min-height:48px}
+.drv .staff-task-main textarea{min-height:112px}
+.drv .driver-proximity-alert{overflow-y:auto;gap:0;padding-bottom:max(24px,env(safe-area-inset-bottom))}
+.drv .driver-proximity-alert>*{flex-shrink:0}
+.drv .driver-proximity-alert>div:last-child{padding-top:24px}
+@media(max-height:650px){.drv .driver-proximity-alert{padding-top:20px!important}.drv .driver-proximity-alert .d-ripple{margin-top:16px;height:110px}.drv .driver-proximity-alert h2{margin-top:16px}}

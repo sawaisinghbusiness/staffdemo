@@ -108,7 +108,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
                 href={href}
                 onClick={close}
                 aria-current={on ? "page" : undefined}
-                className={clsx("mx-2 flex min-h-[48px] items-center gap-3.5 rounded-xl px-3 text-[15.5px] active:bg-ink-100", on ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-800")}
+                className={clsx("mx-2 flex min-h-[48px] items-center gap-3.5 rounded-xl border px-3 text-[15.5px]", on ? "border-ink-200 font-semibold text-ink-900" : "border-transparent font-medium text-ink-800")}
               >
                 <Icon className="h-[21px] w-[21px] shrink-0 text-ink-900" strokeWidth={1.8} aria-hidden />
                 <span className="min-w-0 flex-1 truncate">{L(text)}</span>
@@ -122,7 +122,8 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
   );
 
   const soon = (text: Bi) => toast(false, `${L(text)}: ${L({ hi: "जल्द आ रहा है", en: "coming soon" })}`);
-  const rowCls = "mx-2 flex min-h-[48px] w-[calc(100%-16px)] items-center gap-3.5 rounded-xl px-3 text-left text-[15.5px] active:bg-ink-100";
+  // The open screen: only a thin light outline, no background at all (user, 2026-11-15).
+  const rowCls = "mx-2 flex min-h-[48px] w-[calc(100%-16px)] items-center gap-3.5 rounded-xl border border-transparent px-3 text-left text-[15.5px]";
 
   /** One ERP module: a link, a "soon" row, or a row that folds open its sub-pages. */
   const erpRow = (item: ErpItem) => {
@@ -134,7 +135,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
     if (item.children)
       return (
         <li key={key}>
-          <button type="button" onClick={() => setOpenKey(isOpen ? null : key)} aria-expanded={isOpen} className={clsx(rowCls, "font-medium text-ink-800", isOpen && "bg-ink-50")}>
+          <button type="button" onClick={() => setOpenKey(isOpen ? null : key)} aria-expanded={isOpen} className={clsx(rowCls, "font-medium text-ink-800")}>
             {icon}
             {label}
             <ChevronDown className={clsx("h-[18px] w-[18px] shrink-0 text-ink-400 transition-transform duration-200", isOpen && "rotate-180")} aria-hidden />
@@ -148,7 +149,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
                       <span className="min-w-0 flex-1 truncate">{L(c.text)}</span>
                     </Link>
                   ) : (
-                    <Link href={c.href} onClick={close} aria-current={path === c.href ? "page" : undefined} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px]", path === c.href ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-700")}>
+                    <Link href={c.href} onClick={close} aria-current={path === c.href ? "page" : undefined} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px]", path === c.href ? "!border-ink-200 font-semibold text-ink-900" : "font-medium text-ink-700")}>
                       <span className="min-w-0 flex-1 truncate">{L(c.text)}</span>
                     </Link>
                   )}
@@ -166,7 +167,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
             {label}
           </button>
         ) : (
-          <Link href={item.href} onClick={close} aria-current={path === item.href ? "page" : undefined} className={clsx(rowCls, path === item.href ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-800")}>
+          <Link href={item.href} onClick={close} aria-current={path === item.href ? "page" : undefined} className={clsx(rowCls, path === item.href ? "!border-ink-200 font-semibold text-ink-900" : "font-medium text-ink-800")}>
             {icon}
             {label}
             {item.preview && <span className="shrink-0 text-[12px] font-medium text-ink-400">{L({ hi: "जल्द", en: "Soon" })}</span>}

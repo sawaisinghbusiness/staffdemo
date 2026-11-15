@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Map as MLMap, Marker } from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { LocateFixed, Map as MapIcon, Navigation } from "lucide-react";
+import { animateReceivedPoint, receivedHeading } from "@/lib/receivedMotion";
 import { splitPath, type LatLng } from "@/lib/bus";
 
 /** Where the map starts before the route or the bus is known. */
@@ -38,11 +39,7 @@ function pinEl(s: MapStop) {
 }
 
 function busEl() {
-  const el = document.createElement("div");
-  // An arrow pointing the way the bus drives (the marker turns with the bus).
-  el.innerHTML =
-    '<span class="d-bus"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5 20 21l-8-4.2L4 21z"/></svg></span>';
-  return el;
+  const el=document.createElement("div");el.innerHTML='<span class="driver-bus-position"><svg width="34" height="44" viewBox="0 0 34 44" fill="none"><rect x="4" y="2" width="26" height="40" rx="7" fill="#FFCB00" stroke="#17251E" stroke-width="2"/><rect x="8" y="7" width="18" height="8" rx="2" fill="#17251E"/><rect x="9" y="18" width="16" height="14" rx="3" fill="#F4D65B" stroke="#9A7D15"/><path d="M2 10v7m30-7v7" stroke="#17251E" stroke-width="3"/><path d="M9 37h3m10 0h3" stroke="#17251E" stroke-width="3" stroke-linecap="round"/></svg></span>';return el;
 }
 
 const line = (pts: [number, number][]) => ({
@@ -114,9 +111,9 @@ export function BusMap({
           const lay = (id: string, src: string, color: string, width: number) =>
             m.addLayer({ id, type: "line", source: src, layout: { "line-join": "round", "line-cap": "round" }, paint: { "line-color": color, "line-width": width } });
           lay("ahead-case", "ahead", "#ffffff", 10);
-          lay("ahead-line", "ahead", YELLOW, 6);
+          lay("ahead-line", "ahead", "#35644D", 5);
           lay("done-case", "done", "#ffffff", 10);
-          lay("done-line", "done", GREEN, 6);
+          lay("done-line", "done", "#A8B9AA", 4);
           setReady(true);
         });
       })
@@ -147,7 +144,7 @@ export function BusMap({
     const [done, ahead] = splitPath(path, bus);
     (m.getSource("ahead") as any)?.setData(line(ahead));
     (m.getSource("done") as any)?.setData(line(done));
-    m.setPaintProperty("ahead-line", "line-color", bus ? YELLOW : GREEN);
+    m.setPaintProperty("ahead-line", "line-color", "#35644D");
   }, [ready, path, bus?.lat, bus?.lng]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // The whole route in view: first time, and whenever the driver switches to it.
@@ -174,22 +171,15 @@ export function BusMap({
       busMarker.current = null;
       return;
     }
-    if (!busMarker.current) busMarker.current = new mod.Marker({ element: busEl(), rotationAlignment: "map", pitchAlignment: "viewport" }).setLngLat([bus.lng, bus.lat]).addTo(m);
-    else busMarker.current.setLngLat([bus.lng, bus.lat]);
-    if (heading !== null) busMarker.current.setRotation(heading);
-    if (!follow) return;
-    if (view === "nav") {
-      const h = m.getContainer().clientHeight;
-      m.easeTo({
-        center: [bus.lng, bus.lat],
-        zoom: 17,
-        pitch: 58,
-        bearing: heading ?? m.getBearing(),
-        // The bus sits low on the screen, so the road ahead fills the view.
-        padding: { top: Math.round(h * 0.38), bottom: bottomInset + 24, left: 0, right: 0 },
-        duration: 900,
-      });
-    } else if (fitted.current) m.easeTo({ center: [bus.lng, bus.lat], duration: 800 });
+    const reduced=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (!busMarker.current) busMarker.current = new mod.Marker({ element: busEl(), rotationAlignment: "viewport", pitchAlignment: "viewport" }).setLngLat([bus.lng,bus.lat]).addTo(m);
+    const marker=busMarker.current;const old=marker.getLngLat();const rotation=marker.getRotation();
+    const cancel=animateReceivedPoint({lat:old.lat,lng:old.lng},bus,(point,progress)=>{marker.setLngLat([point.lng,point.lat]);if(view!=="nav"&&heading!==null)marker.setRotation(receivedHeading(rotation,heading,progress));else marker.setRotation(0);},{duration:900,road:path,reduced});
+    if(follow){if(view==="nav"){
+      const height=m.getContainer().clientHeight;
+      m.easeTo({center:[bus.lng,bus.lat],zoom:17.4,pitch:55,bearing:heading??m.getBearing(),padding:{top:Math.round(height*.30),bottom:bottomInset+24,left:0,right:0},duration:reduced?0:900,easing:t=>t});
+    }else if(fitted.current)m.easeTo({center:[bus.lng,bus.lat],duration:reduced?0:900,easing:t=>t});}
+    return cancel;
   }, [ready, bus?.lat, bus?.lng, heading, follow, view, bottomInset]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const btn = "grid h-10 w-10 place-items-center rounded-[10px] bg-white text-drv-ink shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)] active:bg-drv-soft";

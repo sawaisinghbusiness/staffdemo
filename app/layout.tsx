@@ -20,6 +20,9 @@ import "./globals.css";
 import "./staff-workspace.css";
 import "./erp-interface.css";
 import "./action-palette.css";
+import "./driver-interface.css";
+import "./driver-dispatch.css";
+import "./status-badges.css";
 import { LangProvider } from "@/lib/i18n";
 import { Toaster } from "@/lib/toast";
 

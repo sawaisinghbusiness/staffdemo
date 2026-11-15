@@ -1,5 +1,7 @@
 "use client";
 
+import { useRef, useState } from "react";
+import { useDialog } from "@/lib/useDialog";
 import clsx from "clsx";
 import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import { useL } from "@/lib/i18n";
@@ -32,19 +34,22 @@ export function StopSheet({
   onClose: () => void;
 }) {
   const L = useL();
+  const panel = useRef<HTMLDivElement>(null);
+  const [confirmRemaining, setConfirmRemaining] = useState(false);
+  useDialog(true, panel, onClose, busy);
   const morning = trip.kind === "morning";
   const ticked = stop.kids.filter((k) => trip.marks[k.id]).length;
   const word = morning ? L({ hi: "चढ़ गया", en: "Got on" }) : L({ hi: "उतर गया", en: "Got off" });
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="stop-name" className="drv fixed inset-0 z-[880] mx-auto flex max-w-[560px] animate-rise flex-col bg-white">
+    <div ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="stop-name" className="drv fixed inset-0 z-[880] mx-auto flex max-w-[560px] animate-rise flex-col bg-white">
       <div className="pt-safe">
         <div className="flex items-center gap-3 px-4 pb-2 pt-3">
-          <button onClick={onClose} className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-drv-soft active:bg-drv-line" aria-label={L({ hi: "मैप पर वापस", en: "Back to the map" })}>
+          <button onClick={onClose} disabled={busy} className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-drv-soft active:bg-drv-line" aria-label={L({ hi: "मैप पर वापस", en: "Back to the map" })}>
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
           <div className="min-w-0 flex-1">
-            <h2 id="stop-name" className="truncate text-[17px] font-semibold">
+            <h2 id="stop-name" className="break-words text-[18px] font-semibold leading-snug">
               {stop.name}
             </h2>
             <p className="text-[12px] text-drv-mute">{L({ hi: `स्टॉप ${no}`, en: `Stop ${no}` })}</p>
@@ -71,22 +76,22 @@ export function StopSheet({
           {stop.kids.map((k) => {
             const at = trip.marks[k.id];
             return (
-              <li key={k.id} className="flex h-14 items-center gap-3 border-b border-drv-line last:border-b-0">
+              <li key={k.id} className="flex min-h-[72px] items-center py-3 gap-3 border-b border-drv-line last:border-b-0">
                 <Face name={k.name} url={k.photoUrl} grey={!at} />
                 <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13.5px] font-semibold">{k.name}</span>
+                  <span className="block break-words text-[15px] font-semibold leading-snug">{k.name}</span>
                   <span className="block text-[12px] text-drv-mute">
                     {L({ hi: "कक्षा", en: "Class" })} {k.classSec}
                     {at ? ` · ${timeOf(at)}` : ""}
                   </span>
                 </span>
                 <button
-                  onClick={() => onTick(k.id, !at)}
+                  onClick={() => { setConfirmRemaining(false); onTick(k.id, !at); }}
                   disabled={busy}
                   aria-pressed={!!at}
                   className={clsx(
-                    "flex h-8 min-w-[88px] items-center justify-center gap-1 rounded-full px-3 text-[12.5px] transition-colors disabled:opacity-60",
-                    at ? "bg-drv-mint font-semibold text-white" : "border-[1.5px] border-drv-ink bg-white font-medium text-drv-ink active:bg-drv-soft"
+                    "flex min-h-[48px] min-w-[88px] items-center justify-center gap-1 rounded-[10px] px-3 text-[14px] transition-colors disabled:opacity-60",
+                    at ? "bg-drv-green font-semibold text-white" : "border-[1.5px] border-drv-ink bg-white font-medium text-drv-ink active:bg-drv-soft"
                   )}
                 >
                   {at && <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden />}
@@ -96,12 +101,13 @@ export function StopSheet({
             );
           })}
         </ul>
-        {fail && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
+        {fail && <p role="alert" className="mt-2 text-[14px] text-rose-700">{fail}</p>}
       </div>
 
       <div className="pb-safe px-4 pt-2">
-        <button onClick={onDone} disabled={busy} className="d-btn d-btn-k mb-4 w-full">
-          {ticked < stop.kids.length
+        {confirmRemaining && <p role="alert" className="mb-3 text-[14px] leading-relaxed text-drv-mute">{L({ hi: "\u0915\u0941\u091b \u092c\u091a\u094d\u091a\u0947 \u0905\u092d\u0940 \u092e\u093e\u0930\u094d\u0915 \u0928\u0939\u0940\u0902 \u0939\u0941\u090f \u0939\u0948\u0902\u0964", en: "Some children are still unmarked. Review them, or confirm below to continue without changing their status." })}</p>}
+        <button onClick={() => { if (ticked < stop.kids.length && !confirmRemaining) { setConfirmRemaining(true); return; } onDone(); }} disabled={busy} className="d-btn d-btn-k mb-4 w-full">
+          {confirmRemaining && ticked < stop.kids.length ? L({ hi: `${stop.kids.length - ticked} \u092c\u093e\u0915\u0940 \u0930\u0916\u0915\u0930 \u0906\u0917\u0947 \u092c\u095d\u0947\u0902`, en: `Continue with ${stop.kids.length - ticked} unmarked` }) : ticked < stop.kids.length
             ? L({ hi: `स्टॉप पूरा (${stop.kids.length - ticked} बाकी) · आगे चलें`, en: `Stop done (${stop.kids.length - ticked} left) · Next` })
             : L({ hi: "स्टॉप पूरा · आगे चलें", en: "Stop done · Next" })}
           <ChevronRight className="h-4 w-4" aria-hidden />

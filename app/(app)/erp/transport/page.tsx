@@ -1,5 +1,6 @@
 "use client";
 
+import { TransportLivePanel } from "@/components/transport/TransportLivePanel";
 import Link from "next/link";
 import clsx from "clsx";
 import { Bus, ChevronRight, Plus, RotateCw } from "lucide-react";
@@ -37,6 +38,7 @@ export default function ErpTransportPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-4">
+      {(isAdmin || who.data?.user.role === "accountant") && <TransportLivePanel />}
       <section className="grid grid-cols-3 gap-1.5 rounded-2xl border border-ink-100 bg-white px-4 py-3.5">
         <span className="flex flex-col">
           <b className="tnum text-[22px] font-extrabold leading-tight">{data ? data.total.toLocaleString("en-IN") : "…"}</b>

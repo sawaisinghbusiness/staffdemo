@@ -59,6 +59,8 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
 
 const KEY = "sa:cache:";
 export function readCache<T>(path: string): T | undefined {
+  // Identity decides which application may render. Never reuse another session's role.
+  if (path === "/me" || path === "/bus/route") return undefined;
   if(isErpMode())return undefined; // ERP financial and administrative views always load current server data.
   try {
     const raw = localStorage.getItem(KEY + path);
@@ -68,6 +70,7 @@ export function readCache<T>(path: string): T | undefined {
   }
 }
 function writeCache(path: string, v: unknown) {
+  if (path === "/me" || path === "/bus/route") return;
   if(isErpMode())return;
   try {
     localStorage.setItem(KEY + path, JSON.stringify({ at: Date.now(), v }));
