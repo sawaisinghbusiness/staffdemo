@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { AlertTriangle, Check, MessageCircle, Search, Send, X } from "lucide-react";
+import { Download, AlertTriangle, Check, MessageCircle, Search, Send, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
+import { downloadWorkbook } from "@/lib/spreadsheet";
 import { rupees } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { DEFAULT_TEMPLATES, fillTemplate, whatsappLink, type DuesReport, type ReminderLang, type StudentDues } from "@/lib/erpDues";
@@ -16,7 +17,7 @@ import { Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, Sheet, StickyBar }
  * ERP login → Fees → Dues & reminders: the ERP's page. Every student's overdue instalments and late fine
  * come from GET /api/fees/dues (worked out by the backend's fee engine); tap a row to collect, the green
  * icon to WhatsApp that parent, or tick many and send reminders (one by one, or all from the school's
- * WhatsApp when it is linked: POST /api/whatsapp/queue). Excel export stays on the ERP website.
+ * WhatsApp when it is linked: POST /api/whatsapp/queue). The filtered dues can be exported as an Excel workbook.
  */
 
 type Tab = "students" | "classes";
@@ -87,8 +88,11 @@ export default function ErpDuesPage() {
   const s = report?.summary;
   const dueNames = report ? report.instalments.filter((i) => i.due <= report.asOf).map((i) => i.name) : [];
 
+  const exportRows = () => downloadWorkbook('Fee_dues_'+(report?.asOf || 'today')+'.xlsx',['Name','SR no.','Class','Father','Mobile','Balance (\u20b9)','Due now (\u20b9)','Fine (\u20b9)','Overdue instalments','Oldest days late','Last paid'],shown.map(r=>[r.name,r.srNo,r.classSec,r.fatherName,r.mobile,r.balance,r.dueNow,r.fine,r.overdue.map(i=>i.name).join(', '),r.overdue[0]?.daysLate || 0,r.lastPaid || 'Never']));
+
   return (
     <div className="animate-rise space-y-3 pb-20">
+      <button type="button" onClick={exportRows} disabled={!shown.length} className="btn-line w-full"><Download className="h-4 w-4" aria-hidden />{L({hi:"\u0936\u0940\u091f \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902",en:"Export spreadsheet"})}</button>
       <p className="text-[13px] text-ink-500">
         {report
           ? `${L({ hi: "आज तक", en: "As on" })} ${day(report.asOf)} · ${dueNames.length ? `${dueNames.join(", ")} ${L({ hi: "की फ़ीस देनी थी", en: dueNames.length > 1 ? "are due" : "is due" })}` : L({ hi: "अभी कोई किस्त देय नहीं", en: "no instalment is due yet" })}`

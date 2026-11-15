@@ -6,7 +6,8 @@ import { Download, Lock, Upload } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
-import { downloadCsv, parseCsv } from "@/lib/csv";
+import {downloadWorkbook,readWorkbook} from "@/lib/spreadsheet";
+import {reconcileMarks} from "@/lib/marksWorkbook";
 import { gradeFor, markProblem, totalOf } from "@/lib/erpGrading";
 import type { Sheet } from "@/lib/erpExams";
 import { Empty, ErrorCard, ListSkeleton, StickyBar } from "@/components/ui";
@@ -46,6 +47,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
   const [rows, setRows] = useState<Row[]>([]);
   const [saved, setSaved] = useState("");
   const [busy, setBusy] = useState(false);
+  const [importResult,setImportResult]=useState<{matched:number;errors:string[]}|null>(null);
   const list = useRef<HTMLUListElement>(null);
   const fileInput = useRef<HTMLInputElement>(null);
 
@@ -125,50 +127,17 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
 
   const unit = sheet.exam.scope?.[section.split(" - ")[0]]?.units?.[subject];
 
-  const head = () => ["Roll No", "Name", ...parts.map((p) => `${p.name} (/${p.max})`), "Absent (Yes/No)"];
-  function downloadSheet() {
-    downloadCsv(
-      `marks-${subject}-${section}.csv`.replace(/[^\w.-]+/g, "-"),
+  const head = () => ["Student ID", "Roll No", "Name", ...parts.map((p) => `${p.name} (/${p.max})`), "Absent (Yes/No)"];
+  async function downloadSheet() {
+    await downloadWorkbook(
+      `marks-${subject}-${section}.xlsx`.replace(/[^\w.-]+/g, "-"),
       head(),
-      rows.map((r) => [r.rollNo, r.name, ...parts.map((p) => (r.absent ? "" : r.values[p.key] || "")), r.absent ? "Yes" : ""])
+      rows.map((r) => [r.studentId,r.rollNo, r.name, ...parts.map((p) => (r.absent ? "" : r.values[p.key] || "")), r.absent ? "Yes" : ""])
     );
   }
   /** Fills the boxes from the uploaded sheet; nothing is saved until Save. */
-  async function fillFromFile(f: File | undefined) {
-    if (!f) return;
-    if (/\.xlsx?$/i.test(f.name)) return toast(false, L({ hi: "Excel में File → Save As → CSV चुनकर सेव करें, फिर वह फ़ाइल डालें।", en: "In Excel use File → Save As → CSV, then pick that file." }));
-    const table = parseCsv(await f.text()).filter((r) => r.some((c) => c));
-    const h = (table[0] || []).map((x) => x.toLowerCase());
-    const rollAt = h.findIndex((x) => x.startsWith("roll"));
-    const nameAt = h.findIndex((x) => x === "name");
-    const absAt = h.findIndex((x) => x.startsWith("absent"));
-    const partAt = parts.map((p) => h.findIndex((x) => x.startsWith(p.name.toLowerCase())));
-    if (nameAt < 0 || partAt.some((x) => x < 0)) return toast(false, L({ hi: "कॉलम नहीं मिले। इसी पेज से डाउनलोड की गई फ़ाइल भरें।", en: "Columns not found. Fill the file downloaded from this page." }));
-    const norm = (v: string) => v.trim().toLowerCase().replace(/\s+/g, " ");
-    let hit = 0;
-    let miss = 0;
-    const next = rows.map((r) => ({ ...r, values: { ...r.values } }));
-    for (const line of table.slice(1)) {
-      const roll = rollAt >= 0 ? (line[rollAt] || "").trim() : "";
-      const name = norm(line[nameAt] || "");
-      const row = next.find((r) => roll && r.rollNo && r.rollNo.replace(/^0+/, "") === roll.replace(/^0+/, "") && (!name || norm(r.name) === name)) || next.find((r) => name && norm(r.name) === name);
-      if (!row) {
-        miss++;
-        continue;
-      }
-      const absent = absAt >= 0 && /^(yes|y|a|haan|ab|absent)$/i.test((line[absAt] || "").trim());
-      row.absent = absent;
-      parts.forEach((p, k) => (row.values[p.key] = absent ? "" : (line[partAt[k]] || "").trim()));
-      hit++;
-    }
-    setRows(next);
-    toast(
-      hit > 0,
-      hit
-        ? L({ hi: `${hit} बच्चों के अंक भरे${miss ? `, ${miss} लाइन नहीं मिलीं` : ""}। देखकर सेव दबाएँ।`, en: `Filled ${hit} students${miss ? `, ${miss} lines not matched` : ""}. Check, then press Save.` })
-        : L({ hi: "फ़ाइल में इस सेक्शन का कोई बच्चा नहीं मिला।", en: "No student of this section found in the file." })
-    );
-  }
+  async function fillFromFile(f:File|undefined){if(!f||locked)return;try{const result=reconcileMarks(rows,parts,await readWorkbook(f));setRows(result.rows);setImportResult({matched:result.matched,errors:result.errors});toast(result.matched>0,'Loaded '+result.matched+' students; '+result.errors.length+' rows skipped. Review the marks, then press Save.');}catch(e){toast(false,e instanceof Error?e.message:'Could not read this workbook.');}}
+
 
   return (
     <div className="animate-rise space-y-3 pb-20">
@@ -182,6 +151,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
           {sheet.lastSaved ? ` · ${L({ hi: "आख़िरी सेव", en: "last saved" })} ${when(sheet.lastSaved.at)}${sheet.lastSaved.by ? ` · ${sheet.lastSaved.by.split(" (")[0]}` : ""}` : ""}
         </p>
       </div>
+      {importResult&&<div className="row-card text-sm" role="status"><p>{importResult.matched} students loaded. Nothing is saved until Save.</p>{importResult.errors.length>0&&<details className="mt-2"><summary>{importResult.errors.length} import problems</summary><ul className="mt-2 space-y-1">{importResult.errors.map((e,i)=><li key={i}>{e}</li>)}</ul></details>}</div>}
       {locked ? (
         <p className="flex items-center gap-2 rounded-xl bg-ink-100 px-3 py-2 text-[13.5px] text-ink-700">
           <Lock className="h-4 w-4 shrink-0" aria-hidden /> {L({ hi: "एडमिन ने बंद किया है: सिर्फ़ देख सकते हैं", en: "Locked by the admin: view only" })}
@@ -224,7 +194,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
               <li key={r.studentId} className={clsx("border-b border-ink-100 py-2", r.absent && "bg-ink-50", bad && "bg-rose-50/60")}>
                 <div className="flex items-center gap-2">
                   <span className="tnum w-6 shrink-0 text-right text-[13px] text-ink-400">{r.rollNo || i + 1}</span>
-                  <span className="min-w-0 flex-1 truncate text-[15px] font-medium">{r.name}</span>
+                  <span className="min-w-0 flex-1 break-words text-[15px] font-medium leading-snug">{r.name}</span>
                   {parts.length === 1 &&
                     parts.map((p, c) => {
                       const msg = problems[`${r.studentId}|${p.key}`];
@@ -246,7 +216,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
                       );
                     })}
                   <span className="w-8 shrink-0 text-center text-[13px] font-semibold text-ink-600">{total !== null && !bad ? gradeFor((total / max) * 100) : ""}</span>
-                  <label className="flex w-12 shrink-0 flex-col items-center text-[10.5px] font-semibold text-ink-400">
+                  <label className="flex min-h-[44px] w-12 shrink-0 cursor-pointer flex-col items-center justify-center gap-1 text-[12px] font-semibold text-ink-400">
                     <input type="checkbox" checked={r.absent} onChange={() => toggleAbsent(i)} disabled={locked} aria-label={`${r.name} ${L({ hi: "अनुपस्थित", en: "absent" })}`} className="h-5 w-5 accent-ink-700" />
                     AB
                   </label>
@@ -256,8 +226,8 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
                     {parts.map((p, c) => {
                       const msg = problems[`${r.studentId}|${p.key}`];
                       return (
-                        <label key={p.key} className="w-[76px]">
-                          <span className="block truncate text-[11px] text-ink-500">
+                        <label key={p.key} className="min-w-[92px] max-w-[160px] flex-1">
+                          <span className="mb-1 block break-words text-[12.5px] leading-snug text-ink-500">
                             {p.name} /{p.max}
                           </span>
                           <input
@@ -271,7 +241,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
                             enterKeyHint="next"
                             aria-label={`${r.name}, ${p.name}`}
                             aria-invalid={!!msg}
-                            className={clsx("tnum h-10 w-full rounded-lg border bg-white px-2 text-right text-[16px] outline-none focus:border-brand-500 disabled:bg-transparent", msg ? "border-rose-400 text-rose-700" : r.absent ? "border-transparent bg-transparent font-semibold text-ink-400" : "border-ink-200")}
+                            className={clsx("tnum h-11 w-full rounded-[10px] border bg-white px-2 text-right text-[16px] outline-none focus:border-brand-500 disabled:bg-transparent", msg ? "border-rose-400 text-rose-700" : r.absent ? "border-transparent bg-transparent font-semibold text-ink-400" : "border-ink-200")}
                           />
                         </label>
                       );

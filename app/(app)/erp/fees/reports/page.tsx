@@ -1,22 +1,23 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
 import { useState } from "react";
 import clsx from "clsx";
-import { AlertTriangle, CalendarDays, Check, ChevronDown } from "lucide-react";
+import { Download, AlertTriangle, CalendarDays, Check, ChevronDown } from "lucide-react";
 import { useApi } from "@/lib/api";
 import { useL, type Bi } from "@/lib/i18n";
+import { downloadWorkbook } from "@/lib/spreadsheet";
 import type { ClassMoney, ClasswiseReport, CollectionReport } from "@/lib/erpReports";
 import { Empty, ErrorCard, LineTabs, ListSkeleton } from "@/components/ui";
 
 /*
  * ERP login → Fees → Reports: the ERP's fee reports (GET /api/reports/collection and /classwise), same
  * ranges and the same four views, as lists instead of wide tables. Cancelled receipts are not counted.
- * Excel export stays on the ERP website.
+ * Exports match the web report columns using an Excel workbook.
  */
 
 type Tab = "daybook" | "heads" | "collectors" | "classes";
 type Preset = "today" | "week" | "month" | "session" | "custom";
-const SESSION = { short: "2026-27", start: "2026-04-01", end: "2027-03-31" };
 const MAX_DAYS = 400;
 const MODE_COLOR = { Cash: "#2a78d6", UPI: "#eb6834", Cheque: "#1baf7a" } as const;
 
@@ -39,7 +40,7 @@ const long = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString("en
 const short = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
 /** ERP rangeFor: the week starts on Monday, the session runs April to March. */
-function rangeFor(p: Exclude<Preset, "custom">): { from: string; to: string } {
+function rangeFor(p: Exclude<Preset, "custom">, session?: {start:string;end:string} | null): { from: string; to: string } {
   const today = todayIST();
   if (p === "today") return { from: today, to: today };
   if (p === "week") {
@@ -47,7 +48,7 @@ function rangeFor(p: Exclude<Preset, "custom">): { from: string; to: string } {
     return { from: addDays(today, -((dow + 6) % 7)), to: today };
   }
   if (p === "month") return { from: today.slice(0, 8) + "01", to: today };
-  return { from: SESSION.start, to: today < SESSION.end ? today : SESSION.end };
+  return { from: session?.start || "", to: session ? (today < session.end ? today : session.end) : "" };
 }
 function rangeLabel(from: string, to: string) {
   if (from === to) return long(from);
@@ -64,6 +65,7 @@ const PRESETS: [Preset, Bi][] = [
 ];
 
 export default function ErpFeeReportsPage() {
+  const { session, error: sessionError } = useErpSession();
   const L = useL();
   const [preset, setPreset] = useState<Preset>("month");
   const [range, setRange] = useState(() => rangeFor("month"));
@@ -78,7 +80,8 @@ export default function ErpFeeReportsPage() {
   const pickPreset = (p: Preset) => {
     setPreset(p);
     if (p === "custom") return setDraft(range);
-    setRange(rangeFor(p));
+    if (p === "session" && !session) return;
+    setRange(rangeFor(p, session));
   };
   const draftProblem = !draft.from || !draft.to ? L({ hi: "दोनों तारीखें चुनें।", en: "Pick both dates." }) : draft.from > draft.to ? L({ hi: "शुरू की तारीख बाद की है।", en: "The start date is after the end date." }) : daysBetween(draft.from, draft.to) > MAX_DAYS ? L({ hi: `${MAX_DAYS} दिन या कम चुनें।`, en: `Pick ${MAX_DAYS} days or less.` }) : null;
   const setDraftDate = (k: "from" | "to", v: string) => {
@@ -91,11 +94,27 @@ export default function ErpFeeReportsPage() {
   const fig = (v: number | undefined) => (v === undefined ? "…" : lakh(v));
   const share = (v: number) => (t && t.total ? `${pctText(pct(v, t.total))} ${L({ hi: "जमा का", en: "of collected" })}` : "");
 
+  const exportRows = () => {
+    const span=range.from+'_to_'+range.to;
+    if(tab==='classes') {
+      if(!cls.data)return;
+      const row=(label:string,section:string,m:ClassMoney)=>[label,section,m.students,m.total,m.discount,m.paid,m.balance,Math.round(pct(m.paid,m.total-m.discount)*10)/10];
+      downloadWorkbook('Fee_classwise_'+cls.data.session+'.xlsx',['Class','Section','Students','Fee (\u20b9)','Concession (\u20b9)','Paid (\u20b9)','Due (\u20b9)','Collected %'],cls.data.classes.flatMap(c=>[row(c.class,'All',c),...c.sections.map(section=>row(c.class,section.section,section))]).concat([row('All classes','',cls.data.totals)]));return;
+    }
+    if(!report)return;
+    const t=report.totals;
+    if(tab==='daybook')return downloadWorkbook('Fee_daybook_'+span+'.xlsx',['Date','Receipts','Cash (\u20b9)','UPI (\u20b9)','Cheque (\u20b9)','Other (\u20b9)','Total (\u20b9)'],report.days.slice().reverse().map(d=>[d.date,d.receipts,d.byMode.Cash,d.byMode.UPI,d.byMode.Cheque,d.byMode.Other,d.total]).concat([['Total',t.receipts,t.byMode.Cash,t.byMode.UPI,t.byMode.Cheque,t.byMode.Other,t.total]]));
+    if(tab==='heads')return downloadWorkbook('Fee_headwise_'+span+'.xlsx',['Fee head','Amount (\u20b9)','Share %'],report.heads.map(h=>[h.label,h.amount,Math.round(pct(h.amount,t.total)*10)/10]).concat([['Total',t.total,100]]));
+    downloadWorkbook('Fee_by_collector_'+span+'.xlsx',['Collected by','Receipts','Amount (\u20b9)','Share %'],report.byCollector.map(c=>[c.name,c.receipts,c.total,Math.round(pct(c.total,t.total)*10)/10]).concat([['Total',t.receipts,t.total,100]]));
+  };
+
   return (
     <div className="animate-rise space-y-3 pb-4">
+      {sessionError && <p role="alert" className="text-sm text-rose-700">{sessionError} Session-wide dates are unavailable.</p>}
+      <button type="button" onClick={exportRows} disabled={tab === "classes" ? !cls.data?.classes.length : !report?.totals.receipts} className="btn-line w-full"><Download className="h-4 w-4" aria-hidden />{L({hi:"\u0936\u0940\u091f \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902",en:"Export spreadsheet"})}</button>
       <div className="no-scrollbar stick-chips flex gap-1.5 overflow-x-auto" role="radiogroup" aria-label={L({ hi: "तारीख", en: "Date range" })}>
         {PRESETS.map(([k, label]) => (
-          <button key={k} type="button" role="radio" aria-checked={preset === k} onClick={() => pickPreset(k)} className={clsx("min-h-[38px] shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[13.5px] font-semibold", preset === k ? "border-brand-600 bg-brand-50 text-brand-700" : "border-ink-200 bg-white text-ink-600")}>
+          <button key={k} type="button" role="radio" aria-checked={preset === k} disabled={k === "session" && !session} onClick={() => pickPreset(k)} className={clsx("min-h-[44px] shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[13.5px] font-semibold", preset === k ? "border-brand-600 bg-brand-50 text-brand-700" : "border-ink-200 bg-white text-ink-600")}>
             {L(label)}
           </button>
         ))}
@@ -345,7 +364,7 @@ function ClassList({ report, open, onToggle }: { report: ClasswiseReport; open: 
   return (
     <>
       <p className="text-[12.5px] text-ink-500">
-        {L({ hi: `सत्र ${SESSION.short} · चालू बच्चे · ऊपर की तारीखें यहाँ नहीं लगतीं`, en: `Session ${SESSION.short} · active students · the dates above don't apply` })}
+        {L({ hi: `सत्र ${report.session} · चालू बच्चे · ऊपर की तारीखें यहाँ नहीं लगतीं`, en: `Session ${report.session} · active students · the dates above don't apply` })}
       </p>
       <ul>
         {report.classes.map((c) => {

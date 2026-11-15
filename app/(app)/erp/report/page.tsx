@@ -387,7 +387,7 @@ function MonthChart({ data, lang }: { data: { month: string; amount: number }[];
         {ticks.map((t) => (
           <g key={t}>
             <line x1={Lp} x2={W - R} y1={y(t) + 0.5} y2={y(t) + 0.5} stroke="#E9ECF2" />
-            <text x={Lp - 6} y={y(t) + 4} textAnchor="end" fontSize="11" fill="#8A93A6">
+            <text x={Lp - 6} y={y(t) + 4} textAnchor="end" fontSize="12" fill="#5E666D">
               {t}
             </text>
           </g>
@@ -399,7 +399,7 @@ function MonthChart({ data, lang }: { data: { month: string; amount: number }[];
             <g key={d.month} onClick={() => setPick(pick === i ? null : i)} className="cursor-pointer">
               <rect x={Lp + i * slot} y={0} width={slot} height={H} fill="transparent" />
               {v > 0 && <path d={`M${x} ${T + plotH} V${top + r} Q${x} ${top} ${x + r} ${top} H${x + bw - r} Q${x + bw} ${top} ${x + bw} ${top + r} V${T + plotH} Z`} fill={TEAL} opacity={pick === null || pick === i ? 1 : 0.45} />}
-              <text x={x + bw / 2} y={H - 7} textAnchor="middle" fontSize="11" fill={pick === i ? "#16213A" : "#8A93A6"} fontWeight={pick === i ? 700 : 400}>
+              <text x={x + bw / 2} y={H - 7} textAnchor="middle" fontSize="12" fill={pick === i ? "#16213A" : "#5E666D"} fontWeight={pick === i ? 700 : 400}>
                 {name(d.month)}
               </text>
               {label && v > 0 && (

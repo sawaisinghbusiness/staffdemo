@@ -103,7 +103,7 @@ export function CertificateDocument({ type, d, serial, school }: { type: Certifi
             <div className="mt-1 grid grid-cols-3 gap-6 text-[13.5px]">
               <Ref label="S.R. No." value={d.srNo} />
               <Ref label="PEN" value={d.pen} />
-              <Ref label="Session" value={d.session || "2026-27"} />
+              <Ref label="Session" value={d.session || ""} />
             </div>
           </>
         ) : (
@@ -211,7 +211,7 @@ function BonafideBody({ d }: { d: Record<string, string> }) {
               and Smt. <U>{up(d.mother)}</U>
             </>
           ) : null}{" "}
-          is a bonafide student of this school, studying in Class <U>{up(d.classSec)}</U> in the academic session <U>{d.session || "2026-27"}</U>.
+          is a bonafide student of this school, studying in Class <U>{up(d.classSec)}</U> in the academic session <U>{d.session || ""}</U>.
         </p>
         <p>
           {g.his} date of birth as per the school Admission Register is <U>{dotDate(d.dob) || "—"}</U>

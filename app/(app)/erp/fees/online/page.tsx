@@ -13,10 +13,10 @@ import { FeeReceiptModal } from "@/components/erp/FeeReceiptModal";
 import { Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, Sheet } from "@/components/ui";
 
 /*
- * ERP login → Fees → Online payments: the ERP's page. Parents pay the school's UPI ID from the parent app and
+ * ERP login → Fees → Online payments: the ERP's page. Parents scan the school's payment QR in the parent app and
  * send the UTR. Nothing is money until someone finds that UTR in the bank statement and presses Verify
  * (POST /api/fee-claims/:id/verify), which makes a normal receipt dated the day the parent paid; the backend
- * works the fine out again. Reject tells the parent why. The admin sets the UPI ID here too.
+ * works the fine out again. Reject tells the parent why. The admin uploads the payment QR here too.
  */
 
 interface Split {
@@ -43,7 +43,7 @@ interface Claim {
 }
 interface Settings {
   setupNeeded: boolean;
-  upiId?: string;
+  qrImage?: string;
   upiName?: string;
   officePhone?: string;
   updatedBy?: string | null;
@@ -72,18 +72,18 @@ export default function ErpOnlinePaymentsPage() {
   return (
     <div className="animate-rise space-y-3 pb-4">
       <button type="button" onClick={() => setSettingsOpen(true)} className="btn-line w-full">
-        <Settings2 className="h-4 w-4" aria-hidden /> {L({ hi: "UPI सेटिंग", en: "UPI settings" })}
-        {s?.upiId ? <span className="truncate font-normal text-ink-500">· {s.upiId}</span> : null}
+        <Settings2 className="h-4 w-4" aria-hidden /> {L({ hi: "पेमेंट QR और संपर्क", en: "Payment QR & contact" })}
+        {s?.qrImage ? <span className="font-normal text-ink-500">{L({hi:"QR \u0905\u092a\u0932\u094b\u0921 \u0939\u0948",en:"QR uploaded"})}</span> : null}
       </button>
-      {s && !s.setupNeeded && !s.upiId && (
+      {s && !s.setupNeeded && !s.qrImage && (
         <p className="rounded-xl bg-marigold-50 px-3 py-2.5 text-[13.5px] text-ink-800">
-          {L({ hi: "स्कूल का UPI ID नहीं डला, इसलिए माता-पिता अभी ऑनलाइन नहीं दे सकते।", en: "Parents can't pay online yet: the school's UPI ID is not set." })}{" "}
+          {L({ hi: "\u0938\u094d\u0915\u0942\u0932 \u0915\u093e \u092a\u0947\u092e\u0947\u0902\u091f QR \u0905\u092a\u0932\u094b\u0921 \u0928\u0939\u0940\u0902 \u0939\u0948\u0964", en: "Parents can't pay online yet: the school's payment QR is not uploaded." })}{" "}
           <button type="button" onClick={() => setSettingsOpen(true)} className="font-semibold underline">
-            {L({ hi: "अभी डालें", en: "Set it now" })}
+            {L({ hi: "अभी डालें", en: "Upload it now" })}
           </button>
         </p>
       )}
-      {data?.setupNeeded && <p className="rounded-xl bg-marigold-50 px-3 py-2.5 text-[13.5px] text-ink-800">{L({ hi: "ऑनलाइन पेमेंट के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261006_parent_app.sql)।", en: "Online payments need a one-time database update: run supabase/migrations/20261006_parent_app.sql." })}</p>}
+      {(data?.setupNeeded || s?.setupNeeded) && <p role="status" className="rounded-xl bg-marigold-50 px-3 py-2.5 text-sm text-ink-800">{L({hi:"\u0911\u0928\u0932\u093e\u0907\u0928 \u092a\u0947\u092e\u0947\u0902\u091f \u0938\u0947\u091f\u0905\u092a \u0915\u0947 \u0932\u093f\u090f \u0938\u094d\u0915\u0942\u0932 \u090f\u0921\u092e\u093f\u0928 \u0938\u0947 \u0938\u0902\u092a\u0930\u094d\u0915 \u0915\u0930\u0947\u0902\u0964",en:"Online payments are not enabled yet. Ask your school administrator to complete setup."})}</p>}
 
       <LineTabs
         label={L({ hi: "स्थिति", en: "Status" })}
@@ -309,56 +309,64 @@ function RejectSheet({ claim, onClose, onDone }: { claim: Claim; onClose: () => 
 
 function SettingsSheet({ isAdmin, settings, onClose, onSaved }: { isAdmin: boolean; settings: Settings | null; onClose: () => void; onSaved: () => void }) {
   const L = useL();
-  const [upiId, setUpiId] = useState(settings?.upiId || "");
-  const [upiName, setUpiName] = useState(settings?.upiName || "");
+  const [qr, setQr] = useState(settings?.qrImage || "");
+  const [picked, setPicked] = useState(false);
+  const [removed, setRemoved] = useState(false);
   const [officePhone, setOfficePhone] = useState(settings?.officePhone || "");
   const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    setUpiId(settings?.upiId || "");
-    setUpiName(settings?.upiName || "");
-    setOfficePhone(settings?.officePhone || "");
+    setQr(settings?.qrImage || ""); setPicked(false); setRemoved(false);
+    setOfficePhone(settings?.officePhone || ""); setError(null);
   }, [settings]);
 
-  async function save() {
-    setBusy(true);
-    try {
-      await api("/erp/fee-claims/settings", { method: "PUT", body: { upiId, upiName, officePhone } });
-      toast(true, L({ hi: "सेव हो गया। पेरेंट ऐप में तुरंत दिखेगा।", en: "Saved. The parent app shows it at once." }));
-      onSaved();
-      onClose();
-    } catch (e) {
-      toast(false, (e instanceof ApiError && e.message) || L({ hi: "सेव नहीं हुआ।", en: "Could not save." }));
-      setBusy(false);
-    }
+  function pick(file?: File) {
+    if (!file) return;
+    if (!/^image\/(png|jpeg|webp)$/.test(file.type)) return setError("Choose a PNG, JPG or WebP picture of the QR.");
+    if (file.size > 1_000_000) return setError("The picture is too large. Use one under 1 MB.");
+    const reader = new FileReader();
+    reader.onload = () => { setQr(String(reader.result || "")); setPicked(true); setRemoved(false); setError(null); };
+    reader.onerror = () => setError("Could not read that picture.");
+    reader.readAsDataURL(file);
   }
 
-  return (
-    <Sheet title={L({ hi: "पेरेंट ऐप: पेमेंट और संपर्क", en: "Parent app: payment & contact" })} onClose={() => !busy && onClose()}>
-      <div className="space-y-3">
-        <label className="field-box">
-          <small>{L({ hi: "स्कूल का UPI ID", en: "School's UPI ID" })}</small>
-          <input id="up-id" value={upiId} onChange={(e) => setUpiId(e.target.value.trim())} placeholder="schoolname@sbi" disabled={!isAdmin} autoCapitalize="none" />
-        </label>
-        <p className="-mt-1 text-[12.5px] text-ink-500">{L({ hi: "स्कूल का अपना बैंक खाता डालें। माता-पिता इसी ID पर देंगे। खाली छोड़ें तो ऑनलाइन पेमेंट बंद।", en: "Use the school's own bank account. Parents pay this ID. Leave empty to switch online payment off." })}</p>
-        <label className="field-box">
-          <small>{L({ hi: "UPI पर दिखने वाला नाम", en: "Name shown on UPI" })}</small>
-          <input id="up-name" value={upiName} onChange={(e) => setUpiName(e.target.value)} placeholder={L({ hi: "जैसा बैंक दिखाता है", en: "As the bank shows it" })} disabled={!isAdmin} />
-        </label>
-        <label className="field-box">
-          <small>{L({ hi: "माता-पिता के लिए ऑफ़िस फ़ोन", en: "Office phone for parents" })}</small>
-          <input id="up-phone" value={officePhone} onChange={(e) => setOfficePhone(e.target.value)} placeholder="94600 62543" inputMode="tel" disabled={!isAdmin} className="tnum" />
-        </label>
-        {!isAdmin && <p className="text-[12.5px] text-ink-500">{L({ hi: "इन्हें सिर्फ़ एडमिन बदल सकते हैं।", en: "Only the administrator can change these." })}</p>}
-        {isAdmin ? (
-          <button type="button" onClick={save} disabled={busy} className="btn-primary w-full">
-            {busy ? "…" : L({ hi: "सेव करें", en: "Save" })}
-          </button>
-        ) : (
-          <button type="button" onClick={onClose} className="btn-line w-full">
-            {L({ hi: "बंद करें", en: "Close" })}
-          </button>
-        )}
+  async function save() {
+    if (!isAdmin || busy || !settings) return;
+    setBusy(true); setError(null);
+    try {
+      await api<Settings>("/erp/fee-claims/settings", { method: "PUT", body: {
+        ...(picked ? { qrImage: qr } : {}), ...(removed ? { removeQr: true } : {}),
+        upiName: settings.upiName || "", officePhone,
+      } });
+      toast(true, L({ hi: "\u0938\u0947\u0935 \u0939\u094b \u0917\u092f\u093e\u0964", en: "Payment QR and contact saved." }));
+      onSaved(); onClose();
+    } catch (e) {
+      setError((e instanceof ApiError && e.message) || L({ hi: "\u0938\u0947\u0935 \u0928\u0939\u0940\u0902 \u0939\u0941\u0906\u0964", en: "Could not save. Try again." }));
+    } finally { setBusy(false); }
+  }
+
+  return <Sheet title={L({ hi: "\u092a\u0947\u092e\u0947\u0902\u091f QR \u0914\u0930 \u0938\u0902\u092a\u0930\u094d\u0915", en: "Payment QR & contact" })} onClose={() => !busy && onClose()}>
+    <div className="space-y-4">
+      <div>
+        <p className="text-sm font-semibold">{L({ hi: "\u0938\u094d\u0915\u0942\u0932 \u0915\u093e \u092a\u0947\u092e\u0947\u0902\u091f QR", en: "School's payment QR" })}</p>
+        <div className="mt-2 flex flex-wrap items-start gap-4">
+          <div className="flex h-36 w-36 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-ink-200 bg-white">
+            {qr ? <img src={qr} alt="School payment QR" className="h-full w-full object-contain" /> : <span className="px-3 text-center text-xs text-ink-500">{L({hi:"QR \u0905\u092a\u0932\u094b\u0921 \u0928\u0939\u0940\u0902 \u0939\u0948",en:"No QR uploaded"})}</span>}
+          </div>
+          {isAdmin && <div className="flex flex-col items-start gap-3">
+            <label className="btn-line cursor-pointer">
+              {qr ? L({hi:"QR \u092c\u0926\u0932\u0947\u0902",en:"Change QR"}) : L({hi:"QR \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902",en:"Upload QR"})}
+              <input type="file" accept="image/png,image/jpeg,image/webp" disabled={busy || !settings} className="sr-only" onChange={e => { pick(e.target.files?.[0]); e.target.value = ""; }} />
+            </label>
+            {qr && <button type="button" disabled={busy} onClick={() => { setQr(""); setPicked(false); setRemoved(true); setError(null); }} className="min-h-[44px] text-sm font-medium text-rose-700 underline">{L({hi:"QR \u0939\u091f\u093e\u090f\u0901",en:"Remove QR"})}</button>}
+          </div>}
+        </div>
+        <p className="mt-2 text-xs leading-relaxed text-ink-500">{L({hi:"\u0938\u094d\u0915\u0942\u0932 \u0915\u0947 \u0905\u092a\u0928\u0947 \u092c\u0948\u0902\u0915 \u0916\u093e\u0924\u0947 \u0915\u093e QR \u0905\u092a\u0932\u094b\u0921 \u0915\u0930\u0947\u0902\u0964",en:"Upload the QR of the school's own bank account (PNG, JPG or WebP, under 1 MB). Parents scan it from Fees. Remove it to switch online payment off."})}</p>
       </div>
-    </Sheet>
-  );
+      <label className="field-box"><small>{L({hi:"\u0911\u092b\u093c\u093f\u0938 \u092b\u093c\u094b\u0928",en:"Office phone for parents"})}</small><input value={officePhone} onChange={e => setOfficePhone(e.target.value)} inputMode="tel" disabled={!isAdmin || busy} /></label>
+      {error && <p role="alert" className="text-sm text-rose-700">{error}</p>}
+      {!isAdmin && <p className="text-xs text-ink-500">{L({hi:"\u0938\u093f\u0930\u094d\u092b\u093c \u090f\u0921\u092e\u093f\u0928 \u0907\u0928\u094d\u0939\u0947\u0902 \u092c\u0926\u0932 \u0938\u0915\u0924\u0947 \u0939\u0948\u0902\u0964",en:"Only the administrator can change these."})}</p>}
+      <button type="button" onClick={isAdmin ? save : onClose} disabled={busy || (isAdmin && !settings)} className={isAdmin ? "btn-primary w-full" : "btn-line w-full"}>{busy ? L({hi:"\u0938\u0947\u0935 \u0939\u094b \u0930\u0939\u093e \u0939\u0948...",en:"Saving..."}) : isAdmin ? L({hi:"\u0938\u0947\u0935 \u0915\u0930\u0947\u0902",en:"Save"}) : L({hi:"\u092c\u0902\u0926 \u0915\u0930\u0947\u0902",en:"Close"})}</button>
+    </div>
+  </Sheet>;
 }

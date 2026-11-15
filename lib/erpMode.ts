@@ -35,19 +35,7 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-async function getJson(url: string, init?: RequestInit) {
-  let res: Response;
-  try {
-    res = await fetch(url, { credentials: "include", cache: "no-store", ...init });
-  } catch {
-    throw new ErpError(0, "offline");
-  }
-  const data = await res.json().catch(() => ({}));
-  // The browser holds a staff-app (phone) or parent sign-in, not an ERP one: send them to sign in again.
-  if (res.status === 403 && FAMILY_403.test((data as any)?.error || "")) notErp();
-  if (!res.ok) throw new ErpError(res.status, (data as any)?.error || "");
-  return data as any;
-}
+async function getJson(url:string,init?:RequestInit){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),30000);try{const res=await fetch(url,{credentials:'include',cache:'no-store',...init,signal:controller.signal});const data=await res.json().catch(e=>{if(controller.signal.aborted)throw e;if(res.ok)throw new ErpError(502,'The ERP server returned invalid data.');return {};});if(res.status===403&&FAMILY_403.test(data?.error||''))notErp();if(!res.ok)throw new ErpError(res.status,data?.error||'The request could not be completed.');return data as any;}catch(e){if(e instanceof ErpError)throw e;throw new ErpError(0,controller.signal.aborted?'The ERP server did not respond in time.':'offline');}finally{clearTimeout(timer);}}
 
 const FAMILY_403 = /^This area is for school staff/;
 const ERP_ROLES = ["admin", "teacher", "accountant", "exam_cell"];
@@ -69,7 +57,7 @@ export async function erpApi(path: string, method: string, body?: unknown): Prom
   const t = today();
 
   if (p === "/logout") {
-    await fetch("/api/auth/logout", { method: "POST", credentials: "include" }).catch(() => null);
+    try{await getJson("/api/auth/logout",{method:"POST"});}catch(e){if(!(e instanceof ErpError)||e.status!==401)throw e;}
     setErpMode(false);
     return { success: true };
   }

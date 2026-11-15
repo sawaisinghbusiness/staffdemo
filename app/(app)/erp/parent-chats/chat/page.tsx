@@ -50,7 +50,7 @@ export default function ErpParentChatPage() {
   const status = { waiting: L({ hi: "माता-पिता के जवाब का इंतज़ार", en: "Waiting for the parent" }), yes: L({ hi: "माता-पिता ने ठीक कहा", en: "Parent said Okay" }), other: L({ hi: "माता-पिता ने दूसरा समय माँगा", en: "Parent asked for another time" }) } as const;
 
   return (
-    <div className="animate-rise -mx-4 -mt-1 flex min-h-[calc(100dvh-11rem)] flex-col bg-[#F7F9FC]">
+    <div className="animate-rise -mx-4 -mt-1 flex min-h-[calc(100dvh-11rem)] flex-col" style={{ background: "var(--erp-canvas, #ECEEEB)" }}>
       <div className="flex items-center gap-3 border-b border-ink-100 bg-white px-4 py-2.5">
         <Avatar name={t.student} size={40} />
         <span className="min-w-0">
@@ -72,12 +72,12 @@ export default function ErpParentChatPage() {
                 {m.meeting ? (
                   <p className="text-[15px] leading-snug">
                     {L({ hi: "मिलने का समय:", en: "Meeting time:" })} {new Date(m.meeting.date + "T00:00:00").toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short" })}, {ampm(m.meeting.time)} · {m.meeting.placeText}
-                    <span className={clsx("block text-[12.5px]", teacher ? "text-[#d3e9eb]" : "text-ink-500")}>{status[m.meeting.status]}</span>
+                    <span className={clsx("block text-[12.5px]", teacher ? "text-[#D8E3F1]" : "text-ink-500")}>{status[m.meeting.status]}</span>
                   </p>
                 ) : (
                   <p className="whitespace-pre-wrap break-words text-[15px] leading-snug">{m.text}</p>
                 )}
-                <p className={clsx("mt-0.5 text-right text-[11px]", teacher ? "text-[#d3e9eb]" : "text-ink-500")}>{clock(m.at)}</p>
+                <p className={clsx("mt-0.5 text-right text-[11px]", teacher ? "text-[#D8E3F1]" : "text-ink-500")}>{clock(m.at)}</p>
               </div>
             </div>
           );

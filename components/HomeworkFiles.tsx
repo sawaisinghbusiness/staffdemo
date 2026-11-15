@@ -31,16 +31,18 @@ const readAsDataUrl = (f: File) =>
   });
 
 /** The picker and the chips. `uploadPath`: "/homework/files" (teacher) or "/erp/homework/files" (ERP login). */
-export function HomeworkFilePicker({ files, onChange, uploadPath }: { files: HomeworkFile[]; onChange: (f: HomeworkFile[]) => void; uploadPath: string }) {
+export function HomeworkFilePicker({ files, onChange, uploadPath, onBusyChange, disabled }: { files: HomeworkFile[]; onChange: (f: HomeworkFile[]) => void; uploadPath: string; onBusyChange?: (busy: boolean) => void; disabled?: boolean }) {
   const L = useL();
   const input = useRef<HTMLInputElement>(null);
   const [busy, setBusy] = useState(0);
 
   async function add(list: FileList | null) {
+    if (busy > 0 || disabled) return;
     const picked = Array.from(list || []).slice(0, MAX - files.length);
     if (!picked.length) return;
     let next = files;
     setBusy(picked.length);
+    onBusyChange?.(true);
     for (const f of picked) {
       try {
         const pdf = f.type === "application/pdf" || /\.pdf$/i.test(f.name);
@@ -55,6 +57,7 @@ export function HomeworkFilePicker({ files, onChange, uploadPath }: { files: Hom
         setBusy((n) => n - 1);
       }
     }
+    onBusyChange?.(false);
   }
 
   return (
@@ -65,7 +68,7 @@ export function HomeworkFilePicker({ files, onChange, uploadPath }: { files: Hom
             <li key={f.url} className="flex min-h-[48px] items-center gap-2.5 rounded-xl border border-ink-200 bg-white pl-2 pr-1">
               {f.kind === "image" ? <img src={f.url} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-ink-50 object-contain" /> : <FileText className="h-9 w-9 shrink-0 rounded-lg bg-rose-50 p-2 text-rose-700" aria-hidden />}
               <span className="min-w-0 flex-1 truncate text-[14px]">{f.name}</span>
-              <button type="button" onClick={() => onChange(files.filter((x) => x.url !== f.url))} aria-label={`${L({ hi: "हटाएँ", en: "Remove" })} ${f.name}`} className="grid h-10 w-10 shrink-0 place-items-center text-ink-500">
+              <button type="button" disabled={busy > 0 || disabled} onClick={() => onChange(files.filter((x) => x.url !== f.url))} aria-label={`${L({ hi: "हटाएँ", en: "Remove" })} ${f.name}`} className="grid h-10 w-10 shrink-0 place-items-center text-ink-500">
                 <X className="h-[18px] w-[18px]" aria-hidden />
               </button>
             </li>
@@ -73,7 +76,7 @@ export function HomeworkFilePicker({ files, onChange, uploadPath }: { files: Hom
         </ul>
       )}
       {files.length < MAX && (
-        <button type="button" onClick={() => input.current?.click()} disabled={busy > 0} className="btn-line w-full disabled:opacity-60">
+        <button type="button" onClick={() => input.current?.click()} disabled={busy > 0 || disabled} className="btn-line w-full disabled:opacity-60">
           <Paperclip className="h-4 w-4" aria-hidden />
           {busy > 0 ? L({ hi: "लग रही है…", en: "Attaching…" }) : L({ hi: "फ़ोटो या PDF लगाएँ", en: "Attach photo or PDF" })}
         </button>

@@ -95,7 +95,7 @@ export interface StudentDetails {
 }
 
 /** Same class order as the ERP's students page. */
-const CLASS_ORDER = ["Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th"];
+const CLASS_ORDER = ["Pre Nursery", "Nursery", "LKG", "UKG", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th", "11th", "12th"];
 export const classRank = (c: string) => {
   const i = CLASS_ORDER.indexOf(c);
   return i === -1 ? 100 + (parseInt(c, 10) || 0) : i;

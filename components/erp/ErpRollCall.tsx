@@ -23,9 +23,12 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
   const qs = new URLSearchParams({ date, class: cls, section: sec }).toString();
   const { data: roster, error, reload } = useApi<SectionRoster>(`/erp/attendance/section?${qs}`);
   const { data: p } = useApi<Record<string, string>>("/erp/school");
+  const who = useApi<{ user: { role: string } }>("/erp/auth/me");
+  const canMark = ["admin", "teacher"].includes(who.data?.user.role || "");
   const [marks, setMarks] = useState<Record<string, AttStatus>>({});
   const [remarks, setRemarks] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
+  const [rolls,setRolls]=useState("");
   // After a save with WhatsApp not linked: the absent children, so the office can tell parents by hand.
   const [absent, setAbsent] = useState<RosterStudent[]>([]);
   const classSec = `${cls} - ${sec}`;
@@ -49,10 +52,11 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
   const flip = (id: string) => setMarks((m) => ({ ...m, [id]: m[id] === "Present" ? "Absent" : "Present" }));
 
   async function save() {
+    if (!canMark || busy) return;
     setBusy(true);
     try {
       const r = await api<{ success: boolean; data: { present: number; absent: number; leave: number; half: number; whatsappQueued?: number | null } }>("/erp/attendance/section", {
-        body: { date, class: roster!.class, section: roster!.section, marks: roster!.students.map((s) => ({ studentId: s.id, status: marks[s.id] || "Present", remark: marks[s.id] === "Leave" ? remarks[s.id] : "" })) },
+        body: { date, class: roster!.class, section: roster!.section, marks: roster!.students.map((s) => ({ studentId: s.id, status: marks[s.id] || "Present", remark: (marks[s.id] === "Leave" || marks[s.id] === "Absent") ? remarks[s.id] : "" })) },
       });
       const auto = r.data.whatsappQueued ?? null;
       setAbsent(auto === null ? roster!.students.filter((s) => marks[s.id] === "Absent") : []);
@@ -79,40 +83,43 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
 
   return (
     <div className="space-y-2">
-      <div className="grid grid-cols-[28px_1fr_40px_40px_40px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
+      {canMark&&<div className="space-y-2 rounded-xl border border-ink-200 bg-white p-3"><button type="button" className="btn-line" disabled={busy} onClick={()=>setMarks(Object.fromEntries(roster.students.map(s=>[s.id,"Present" as AttStatus])))}>All present</button><label className="block text-xs text-ink-500" htmlFor="absent-rolls">Mark absent by roll numbers</label><div className="flex gap-2"><input id="absent-rolls" value={rolls} onChange={e=>setRolls(e.target.value)} className="field min-w-0 flex-1" placeholder="e.g. 3, 8, 12"/><button type="button" className="btn-line" disabled={busy||!rolls.trim()} onClick={()=>{const wanted=new Set(rolls.split(/[\s,]+/).map(v=>v.replace(/^0+/,"")).filter(Boolean));const hit=roster.students.filter(s=>wanted.has(String(s.rollNo).replace(/^0+/,"")));if(!hit.length)return toast(false,"No student has those roll numbers.");setMarks(current=>({...current,...Object.fromEntries(hit.map(s=>[s.id,"Absent" as AttStatus]))}));setRolls("");toast(true,hit.length+" students marked absent. Review, then Save.");}}>Apply</button></div></div>}
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_44px_44px_44px_44px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
         <span>{L({ hi: "रोल", en: "No." })}</span>
         <span>{L({ hi: "नाम", en: "Name" })}</span>
         <span className="text-center">P</span>
         <span className="text-center">A</span>
         <span className="text-center">L</span>
+        <span className="text-center" title="Half day">H</span>
       </div>
       <ul>
         {roster.students.map((s) => {
           const m = marks[s.id] || "Present";
           const circle = (v: AttStatus, label: string) => (
-            <button type="button" onClick={() => set(s.id, v)} aria-pressed={m === v} aria-label={`${s.name}: ${label}`} className="grid h-11 place-items-center">
+            <button type="button" disabled={!canMark || busy} onClick={() => set(s.id, v)} aria-pressed={m === v} aria-label={`${s.name}: ${label}`} className="grid h-11 place-items-center">
               {m === v ? <Dot v={v} /> : <span className="h-5 w-5 rounded-full border-[1.6px] border-ink-300" />}
             </button>
           );
           return (
             <li key={s.id} className={clsx("roll-row px-1", m !== "Present" && "roll-row-on")}>
-              <div className="grid min-h-[52px] grid-cols-[28px_1fr_40px_40px_40px] items-center text-[15px]">
+              <div className="grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)_44px_44px_44px_44px] items-center text-[15px]">
                 <span className="tnum text-[13px] text-ink-400">{s.rollNo || "—"}</span>
-                <button type="button" onClick={() => flip(s.id)} className="min-h-[44px] min-w-0 truncate text-left">
+                <button type="button" disabled={!canMark || busy} onClick={() => flip(s.id)} className="min-h-[44px] min-w-0 break-words text-left text-[14px] leading-snug">
                   {s.name}
                   {m === "HalfDay" && <span className="ml-1.5 text-[12px] font-semibold text-marigold-600">{L({ hi: "आधा दिन", en: "Half day" })}</span>}
                 </button>
                 {circle("Present", L({ hi: "उपस्थित", en: "Present" }))}
                 {circle("Absent", L({ hi: "अनुपस्थित", en: "Absent" }))}
                 {circle("Leave", L({ hi: "छुट्टी", en: "Leave" }))}
+                {circle("HalfDay", L({hi:"आधा दिन",en:"Half day"}))}
               </div>
-              <div className={clsx("expand", m === "Leave" && "expand-open")} aria-hidden={m !== "Leave"}>
+              <div className={clsx("expand", (m === "Leave" || m === "Absent") && "expand-open")} aria-hidden={m !== "Leave" && m !== "Absent"}>
                 <div className="overflow-hidden">
                   <input
                     value={remarks[s.id] || ""}
                     onChange={(e) => setRemarks((r) => ({ ...r, [s.id]: e.target.value }))}
-                    disabled={m !== "Leave"}
-                    tabIndex={m === "Leave" ? 0 : -1}
+                    disabled={!canMark || busy || (m !== "Leave" && m !== "Absent")}
+                    tabIndex={m === "Leave" || m === "Absent" ? 0 : -1}
                     maxLength={200}
                     placeholder={L({ hi: "छुट्टी का कारण (जैसे बीमार, शादी)", en: "Reason for leave (e.g. sick, wedding)" })}
                     aria-label={`${s.name}: ${L({ hi: "छुट्टी का कारण", en: "reason for leave" })}`}
@@ -125,7 +132,7 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
         })}
       </ul>
 
-      <button type="button" onClick={save} disabled={busy} className="btn-primary mt-2 w-full">
+      <button type="button" onClick={save} disabled={busy || !canMark} className="btn-primary mt-2 w-full">
         {saveText}
       </button>
 
@@ -162,8 +169,8 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
 
 function Dot({ v }: { v: AttStatus }) {
   return (
-    <span className={clsx("grid h-5 w-5 place-items-center rounded-full text-white", v === "Present" || v === "HalfDay" ? "bg-jade-600" : v === "Absent" ? "bg-rose-600" : "bg-marigold-500")}>
-      {v === "Absent" ? <X className="h-3 w-3" strokeWidth={3.5} aria-hidden /> : v === "Leave" ? <span className="text-[10px] font-bold leading-none">L</span> : <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden />}
+    <span className={clsx("grid h-5 w-5 place-items-center rounded-full text-white", v === "HalfDay" ? "bg-sky-600" : v === "Present" ? "bg-jade-600" : v === "Absent" ? "bg-rose-600" : "bg-marigold-500")}>
+      {v === "HalfDay" ? <span className="text-[10px] font-bold leading-none">H</span> : v === "Absent" ? <X className="h-3 w-3" strokeWidth={3.5} aria-hidden /> : v === "Leave" ? <span className="text-[10px] font-bold leading-none">L</span> : <Check className="h-3 w-3" strokeWidth={3.5} aria-hidden />}
     </span>
   );
 }

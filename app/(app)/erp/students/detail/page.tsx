@@ -84,7 +84,7 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
           const on = !!received[d.key];
           const link = links[d.key];
           return (
-            <li key={d.key} className="flex min-h-[56px] items-center gap-2.5 border-b border-ink-100 py-1.5 last:border-0">
+            <li key={d.key} className="flex min-h-[56px] flex-wrap items-center gap-x-2.5 gap-y-2 border-b border-ink-100 py-1.5 last:border-0">
               <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-md border-[1.5px]", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-300 bg-white")} aria-label={on ? L({ hi: "मिला", en: "Received" }) : L({ hi: "नहीं मिला", en: "Not received" })}>
                 {on && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}
               </span>
@@ -93,13 +93,13 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
                 <span className="block text-[12px] text-ink-500">{link ? L({ hi: "फ़ोटो लगी है", en: "Scan added" }) : on ? L({ hi: "मिला, फ़ोटो नहीं", en: "Received, no scan" }) : L({ hi: "नहीं मिला", en: "Not received" })}</span>
               </span>
               {!officeOnly && d.key !== "photos" && (
-                <span className="flex shrink-0 items-center gap-1">
+                <span className="ml-9 flex w-[calc(100%-36px)] shrink-0 items-center justify-end gap-1 pb-2">
                   {link && (
                     <>
-                      <a href={link} target="_blank" rel="noreferrer" className="grid h-10 w-10 place-items-center rounded-lg text-[#0D2A5E]" aria-label={L({ hi: `${L(d.text)} देखें`, en: `View ${L(d.text)}` })}>
+                      <a href={link} target="_blank" rel="noreferrer" className="grid h-11 w-11 place-items-center rounded-lg text-[#0D2A5E]" aria-label={L({ hi: `${L(d.text)} देखें`, en: `View ${L(d.text)}` })}>
                         <ExternalLink className="h-[18px] w-[18px]" aria-hidden />
                       </a>
-                      <button type="button" disabled={!!busy} onClick={() => remove(d.key)} className="grid h-10 w-10 place-items-center rounded-lg text-ink-500 disabled:opacity-40" aria-label={L({ hi: `${L(d.text)} की फ़ोटो हटाएँ`, en: `Remove ${L(d.text)} scan` })}>
+                      <button type="button" disabled={!!busy} onClick={() => remove(d.key)} className="grid h-11 w-11 place-items-center rounded-lg text-ink-500 disabled:opacity-40" aria-label={L({ hi: `${L(d.text)} की फ़ोटो हटाएँ`, en: `Remove ${L(d.text)} scan` })}>
                         <Trash2 className="h-[18px] w-[18px]" aria-hidden />
                       </button>
                     </>
@@ -111,7 +111,7 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
                       forKey.current = d.key;
                       input.current?.click();
                     }}
-                    className="flex min-h-[38px] items-center gap-1 rounded-lg border-[1.5px] border-ink-200 px-2.5 text-[12.5px] font-semibold text-ink-900 disabled:opacity-40"
+                    className="flex min-h-[44px] items-center gap-1 rounded-lg border-[1.5px] border-ink-200 px-2.5 text-[12.5px] font-semibold text-ink-900 disabled:opacity-40"
                   >
                     <Camera className="h-3.5 w-3.5" aria-hidden />
                     {busy === d.key ? "…" : link ? L({ hi: "बदलें", en: "Replace" }) : L({ hi: "फ़ोटो", en: "Add photo" })}

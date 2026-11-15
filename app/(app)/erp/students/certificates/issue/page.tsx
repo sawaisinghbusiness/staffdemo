@@ -1,6 +1,7 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays, CheckCircle2, Printer, Search } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
@@ -59,7 +60,7 @@ const FIELDS: Record<CertificateType, FieldDef[]> = {
 };
 
 /** Everything the certificate prints, filled from the student's record (ERP defaults()). */
-function defaults(type: CertificateType, s: ErpStudent | null): Record<string, string> {
+function defaults(type: CertificateType, s: ErpStudent | null, sessionLabel = ""): Record<string, string> {
   const today = todayIso();
   const base: Record<string, string> = s
     ? {
@@ -73,11 +74,11 @@ function defaults(type: CertificateType, s: ErpStudent | null): Record<string, s
         dob: (s.dob || "").slice(0, 10),
         class: s.class,
         classSec: s.classSec,
-        session: "2026-27",
+        session: sessionLabel,
         nationality: "Indian",
         category: s.category === "General" || !s.category ? "No (General)" : `Yes (${s.category})`,
       }
-    : { nationality: "Indian", session: "2026-27" };
+    : { nationality: "Indian", session: sessionLabel };
   if (type === "bonafide") return { ...base, purpose: "", issueDate: today };
   if (type === "character") return { ...base, studiedFrom: "", studiedTo: "", conduct: "Good", issueDate: today };
   const next = s ? nextClass(s.class) : "";
@@ -88,7 +89,7 @@ function defaults(type: CertificateType, s: ErpStudent | null): Record<string, s
     failed: "No",
     subjects: "",
     promotion: next ? `Yes, to Class ${next} (${classInWords(next)})` : "Not applicable",
-    duesUpTo: s && s.balanceFee > 0 ? `${rupees(s.balanceFee)} still due` : "All dues paid up to March 2027",
+    duesUpTo: s && s.balanceFee > 0 ? `${rupees(s.balanceFee)} still due` : "No outstanding balance on record",
     concession: "None",
     workingDays: "",
     daysPresent: "",
@@ -103,6 +104,7 @@ function defaults(type: CertificateType, s: ErpStudent | null): Record<string, s
 }
 
 export default function ErpIssueCertificatePage() {
+  const { session, error: sessionError } = useErpSession();
   const L = useL();
   const school = useSchoolInfo();
   const list = useApi<{ data: ErpStudent[] }>("/erp/students");
@@ -111,6 +113,7 @@ export default function ErpIssueCertificatePage() {
   const [student, setStudent] = useState<ErpStudent | null>(null);
   const [q, setQ] = useState("");
   const [d, setD] = useState<Record<string, string>>(defaults("tc", null));
+  useEffect(() => { if(session) setD(previous => previous.session ? previous : {...previous, session:session.label}); }, [session?.label]);
   const [markLeft, setMarkLeft] = useState(true);
   const [busy, setBusy] = useState(false);
   const [issued, setIssued] = useState<Certificate | null>(null);
@@ -119,7 +122,7 @@ export default function ErpIssueCertificatePage() {
   const choose = (t: CertificateType, s: ErpStudent | null) => {
     setType(t);
     setStudent(s);
-    setD(defaults(t, s));
+    setD(defaults(t, s, session?.label || ""));
   };
   const results = useMemo(() => {
     const t = q.trim().toLowerCase();
@@ -128,6 +131,7 @@ export default function ErpIssueCertificatePage() {
   }, [q, students]);
 
   async function issue() {
+    if (!session) return toast(false, sessionError || "Academic session is unavailable.");
     if (!student) return toast(false, L({ hi: "पहले बच्चा चुनें।", en: "Choose the student first." }));
     setBusy(true);
     try {
@@ -261,7 +265,7 @@ export default function ErpIssueCertificatePage() {
           <h2 className="pt-1 text-[16px] font-bold text-brand-800">{L({ hi: "ऐसा छपेगा", en: "Preview" })}</h2>
           <SheetPreview>{doc}</SheetPreview>
           <p className="text-[12.5px] text-ink-500">{L({ hi: "देने पर अगला सीरियल नंबर लगेगा।", en: "The next serial number is given when you issue." })}</p>
-          <button type="button" onClick={issue} disabled={busy} className="btn-primary w-full">
+          <button type="button" onClick={issue} disabled={busy || !session} className="btn-primary w-full">
             <Printer className="h-4 w-4" aria-hidden /> {busy ? "…" : L({ hi: "दें और प्रिंट करें", en: "Issue and print" })}
           </button>
         </>

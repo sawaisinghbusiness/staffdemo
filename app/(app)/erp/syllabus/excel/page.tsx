@@ -5,7 +5,7 @@ import { Download, Upload } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
-import { downloadCsv, parseCsv } from "@/lib/csv";
+import { downloadWorkbook, readWorkbook } from "@/lib/spreadsheet";
 import { ErrorCard, ListSkeleton } from "@/components/ui";
 
 /*
@@ -58,7 +58,7 @@ export default function ErpSyllabusExcelPage() {
         if (list.length) list.forEach((c) => out.push([c.className, c.subject, c.no, c.title, toFile(c.planMonth)]));
         else out.push([g.className, g.subject, 1, "", ""]);
       }
-      downloadCsv("syllabus.csv", HEADER, out);
+      await downloadWorkbook("syllabus.csv", HEADER, out);
     } catch (e) {
       toast(false, (e instanceof ApiError && e.message) || L({ hi: "फ़ाइल नहीं बनी।", en: "Could not make the file." }));
     } finally {
@@ -69,8 +69,8 @@ export default function ErpSyllabusExcelPage() {
   async function pick(f: File | undefined) {
     if (!f) return;
     setCheck(null);
-    if (/\.xlsx?$/i.test(f.name)) return toast(false, L({ hi: "Excel में File → Save As → CSV चुनकर सेव करें, फिर वह फ़ाइल डालें।", en: "In Excel use File → Save As → CSV, then pick that file." }));
-    const table = parseCsv(await f.text()).filter((r) => r.some((c) => c));
+    let table:string[][];
+    try { table=(await readWorkbook(f)).filter(r=>r.some(c=>c)); } catch(e) { toast(false,e instanceof Error?e.message:"Could not read this workbook.");return; }
     if (table.length < 2) return toast(false, L({ hi: "फ़ाइल में कोई अध्याय नहीं।", en: "No chapters in the file." }));
     const head = table[0].map((h) => h.toLowerCase());
     const col = (name: string) => head.findIndex((x) => x.startsWith(name));
@@ -127,7 +127,7 @@ export default function ErpSyllabusExcelPage() {
         <input
           ref={input}
           type="file"
-          accept=".csv,text/csv,.xlsx,.xls"
+          accept=".xlsx,.xls,.csv,.tsv"
           hidden
           onChange={(e) => {
             pick(e.target.files?.[0]);

@@ -155,7 +155,7 @@ function PromoteTab({ students, structure, onDone }: { students: ErpStudent[]; s
           {passOut ? (
             <p className="field-box text-ink-700">{L({ hi: "स्कूल से पास आउट", en: "Passed out of school" })}</p>
           ) : (
-            <SelectBox label={L({ hi: "किस कक्षा में (सत्र 2027-28)", en: "To (session 2027-28)" })} value={toSec} onChange={setToSec}>
+            <SelectBox label={L({ hi: "\u0915\u093f\u0938 \u0915\u0915\u094d\u0937\u093e \u0914\u0930 \u0938\u0947\u0915\u094d\u0936\u0928 \u092e\u0947\u0902", en: "To class / section" })} value={toSec} onChange={setToSec}>
               {toSections.map((s) => (
                 <option key={s} value={s}>
                   {toCls} - {s}

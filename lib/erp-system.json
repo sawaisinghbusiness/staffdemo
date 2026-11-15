@@ -1,0 +1,1239 @@
+{
+  "version": 1,
+  "features": [
+    {
+      "id": "reports",
+      "group": {
+        "en": "Overview",
+        "hi": "Overview"
+      },
+      "module": {
+        "hi": "रिपोर्ट",
+        "en": "Report"
+      },
+      "title": {
+        "hi": "सारी रिपोर्ट",
+        "en": "All reports"
+      },
+      "icon": "LayoutDashboard",
+      "app": "/erp/reports/",
+      "web": "/reports",
+      "status": "available"
+    },
+    {
+      "id": "students",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "सभी बच्चे",
+        "en": "All students"
+      },
+      "icon": "Users",
+      "app": "/erp/students/",
+      "web": "/students",
+      "status": "available"
+    },
+    {
+      "id": "students/enquiries",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "प्रवेश पूछताछ",
+        "en": "Admission enquiries"
+      },
+      "icon": "Users",
+      "app": "/erp/students/enquiries/",
+      "web": "/students/enquiries",
+      "status": "available"
+    },
+    {
+      "id": "students/promote",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "प्रमोट और ट्रांसफ़र",
+        "en": "Promote & transfer"
+      },
+      "icon": "Users",
+      "app": "/erp/students/promote/",
+      "web": "/students/promote",
+      "status": "available"
+    },
+    {
+      "id": "students/certificates",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "सर्टिफ़िकेट",
+        "en": "Certificates"
+      },
+      "icon": "Users",
+      "app": "/erp/students/certificates/",
+      "web": "/students/certificates",
+      "status": "available"
+    },
+    {
+      "id": "students/photos",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "फ़ोटो",
+        "en": "Photos"
+      },
+      "icon": "Users",
+      "app": "/erp/students/photos/",
+      "web": "/students/documents",
+      "status": "available"
+    },
+    {
+      "id": "students/id-cards",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "आईडी कार्ड",
+        "en": "ID cards"
+      },
+      "icon": "Users",
+      "app": "/erp/students/id-cards/",
+      "web": "/students/print",
+      "status": "available"
+    },
+    {
+      "id": "students/excel",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "बच्चे",
+        "en": "Students"
+      },
+      "title": {
+        "hi": "Excel से भरें",
+        "en": "Excel import / export"
+      },
+      "icon": "Users",
+      "app": "/erp/students/excel/",
+      "web": "/students/excel",
+      "status": "available"
+    },
+    {
+      "id": "fees/collect",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "फ़ीस जमा करें",
+        "en": "Collect fee"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/collect/",
+      "web": "/fees/collect",
+      "status": "available"
+    },
+    {
+      "id": "fees/dues",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "बाकी फ़ीस और याद",
+        "en": "Dues & reminders"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/dues/",
+      "web": "/fees/dues",
+      "status": "available"
+    },
+    {
+      "id": "fees/online",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "ऑनलाइन पेमेंट",
+        "en": "Online payments"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/online/",
+      "web": "/fees/online",
+      "status": "available"
+    },
+    {
+      "id": "fees/receipts",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "रसीदें",
+        "en": "Receipts"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/receipts/",
+      "web": "/fees/receipts",
+      "status": "available"
+    },
+    {
+      "id": "fees/reports",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "फ़ीस रिपोर्ट",
+        "en": "Reports"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/reports/",
+      "web": "/fees/reports",
+      "status": "available"
+    },
+    {
+      "id": "fees/setup",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "फ़ीस सेटअप",
+        "en": "Fee setup"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/setup/",
+      "web": "/fees/setup",
+      "status": "available"
+    },
+    {
+      "id": "attendance/today",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "हाज़िरी",
+        "en": "Attendance"
+      },
+      "title": {
+        "hi": "आज की हाज़िरी",
+        "en": "Today"
+      },
+      "icon": "CalendarCheck",
+      "app": "/erp/attendance/today/",
+      "web": "/attendance/today",
+      "status": "available"
+    },
+    {
+      "id": "attendance/mark",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "हाज़िरी",
+        "en": "Attendance"
+      },
+      "title": {
+        "hi": "हाज़िरी लगाएँ",
+        "en": "Mark attendance"
+      },
+      "icon": "CalendarCheck",
+      "app": "/erp/attendance/mark/",
+      "web": "/attendance/mark",
+      "status": "available"
+    },
+    {
+      "id": "attendance/register",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "हाज़िरी",
+        "en": "Attendance"
+      },
+      "title": {
+        "hi": "रजिस्टर और रिपोर्ट",
+        "en": "Register & reports"
+      },
+      "icon": "CalendarCheck",
+      "app": "/erp/attendance/register/",
+      "web": "/attendance/register",
+      "status": "available"
+    },
+    {
+      "id": "attendance/leave",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "हाज़िरी",
+        "en": "Attendance"
+      },
+      "title": {
+        "hi": "छुट्टी की अर्ज़ियाँ",
+        "en": "Leave requests"
+      },
+      "icon": "CalendarCheck",
+      "app": "/erp/attendance/leave/",
+      "web": "/attendance/leave",
+      "status": "available"
+    },
+    {
+      "id": "messages",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "मैसेज",
+        "en": "Messages"
+      },
+      "title": {
+        "hi": "सारे मैसेज",
+        "en": "All messages"
+      },
+      "icon": "MessageSquareText",
+      "app": "/erp/messages/",
+      "web": "/messages",
+      "status": "available"
+    },
+    {
+      "id": "messages/new",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "मैसेज",
+        "en": "Messages"
+      },
+      "title": {
+        "hi": "नया मैसेज",
+        "en": "New message"
+      },
+      "icon": "MessageSquareText",
+      "app": "/erp/messages/new/",
+      "web": "/messages/new",
+      "status": "available"
+    },
+    {
+      "id": "meetings",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "मीटिंग और PTM",
+        "en": "Meetings & PTM"
+      },
+      "title": {
+        "hi": "मीटिंग और PTM",
+        "en": "Meetings & PTM"
+      },
+      "icon": "CalendarClock",
+      "app": "/erp/meetings/",
+      "web": "/meetings",
+      "status": "available"
+    },
+    {
+      "id": "parent-chats",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "अभिभावक-टीचर चैट",
+        "en": "Parent–teacher chats"
+      },
+      "title": {
+        "hi": "अभिभावक-टीचर चैट",
+        "en": "Parent–teacher chats"
+      },
+      "icon": "MessagesSquare",
+      "app": "/erp/parent-chats/",
+      "web": "/parent-chats",
+      "status": "available"
+    },
+    {
+      "id": "calendar",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "कैलेंडर",
+        "en": "Calendar"
+      },
+      "title": {
+        "hi": "कैलेंडर",
+        "en": "Calendar"
+      },
+      "icon": "CalendarDays",
+      "app": "/erp/calendar/",
+      "web": "/calendar",
+      "status": "available"
+    },
+    {
+      "id": "birthdays",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "जन्मदिन",
+        "en": "Birthdays"
+      },
+      "title": {
+        "hi": "जन्मदिन",
+        "en": "Birthdays"
+      },
+      "icon": "Cake",
+      "app": "/erp/birthdays/",
+      "web": "/birthdays",
+      "status": "available"
+    },
+    {
+      "id": "exams/marks",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "परीक्षा",
+        "en": "Exams"
+      },
+      "title": {
+        "hi": "अंक भरें",
+        "en": "Marks entry"
+      },
+      "icon": "Trophy",
+      "app": "/erp/exams/marks/",
+      "web": "/exams/marks",
+      "status": "available"
+    },
+    {
+      "id": "exams/report-cards",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "परीक्षा",
+        "en": "Exams"
+      },
+      "title": {
+        "hi": "रिपोर्ट कार्ड",
+        "en": "Report cards"
+      },
+      "icon": "Trophy",
+      "app": "/erp/exams/report-cards/",
+      "web": "/exams/report-cards",
+      "status": "available"
+    },
+    {
+      "id": "exams/setup",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "परीक्षा",
+        "en": "Exams"
+      },
+      "title": {
+        "hi": "परीक्षा सेटअप",
+        "en": "Exam setup"
+      },
+      "icon": "Trophy",
+      "app": "/erp/exams/setup/",
+      "web": "/exams/setup",
+      "status": "available"
+    },
+    {
+      "id": "timetable",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "टाइम टेबल",
+        "en": "Time Table"
+      },
+      "title": {
+        "hi": "टाइम टेबल",
+        "en": "Time Table"
+      },
+      "icon": "Table2",
+      "app": "/erp/timetable/",
+      "web": "/academics/timetable",
+      "status": "available"
+    },
+    {
+      "id": "homework",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "होमवर्क",
+        "en": "Homework"
+      },
+      "title": {
+        "hi": "होमवर्क",
+        "en": "Homework"
+      },
+      "icon": "NotebookPen",
+      "app": "/erp/homework/",
+      "web": "/academics/homework",
+      "status": "available"
+    },
+    {
+      "id": "syllabus",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "सिलेबस",
+        "en": "Syllabus"
+      },
+      "title": {
+        "hi": "सिलेबस",
+        "en": "Syllabus"
+      },
+      "icon": "ListChecks",
+      "app": "/erp/syllabus/",
+      "web": "/academics/syllabus",
+      "status": "available"
+    },
+    {
+      "id": "copy-check",
+      "group": {
+        "hi": "पढ़ाई",
+        "en": "Academics"
+      },
+      "module": {
+        "hi": "कॉपी जाँच",
+        "en": "Copy check"
+      },
+      "title": {
+        "hi": "कॉपी जाँच",
+        "en": "Copy check"
+      },
+      "icon": "ClipboardCheck",
+      "app": "/erp/copy-check/",
+      "web": "/academics/copy-check",
+      "status": "available"
+    },
+    {
+      "id": "staff",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "स्टाफ़ लिस्ट",
+        "en": "Directory"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/",
+      "web": "/staff",
+      "status": "available"
+    },
+    {
+      "id": "staff/new",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "नया स्टाफ़",
+        "en": "Add staff"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/new/",
+      "web": "/staff/new",
+      "status": "available"
+    },
+    {
+      "id": "staff/excel",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "Excel से भरें",
+        "en": "Excel import / export"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/excel/",
+      "web": "/staff/excel",
+      "status": "available"
+    },
+    {
+      "id": "staff/allocation",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "विषय बँटवारा",
+        "en": "Allocation"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/allocation/",
+      "web": "/staff/allocation",
+      "status": "available"
+    },
+    {
+      "id": "staff/class-teachers",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "en": "Class teachers",
+        "hi": "कक्षा अध्यापक"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/class-teachers/",
+      "web": "/staff/class-teachers",
+      "status": "available"
+    },
+    {
+      "id": "staff/attendance",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "स्टाफ़ हाज़िरी",
+        "en": "Staff attendance"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/attendance/",
+      "web": "/staff/attendance",
+      "status": "available"
+    },
+    {
+      "id": "staff/attendance/leave",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "स्टाफ़ छुट्टी",
+        "en": "Staff leave"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/attendance/?tab=leave",
+      "web": "/staff/attendance?tab=leave",
+      "status": "available"
+    },
+    {
+      "id": "staff/payroll",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "स्टाफ़",
+        "en": "Staff"
+      },
+      "title": {
+        "hi": "सैलरी",
+        "en": "Payroll"
+      },
+      "icon": "Briefcase",
+      "app": "/erp/staff/payroll/",
+      "web": "/staff/payroll",
+      "status": "available"
+    },
+    {
+      "id": "transport",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "ट्रांसपोर्ट",
+        "en": "Transport"
+      },
+      "title": {
+        "hi": "रूट और बस",
+        "en": "Routes & buses"
+      },
+      "icon": "Bus",
+      "app": "/erp/transport/",
+      "web": "/transport",
+      "status": "available"
+    },
+    {
+      "id": "transport/students",
+      "group": {
+        "hi": "स्कूल",
+        "en": "School"
+      },
+      "module": {
+        "hi": "ट्रांसपोर्ट",
+        "en": "Transport"
+      },
+      "title": {
+        "hi": "बस के बच्चे",
+        "en": "Bus students"
+      },
+      "icon": "Bus",
+      "app": "/erp/transport/students/",
+      "web": "/transport/students",
+      "status": "available"
+    },
+    {
+      "id": "settings",
+      "group": {
+        "en": "School",
+        "hi": "School"
+      },
+      "module": {
+        "hi": "सेटिंग",
+        "en": "Settings"
+      },
+      "title": {
+        "hi": "स्कूल और सत्र",
+        "en": "School & sessions"
+      },
+      "icon": "Settings2",
+      "app": "/erp/settings/",
+      "web": "/settings",
+      "status": "available"
+    },
+    {
+      "id": "settings/classes",
+      "group": {
+        "en": "School",
+        "hi": "School"
+      },
+      "module": {
+        "hi": "सेटिंग",
+        "en": "Settings"
+      },
+      "title": {
+        "hi": "कक्षा और विषय",
+        "en": "Classes & subjects"
+      },
+      "icon": "Settings2",
+      "app": "/erp/settings/classes/",
+      "web": "/settings/classes",
+      "status": "available"
+    },
+    {
+      "id": "settings/users",
+      "group": {
+        "en": "School",
+        "hi": "School"
+      },
+      "module": {
+        "hi": "सेटिंग",
+        "en": "Settings"
+      },
+      "title": {
+        "hi": "यूज़र और रोल",
+        "en": "Users & roles"
+      },
+      "icon": "Settings2",
+      "app": "/erp/settings/users/",
+      "web": "/settings/users",
+      "status": "available"
+    },
+    {
+      "id": "settings/whatsapp",
+      "group": {
+        "en": "School",
+        "hi": "School"
+      },
+      "module": {
+        "hi": "सेटिंग",
+        "en": "Settings"
+      },
+      "title": {
+        "hi": "WhatsApp",
+        "en": "WhatsApp"
+      },
+      "icon": "Settings2",
+      "app": "/erp/settings/whatsapp/",
+      "web": "/settings/messaging",
+      "status": "available"
+    },
+    {
+      "id": "settings/templates",
+      "group": {
+        "en": "School",
+        "hi": "School"
+      },
+      "module": {
+        "hi": "सेटिंग",
+        "en": "Settings"
+      },
+      "title": {
+        "hi": "मैसेज टेम्पलेट",
+        "en": "Message templates"
+      },
+      "icon": "Settings2",
+      "app": "/erp/settings/templates/",
+      "web": "/settings/templates",
+      "status": "available"
+    },
+    {
+      "id": "settings/data",
+      "group": {
+        "en": "School",
+        "hi": "School"
+      },
+      "module": {
+        "hi": "सेटिंग",
+        "en": "Settings"
+      },
+      "title": {
+        "hi": "डेटा",
+        "en": "Data"
+      },
+      "icon": "Settings2",
+      "app": "/erp/settings/data/",
+      "web": "/settings/data",
+      "status": "planned",
+      "features": [
+        {
+          "en": "School data export and recovery tools.",
+          "hi": "स्कूल डेटा एक्सपोर्ट और रिकवरी टूल्स।"
+        }
+      ]
+    },
+    {
+      "id": "planned/live-classes",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "लाइव क्लास",
+        "en": "Live classes"
+      },
+      "title": {
+        "hi": "लाइव क्लास",
+        "en": "Live classes"
+      },
+      "icon": "Video",
+      "app": "/erp/soon/?m=live-classes",
+      "web": "/planned?m=live-classes",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "टीचर ऐप से ऑनलाइन क्लास शुरू करें, बच्चों को पेरेंट ऐप में लिंक मिले।",
+          "en": "Teachers start an online class from the staff app; children get the link in the parent app."
+        },
+        {
+          "hi": "कौन जुड़ा, कितनी देर रहा, अपने आप हाज़िरी।",
+          "en": "Who joined and for how long, counted as attendance."
+        },
+        {
+          "hi": "क्लास की रिकॉर्डिंग बाद में देखने के लिए।",
+          "en": "Recordings to watch later."
+        }
+      ]
+    },
+    {
+      "id": "planned/hpc",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "CBC / समग्र प्रगति कार्ड",
+        "en": "CBC / Holistic progress card"
+      },
+      "title": {
+        "hi": "CBC / समग्र प्रगति कार्ड",
+        "en": "CBC / Holistic progress card"
+      },
+      "icon": "Award",
+      "app": "/erp/soon/?m=hpc",
+      "web": "/planned?m=hpc",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "NEP 2020 वाला योग्यता आधारित (Competency Based) कार्ड।",
+          "en": "The NEP 2020 competency-based progress card."
+        },
+        {
+          "hi": "पढ़ाई के साथ खेल, कला, व्यवहार और कौशल पर टीचर की राय।",
+          "en": "Teachers rate skills, sports, art and behaviour, not only marks."
+        },
+        {
+          "hi": "बच्चे की खुद की और माता-पिता की राय भी।",
+          "en": "Includes the child's own and the parents' view."
+        }
+      ]
+    },
+    {
+      "id": "planned/online-test",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "ऑनलाइन टेस्ट",
+        "en": "Online tests"
+      },
+      "title": {
+        "hi": "ऑनलाइन टेस्ट",
+        "en": "Online tests"
+      },
+      "icon": "FileQuestion",
+      "app": "/erp/soon/?m=online-test",
+      "web": "/planned?m=online-test",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "टीचर सवाल बनाएँ, बच्चे पेरेंट ऐप पर टेस्ट दें।",
+          "en": "Teachers set questions; children take the test in the parent app."
+        },
+        {
+          "hi": "ऑब्जेक्टिव सवालों के अंक अपने आप।",
+          "en": "Objective questions are marked automatically."
+        },
+        {
+          "hi": "अंक सीधे परीक्षा के रिकॉर्ड में।",
+          "en": "Scores go straight into the exam records."
+        }
+      ]
+    },
+    {
+      "id": "planned/library",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "लाइब्रेरी",
+        "en": "Library"
+      },
+      "title": {
+        "hi": "लाइब्रेरी",
+        "en": "Library"
+      },
+      "icon": "Library",
+      "app": "/erp/soon/?m=library",
+      "web": "/planned?m=library",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "किताबों की लिस्ट, कौन-सी किताब किसके पास है।",
+          "en": "Book list and who has which book."
+        },
+        {
+          "hi": "किताब देना-लेना, लौटाने की तारीख और देरी का जुर्माना।",
+          "en": "Issue and return, due dates and late fines."
+        }
+      ]
+    },
+    {
+      "id": "planned/hostel",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "हॉस्टल",
+        "en": "Hostel"
+      },
+      "title": {
+        "hi": "हॉस्टल",
+        "en": "Hostel"
+      },
+      "icon": "BedDouble",
+      "app": "/erp/soon/?m=hostel",
+      "web": "/planned?m=hostel",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "कमरे और बेड, कौन बच्चा कहाँ रहता है।",
+          "en": "Rooms and beds, which child stays where."
+        },
+        {
+          "hi": "हॉस्टल फ़ीस, रात की हाज़िरी और घर जाने की छुट्टी।",
+          "en": "Hostel fees, night roll call and home leave."
+        }
+      ]
+    },
+    {
+      "id": "planned/inventory",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "स्टोर और सामान",
+        "en": "Inventory & store"
+      },
+      "title": {
+        "hi": "स्टोर और सामान",
+        "en": "Inventory & store"
+      },
+      "icon": "Package",
+      "app": "/erp/soon/?m=inventory",
+      "web": "/planned?m=inventory",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "यूनिफ़ॉर्म, किताबें, कॉपियाँ: कितना स्टॉक बचा है।",
+          "en": "Uniforms, books, notebooks: how much stock is left."
+        },
+        {
+          "hi": "बच्चों को बेचा सामान रसीद के साथ।",
+          "en": "Sales to students with a receipt."
+        },
+        {
+          "hi": "स्कूल का सामान (फ़र्नीचर, कंप्यूटर) का रिकॉर्ड।",
+          "en": "A record of school assets (furniture, computers)."
+        }
+      ]
+    },
+    {
+      "id": "planned/visitors",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "विज़िटर रजिस्टर",
+        "en": "Visitor log"
+      },
+      "title": {
+        "hi": "विज़िटर रजिस्टर",
+        "en": "Visitor log"
+      },
+      "icon": "DoorOpen",
+      "app": "/erp/soon/?m=visitors",
+      "web": "/planned?m=visitors",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "गेट पर कौन आया, किससे मिलने, कब आया-गया।",
+          "en": "Who came to the gate, whom they met, in and out times."
+        },
+        {
+          "hi": "बच्चे को लेने आए व्यक्ति की फ़ोटो और मोबाइल।",
+          "en": "Photo and mobile of whoever picks a child up."
+        }
+      ]
+    },
+    {
+      "id": "planned/health",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "स्वास्थ्य रिकॉर्ड",
+        "en": "Health records"
+      },
+      "title": {
+        "hi": "स्वास्थ्य रिकॉर्ड",
+        "en": "Health records"
+      },
+      "icon": "HeartPulse",
+      "app": "/erp/soon/?m=health",
+      "web": "/planned?m=health",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "बच्चे की लंबाई, वज़न, आँख और दाँत की जाँच।",
+          "en": "Height, weight, eye and dental check-ups."
+        },
+        {
+          "hi": "एलर्जी और बीमारी की जानकारी टीचर को दिखे।",
+          "en": "Allergies and conditions shown to teachers."
+        }
+      ]
+    },
+    {
+      "id": "planned/complaints",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "शिकायत पेटी",
+        "en": "Complaint box"
+      },
+      "title": {
+        "hi": "शिकायत पेटी",
+        "en": "Complaint box"
+      },
+      "icon": "MessageSquareWarning",
+      "app": "/erp/soon/?m=complaints",
+      "web": "/planned?m=complaints",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "माता-पिता और स्टाफ़ ऐप से शिकायत या सुझाव भेजें।",
+          "en": "Parents and staff send a complaint or suggestion from the app."
+        },
+        {
+          "hi": "हर शिकायत का हाल: खुली, देख रहे हैं, हल हुई।",
+          "en": "Each one tracked: open, in progress, solved."
+        }
+      ]
+    },
+    {
+      "id": "planned/alumni",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "पुराने छात्र",
+        "en": "Alumni"
+      },
+      "title": {
+        "hi": "पुराने छात्र",
+        "en": "Alumni"
+      },
+      "icon": "GraduationCap",
+      "app": "/erp/soon/?m=alumni",
+      "web": "/planned?m=alumni",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "स्कूल छोड़ चुके बच्चों का रिकॉर्ड और संपर्क।",
+          "en": "Records and contacts of past students."
+        },
+        {
+          "hi": "पुराने छात्रों को कार्यक्रम का न्योता।",
+          "en": "Invite them to school events."
+        }
+      ]
+    },
+    {
+      "id": "planned/biometric",
+      "group": {
+        "en": "Coming soon",
+        "hi": "Coming soon"
+      },
+      "module": {
+        "hi": "बायोमेट्रिक हाज़िरी",
+        "en": "Biometric attendance"
+      },
+      "title": {
+        "hi": "बायोमेट्रिक हाज़िरी",
+        "en": "Biometric attendance"
+      },
+      "icon": "Fingerprint",
+      "app": "/erp/soon/?m=biometric",
+      "web": "/planned?m=biometric",
+      "status": "planned",
+      "features": [
+        {
+          "hi": "अंगूठा या चेहरा पहचानने वाली मशीन से स्टाफ़ और बच्चों की हाज़िरी।",
+          "en": "Staff and student attendance from a fingerprint or face machine."
+        },
+        {
+          "hi": "आने-जाने का समय अपने आप हाज़िरी और सैलरी में।",
+          "en": "In and out times flow into attendance and salary."
+        }
+      ]
+    }
+  ]
+}

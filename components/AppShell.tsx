@@ -7,9 +7,12 @@ import clsx from "clsx";
 import { CalendarCheck, ChevronLeft, History, Home, LayoutDashboard, Menu as MenuIcon, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
 import { useStaff } from "@/lib/staff";
 import { SahayakButton } from "./SahayakButton";
+import { useSahayakPreference } from "@/lib/sahayakPreference";
 import { useL, type Bi } from "@/lib/i18n";
+import { ActionPalette } from "@/lib/actionPalette";
 import { MenuContext } from "@/lib/menu";
 import { markBack, motionClass, usePageMotion } from "@/lib/pageMotion";
+import { ErpAppearance } from "@/lib/erpAppearance";
 import { isErpMode } from "@/lib/erpMode";
 import { ErrorCard, OfflineNote } from "./ui";
 import { SideMenu } from "./SideMenu";
@@ -37,6 +40,8 @@ interface PageInfo {
 }
 
 const PAGES: Record<string, PageInfo> = {
+  "/erp/reports/":{title:{en:"All reports",hi:"\u0938\u093e\u0930\u0940 \u0930\u093f\u092a\u094b\u0930\u094d\u091f"}},
+  "/erp/settings/data/":{title:{en:"Data",hi:"\u0921\u0947\u091f\u093e"},back:"/erp/settings/"},
   "/students/": { title: { hi: "बच्चे", en: "Students" }, teacher: true },
   "/students/detail/": { title: { hi: "बच्चा", en: "Student" }, back: "/students/", tab: "/students/", teacher: true },
   "/attendance/": { title: { hi: "हाज़िरी", en: "Attendance" }, teacher: true },
@@ -177,6 +182,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const teacher = !me || me.role === "teacher";
   const driver = me?.role === "driver";
   const [erp] = useState(isErpMode);
+  const [owlEnabled] = useSahayakPreference();
   const tabs = erp ? ERP_TABS : teacher ? TEACHER_TABS : OTHER_TABS;
   // Home sits on the parent app's pale page (no teal band since 2026-10-24); header buttons are dark everywhere.
   const home = !driver && isHome;
@@ -227,8 +233,10 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [page?.bare, driver]);
 
   return (
+    <ActionPalette.Provider value={!driver && !path.startsWith("/assistant/")}>
+    <ErpAppearance.Provider value={erp && !driver}>
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
+    <div data-action-theme={!driver && !path.startsWith("/assistant/") ? "evergreen" : undefined} className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", erp && !driver && "erp-interface", driver ? "drv bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 border-b border-[#DCE4ED] bg-white">
           {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
@@ -283,8 +291,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </main>
 
-      {/* School Sahayak (the AI chat): the parent app's round button, draggable to either side. Not for drivers or the ERP login. */}
-      {!page?.bare && !driver && <SahayakButton />}
+      {/* School Sahayak (the AI chat): the parent app's round button, draggable to either side, shown only when
+          switched on in the side menu (as on the parent app). Not for drivers. */}
+      {!page?.bare && !driver && owlEnabled && <SahayakButton />}
 
       {page?.bare ? null : driver ? (
         <DriverNav path={path} />
@@ -313,5 +322,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {menu && <SideMenu onClose={() => setMenu(false)} />}
     </div>
     </MenuContext.Provider>
+    </ErpAppearance.Provider>
+    </ActionPalette.Provider>
   );
 }

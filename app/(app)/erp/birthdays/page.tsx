@@ -67,7 +67,7 @@ export default function ErpBirthdaysPage() {
             ["staff", { hi: "स्टाफ़", en: "Staff" }],
           ] as const
         ).map(([k, t]) => (
-          <button key={k} type="button" onClick={() => setWho(k)} aria-pressed={who === k} className={clsx("h-9 rounded-full border px-3.5 text-[13px] font-semibold", who === k ? "border-ink-900 bg-ink-900 text-white" : "border-ink-200 bg-white text-ink-700")}>
+          <button key={k} type="button" onClick={() => setWho(k)} aria-pressed={who === k} className={clsx("min-h-[44px] rounded-[10px] border px-3.5 text-[13px] font-semibold", who === k ? "border-ink-900 bg-ink-900 text-white" : "border-ink-200 bg-white text-ink-700")}>
             {L(t)}
           </button>
         ))}

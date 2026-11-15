@@ -1,8 +1,12 @@
 "use client";
 
+import { useErpSession } from "@/lib/useErpSession";
+import { useSchoolInfo } from "@/lib/erpCerts";
+import { PrintSheet } from "@/components/erp/certs/SheetPreview";
+import { TimetableDocument } from "@/components/erp/timetable/TimetableDocument";
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import { ArrowDown, ArrowUp, Clock, Plus, X } from "lucide-react";
+import { ArrowDown, ArrowUp, Clock, Plus, Printer, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
@@ -21,6 +25,9 @@ type Tab = "class" | "teacher";
 
 export default function ErpTimetablePage() {
   const L = useL();
+  const { session } = useErpSession();
+  const school = useSchoolInfo();
+  const [printing, setPrinting] = useState(false);
   const { lang } = useLang();
   const ov = useApi<TTOverview>("/erp/timetable");
   const who = useApi<{ user: { role: string } }>("/erp/auth/me");
@@ -190,6 +197,8 @@ export default function ErpTimetablePage() {
         </>
       )}
 
+      {tab === "class" && section && sec.data && <button type="button" onClick={() => setPrinting(true)} className="btn-line w-full"><Printer className="h-4 w-4" aria-hidden />{L({hi:"टाइम टेबल प्रिंट करें",en:"Print timetable"})}</button>}
+      {printing && section && sec.data && <PrintSheet onDone={() => setPrinting(false)}><TimetableDocument school={school.name} classSec={classSec} periods={d.periods} entries={sec.data.entries} teacherName={teacherName} sessionLabel={session?.label} /></PrintSheet>}
       {isAdmin && (
         <button type="button" onClick={() => setPeriodsOpen(true)} className="btn-line w-full">
           <Clock className="h-4 w-4" aria-hidden /> {L({ hi: "पीरियड और समय", en: "Periods & times" })}
@@ -308,7 +317,7 @@ function CellSheet({ sectionId, classSec, subjects, day, period, entry, teachers
       <h3 className="mb-2 text-[13px] font-bold text-ink-700">{L({ hi: "विषय", en: "Subject" })}</h3>
       <div className="flex flex-wrap gap-1.5">
         {[...subjects, OTHER].map((s) => (
-          <button key={s} type="button" onClick={() => pickSubject(s)} aria-pressed={subject === s} className={clsx("min-h-[40px] rounded-lg px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#0D2A5E] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
+          <button key={s} type="button" onClick={() => pickSubject(s)} aria-pressed={subject === s} className={clsx("min-h-[44px] rounded-[10px] px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#0D2A5E] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
             {s === OTHER ? L({ hi: "दूसरा…", en: "Other…" }) : s}
           </button>
         ))}
@@ -320,9 +329,9 @@ function CellSheet({ sectionId, classSec, subjects, day, period, entry, teachers
       )}
 
       <h3 className="mb-1 mt-4 text-[13px] font-bold text-ink-700">{L({ hi: "टीचर", en: "Teacher" })}</h3>
-      {suggested.length > 0 && <p className="text-[12px] font-semibold uppercase text-ink-400">{L({ hi: `यहाँ ${name} पढ़ाते हैं`, en: `Teaches ${name} here` })}</p>}
+      {suggested.length > 0 && <p className="text-[13px] font-semibold text-ink-500">{L({ hi: `यहाँ ${name} पढ़ाते हैं`, en: `Teaches ${name} here` })}</p>}
       <ul>{suggested.map(teacherRow)}</ul>
-      {rest.length > 0 && <p className="mt-2 text-[12px] font-semibold uppercase text-ink-400">{suggested.length ? L({ hi: "बाकी टीचर", en: "Other teachers" }) : L({ hi: "टीचर", en: "Teachers" })}</p>}
+      {rest.length > 0 && <p className="mt-2 text-[13px] font-semibold text-ink-500">{suggested.length ? L({ hi: "बाकी टीचर", en: "Other teachers" }) : L({ hi: "टीचर", en: "Teachers" })}</p>}
       <ul className="max-h-[38vh] overflow-y-auto">{rest.map(teacherRow)}</ul>
 
       <div className={clsx("mt-4 grid gap-2.5", entry ? "grid-cols-2" : "grid-cols-1")}>

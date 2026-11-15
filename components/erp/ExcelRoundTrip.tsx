@@ -5,7 +5,8 @@ import { Download, Upload } from "lucide-react";
 import { api, ApiError } from "@/lib/api";
 import { useL, type Bi } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
-import { downloadCsv, isoDate, parseCsv } from "@/lib/csv";
+import { isoDate } from "@/lib/csv";
+import {downloadWorkbook,readWorkbook} from "@/lib/spreadsheet";
 
 /*
  * The Excel round trip shared by ERP-login lists (2026-10-26): 1 download the filled sheet, 2 upload it back as
@@ -56,8 +57,8 @@ export function ExcelRoundTrip({
   async function pick(f: File | undefined) {
     if (!f) return;
     setCheck(null);
-    if (/\.xlsx?$/i.test(f.name)) return toast(false, L({ hi: "Excel में File → Save As → CSV चुनकर सेव करें, फिर वह फ़ाइल डालें।", en: "In Excel use File → Save As → CSV, then pick that file." }));
-    const table = parseCsv(await f.text()).filter((r) => r.some((c) => c));
+    let table:string[][];
+    try { table=(await readWorkbook(f)).filter(r=>r.some(c=>c)); } catch(e) { toast(false,e instanceof Error?e.message:"Could not read this workbook.");return; }
     if (table.length < 2) return toast(false, L({ hi: "फ़ाइल में कोई लाइन नहीं।", en: "No rows in the file." }));
     const head = table[0].map((h) => h.toLowerCase());
     const at = header.map((h) => head.findIndex((x) => x === h.toLowerCase() || x.startsWith(h.toLowerCase().split(" (")[0])));
@@ -98,7 +99,7 @@ export function ExcelRoundTrip({
       <section className="rounded-2xl border border-ink-100 bg-white p-4">
         <h2 className="text-[15px] font-bold">{L({ hi: "1. फ़ाइल डाउनलोड करें", en: "1. Download the file" })}</h2>
         <p className="mt-0.5 text-[13.5px] text-ink-600">{L(intro)}</p>
-        <button type="button" onClick={() => downloadCsv(fileName, header, download())} className="btn-primary mt-3 w-full">
+        <button type="button" onClick={() => void downloadWorkbook(fileName, header, download())} className="btn-primary mt-3 w-full">
           <Download className="h-4 w-4" aria-hidden /> {L({ hi: "फ़ाइल डाउनलोड", en: "Download file" })}
         </button>
       </section>
@@ -107,7 +108,7 @@ export function ExcelRoundTrip({
         <h2 className="text-[15px] font-bold">{L({ hi: "2. भरकर वापस डालें", en: "2. Upload it back" })}</h2>
         <p className="mt-0.5 text-[13.5px] text-ink-600">{L({ hi: "Excel में File → Save As → CSV। पहले जाँच होगी, सेव तभी होगा जब आप कहेंगे।", en: "In Excel, File → Save As → CSV. It is checked first; nothing is saved until you say so." })}</p>
         <button type="button" onClick={() => input.current?.click()} disabled={!!busy} className="btn-line mt-3 w-full disabled:opacity-60">
-          <Upload className="h-4 w-4" aria-hidden /> {busy === "check" ? L({ hi: "जाँच हो रही है…", en: "Checking…" }) : picked || L({ hi: "CSV फ़ाइल चुनें", en: "Choose CSV file" })}
+          <Upload className="h-4 w-4" aria-hidden /> {busy === "check" ? L({ hi: "जाँच हो रही है…", en: "Checking…" }) : picked || L({ hi: "CSV फ़ाइल चुनें", en: "Choose Excel or CSV file" })}
         </button>
         <input
           ref={input}

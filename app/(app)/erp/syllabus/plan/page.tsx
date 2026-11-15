@@ -5,6 +5,7 @@ import clsx from "clsx";
 import { Check, MoreHorizontal, Plus } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
+import {useErpSession} from "@/lib/useErpSession";
 import { monthYear } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { Empty, ErrorCard, ListSkeleton, SelectBox, Sheet } from "@/components/ui";
@@ -22,7 +23,6 @@ type Plan = { setupNeeded: boolean; sections: string[]; data: Chapter[] };
 type Q = { cls: string; subject: string };
 
 const todayMonth = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date()).slice(0, 7);
-const SESSION_MONTHS = Array.from({ length: 12 }, (_, i) => new Date(Date.UTC(2026, 3 + i, 1)).toISOString().slice(0, 7));
 const short = (d: string) => new Date(d + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
 export default function ErpSyllabusPlanPage() {
@@ -73,14 +73,14 @@ function PlanView({ cls, subject }: Q) {
   }
 
   return (
-    <div className="animate-rise space-y-3 pb-4">
+    <div className="chapter-plan-workspace animate-rise space-y-3 pb-4">
       <h1 className="text-[18px] font-bold text-ink-900">
         {cls} · {subject}
       </h1>
       {data.sections.length > 1 && (
         <div className="flex flex-wrap gap-2" role="group" aria-label={L({ hi: "सेक्शन", en: "Section" })}>
           {data.sections.map((s) => (
-            <button key={s} type="button" onClick={() => setSec(s)} aria-pressed={sec === s} className={clsx("h-9 rounded-full border px-3.5 text-[13px] font-semibold", sec === s ? "border-ink-900 bg-ink-900 text-white" : "border-ink-200 bg-white text-ink-700")}>
+            <button key={s} type="button" onClick={() => setSec(s)} aria-pressed={sec === s} className={clsx("min-h-[44px] min-w-[44px] rounded-[10px] border px-3.5 text-[13px] font-semibold", sec === s ? "border-ink-900 bg-ink-900 text-white" : "border-ink-200 bg-white text-ink-700")}>
               {s.split(" - ")[1]}
             </button>
           ))}
@@ -164,6 +164,9 @@ function PlanView({ cls, subject }: Q) {
 function MonthBox({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const L = useL();
   const { lang } = useLang();
+  const {session}=useErpSession();
+  const SESSION_MONTHS:string[]=[];
+  if(session){let month=session.start.slice(0,7);const last=session.end.slice(0,7);while(month<=last&&SESSION_MONTHS.length<36){SESSION_MONTHS.push(month);month=new Date(Date.UTC(+month.slice(0,4),+month.slice(5,7),1)).toISOString().slice(0,7);}}
   return (
     <SelectBox label={L({ hi: "किस महीने पढ़ाना है", en: "Month planned" })} value={value} onChange={onChange}>
       <option value="">{L({ hi: "तय नहीं", en: "Not set" })}</option>
@@ -181,6 +184,8 @@ function AddSheet({ cls, subject, onClose, onSaved }: { cls: string; subject: st
   const [text, setText] = useState("");
   const [planMonth, setPlanMonth] = useState(todayMonth());
   const [busy, setBusy] = useState(false);
+  const {session}=useErpSession();
+  useEffect(()=>{if(session)setPlanMonth(current=>current<session.start.slice(0,7)?session.start.slice(0,7):current>session.end.slice(0,7)?session.end.slice(0,7):current);},[session]);
   const titles = text.split("\n").map((t) => t.trim()).filter(Boolean);
 
   async function save() {

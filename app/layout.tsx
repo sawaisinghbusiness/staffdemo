@@ -18,6 +18,8 @@ import "@fontsource-variable/noto-sans-devanagari/wght.css";
 import "@fontsource-variable/plus-jakarta-sans";
 import "./globals.css";
 import "./staff-workspace.css";
+import "./erp-interface.css";
+import "./action-palette.css";
 import { LangProvider } from "@/lib/i18n";
 import { Toaster } from "@/lib/toast";
 

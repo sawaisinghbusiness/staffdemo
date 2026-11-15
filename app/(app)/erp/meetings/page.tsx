@@ -47,6 +47,8 @@ const dayPart = (iso: string, part: "weekday" | "day" | "month") => new Date(iso
 export default function ErpMeetingsPage() {
   const L = useL();
   const { data, error, reload } = useApi<{ setupNeeded: boolean; data: Meeting[] }>("/erp/meetings");
+  const who = useApi<{ user: { role: string } }>("/erp/auth/me");
+  const canManage = ["admin", "teacher"].includes(who.data?.user.role || "");
   const [booked, setBooked] = useState<Meeting | null>(null);
   const [tab, setTab] = useState<"upcoming" | "past">("upcoming");
   const [cancelling, setCancelling] = useState<Meeting | null>(null);
@@ -58,7 +60,7 @@ export default function ErpMeetingsPage() {
   const shown = tab === "upcoming" ? upcoming : past;
 
   async function cancel() {
-    if (!cancelling) return;
+    if (!cancelling || !canManage) return;
     setBusy(true);
     try {
       await api(`/erp/meetings/${cancelling.id}`, { method: "DELETE" });
@@ -133,14 +135,14 @@ export default function ErpMeetingsPage() {
                       <p className="text-[13.5px] font-semibold text-ink-800">{L({ hi: `${m.yes} आएँगे · ${m.no} नहीं आ पाएँगे`, en: `${m.yes} coming · ${m.no} can't` })}</p>
                     )}
                   </div>
-                  {((m.kind === "ptm" && m.booked.length > 0) || !over) && (
+                  {((m.kind === "ptm" && m.booked.length > 0) || (!over && canManage)) && (
                     <div className="flex border-t border-ink-100">
                       {m.kind === "ptm" && m.booked.length > 0 && (
                         <button type="button" onClick={() => setBooked(m)} className="min-h-[46px] flex-1 text-[14px] font-semibold text-ink-900 active:bg-ink-50">
                           {L({ hi: "किसने बुक किया", en: "Who booked" })}
                         </button>
                       )}
-                      {!over && (
+                      {!over && canManage && (
                         <button type="button" onClick={() => setCancelling(m)} aria-label={`${L({ hi: "रद्द करें", en: "Cancel" })} ${m.title}`} className="min-h-[46px] flex-1 border-l border-ink-100 text-[14px] font-semibold text-rose-700 first:border-l-0 active:bg-ink-50">
                           {L({ hi: "रद्द करें", en: "Cancel" })}
                         </button>

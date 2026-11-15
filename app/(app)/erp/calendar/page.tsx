@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays, ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL, useLang, type Lang } from "@/lib/i18n";
+import { useErpSession } from "@/lib/useErpSession";
 import { monthYear } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { Empty, ErrorCard, SelectBox, Sheet, Skeleton } from "@/components/ui";
@@ -18,8 +19,6 @@ import { Empty, ErrorCard, SelectBox, Sheet, Skeleton } from "@/components/ui";
 
 type CalEvent = { id: string; title: string; category: string; start: string; end: string; isHoliday: boolean; description: string };
 
-const SESSION_START = "2026-04";
-const SESSION_END = "2027-03";
 const HOL = "bg-[#2563eb]";
 const WEEK = { hi: ["सो", "मं", "बु", "गु", "शु", "श", "र"], en: ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"] };
 const CATS: { k: string; hi: string; en: string }[] = [
@@ -46,13 +45,14 @@ export default function ErpCalendarPage() {
   const L = useL();
   const { lang } = useLang();
   const today = todayIST();
-  const [month, setMonth] = useState(() => {
-    const m = today.slice(0, 7);
-    return m < SESSION_START ? SESSION_START : m > SESSION_END ? SESSION_END : m;
-  });
+  const sessionState=useErpSession();
+  const SESSION_START=sessionState.session?.start.slice(0,7)||"";
+  const SESSION_END=sessionState.session?.end.slice(0,7)||"";
+  const [month,setMonth]=useState(today.slice(0,7));
+  useEffect(()=>{if(SESSION_START&&SESSION_END)setMonth(current=>current<SESSION_START?SESSION_START:current>SESSION_END?SESSION_END:current);},[SESSION_START,SESSION_END]);
   const [picked, setPicked] = useState<string | null>(null);
   const [edit, setEdit] = useState<CalEvent | "new" | null>(null);
-  const { data, error, reload } = useApi<{ month: string; data: CalEvent[] }>(`/erp/calendar?month=${month}`);
+  const { data, error, reload } = useApi<{ month: string; data: CalEvent[] }>(sessionState.session ? `/erp/calendar?month=${month}` : null);
   const who = useApi<{ user: { role: string } }>("/erp/auth/me");
   const isAdmin = who.data?.user.role === "admin";
   const shown = data && data.month === month ? data.data : undefined;
@@ -66,17 +66,18 @@ export default function ErpCalendarPage() {
     setPicked(null);
   };
 
+  if(sessionState.error)return <ErrorCard onRetry={sessionState.reload}/>;
   if (!shown && error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
 
   return (
-    <div className="animate-rise space-y-3.5 pb-4">
+    <div className="calendar-workspace animate-rise space-y-3.5 pb-4">
       <section className="cal font-title">
         <div className="flex items-center justify-between">
-          <button onClick={() => go(-1)} disabled={month <= SESSION_START} aria-label={L({ hi: "पिछला महीना", en: "Previous month" })} className="grid h-11 w-11 place-items-center rounded-full text-ink-700 active:bg-ink-100 disabled:opacity-25">
+          <button onClick={() => go(-1)} disabled={!SESSION_START || month <= SESSION_START} aria-label={L({ hi: "पिछला महीना", en: "Previous month" })} className="grid h-11 w-11 place-items-center rounded-full text-ink-700 active:bg-ink-100 disabled:opacity-25">
             <ChevronLeft className="h-5 w-5" aria-hidden />
           </button>
           <p className="text-[16px] font-bold">{monthYear(month, lang)}</p>
-          <button onClick={() => go(1)} disabled={month >= SESSION_END} aria-label={L({ hi: "अगला महीना", en: "Next month" })} className="grid h-11 w-11 place-items-center rounded-full text-ink-700 active:bg-ink-100 disabled:opacity-25">
+          <button onClick={() => go(1)} disabled={!SESSION_END || month >= SESSION_END} aria-label={L({ hi: "अगला महीना", en: "Next month" })} className="grid h-11 w-11 place-items-center rounded-full text-ink-700 active:bg-ink-100 disabled:opacity-25">
             <ChevronRight className="h-5 w-5" aria-hidden />
           </button>
         </div>
@@ -111,7 +112,7 @@ export default function ErpCalendarPage() {
                     >
                       <span
                         className={clsx(
-                          "tnum grid h-8 w-8 place-items-center rounded-full text-[14.5px] font-semibold",
+                          "tnum grid min-h-[44px] w-full place-items-center rounded-[10px] text-[14.5px] font-semibold",
                           hol ? clsx("text-white", HOL) : d === today ? "border-2 border-ink-900 text-ink-900" : sunday ? "text-ink-300" : "text-ink-900",
                           sel && "ring-2 ring-ink-900 ring-offset-2",
                           d === today && "!font-extrabold"
@@ -201,6 +202,7 @@ export default function ErpCalendarPage() {
 
 function EventSheet({ ev, defaultDate, onClose, onSaved }: { ev: CalEvent | null; defaultDate: string; onClose: () => void; onSaved: () => void }) {
   const L = useL();
+  const {session}=useErpSession();
   const [f, setF] = useState({
     title: ev?.title || "",
     isHoliday: ev?.isHoliday || false,
@@ -214,6 +216,7 @@ function EventSheet({ ev, defaultDate, onClose, onSaved }: { ev: CalEvent | null
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
 
   async function save() {
+    if(!session)return toast(false,"The academic session is not available yet.");
     if (!f.title.trim()) return toast(false, L({ hi: "नाम लिखें।", en: "Write a name." }));
     if (!f.start || !f.end || f.end < f.start) return toast(false, L({ hi: "सही तारीखें चुनें।", en: "Choose valid dates." }));
     setBusy(true);
@@ -273,12 +276,12 @@ function EventSheet({ ev, defaultDate, onClose, onSaved }: { ev: CalEvent | null
         <div className="grid grid-cols-2 gap-2.5">
           <label className="field-box">
             <small>{L({ hi: "से *", en: "From *" })}</small>
-            <input id="ev-start" type="date" min="2026-04-01" max="2027-03-31" value={f.start} onChange={(e) => setF((p) => ({ ...p, start: e.target.value, end: p.end < e.target.value ? e.target.value : p.end }))} />
+            <input id="ev-start" type="date" min={session?.start} max={session?.end} value={f.start} onChange={(e) => setF((p) => ({ ...p, start: e.target.value, end: p.end < e.target.value ? e.target.value : p.end }))} />
             <CalendarDays aria-hidden />
           </label>
           <label className="field-box">
             <small>{L({ hi: "तक *", en: "To *" })}</small>
-            <input id="ev-end" type="date" min={f.start} max="2027-03-31" value={f.end} onChange={(e) => set("end", e.target.value)} />
+            <input id="ev-end" type="date" min={f.start} max={session?.end} value={f.end} onChange={(e) => set("end", e.target.value)} />
             <CalendarDays aria-hidden />
           </label>
         </div>

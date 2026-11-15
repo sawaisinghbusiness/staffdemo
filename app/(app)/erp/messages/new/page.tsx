@@ -7,7 +7,7 @@ import { api, ApiError, useApi } from "@/lib/api";
 import { useL, type Bi } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
 import { TEMPLATES, unfilled, type Audience, type AudienceKind, type Lang, type Message, type Preview } from "@/lib/erpMessages";
-import { ListSkeleton } from "@/components/ui";
+import { Empty, ErrorCard, ListSkeleton } from "@/components/ui";
 
 /*
  * ERP login → New message: the ERP's ComposeDrawer. Who it goes to (whole school, classes, sections, or parents
@@ -41,7 +41,7 @@ const plusDays = (n: number) => {
 
 function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
-    <button type="button" onClick={onClick} aria-pressed={on} className={clsx("min-h-[36px] rounded-lg px-2.5 text-[13px] font-semibold", on ? "bg-brand-600 text-white" : "border border-ink-200 bg-white text-ink-700")}>
+    <button type="button" onClick={onClick} aria-pressed={on} className={clsx("min-h-[44px] rounded-[10px] px-3 text-[13px] font-semibold", on ? "bg-brand-600 text-white" : "border border-ink-200 bg-white text-ink-700")}>
       {children}
     </button>
   );
@@ -49,6 +49,8 @@ function Chip({ on, onClick, children }: { on: boolean; onClick: () => void; chi
 
 export default function ErpNewMessagePage() {
   const L = useL();
+  const who = useApi<{ user: { role: string } }>("/erp/auth/me");
+  const canWrite = ["admin", "accountant"].includes(who.data?.user.role || "");
   const cls = useApi<{ data: ClassItem[] }>("/erp/classes");
   const classes = useMemo(() => (cls.data?.data || []).filter((c) => (c.sections || []).length), [cls.data]);
   const [kind, setKind] = useState<AudienceKind>("school");
@@ -78,6 +80,7 @@ export default function ErpNewMessagePage() {
 
   // Who it reaches and how the first parent reads it, after typing settles.
   useEffect(() => {
+    if (!canWrite) return;
     if (!audienceReady) {
       setPreview(null);
       return;
@@ -144,7 +147,9 @@ export default function ErpNewMessagePage() {
     }
   }
 
-  if (!cls.data && !cls.error) return <ListSkeleton rows={5} />;
+  if (!who.data) return who.error ? <ErrorCard onRetry={who.reload} /> : <ListSkeleton rows={3} />;
+  if (!canWrite) return <Empty>{L({hi:"Only admin and accountant can write messages.",en:"Only admin and accountant can write messages."})}</Empty>;
+  if (!cls.data) return cls.error ? <ErrorCard onRetry={cls.reload} /> : <ListSkeleton rows={5} />;
 
   return (
     <div className="animate-rise space-y-4 pb-4">
@@ -163,7 +168,7 @@ export default function ErpNewMessagePage() {
                 setKind(k.kind);
                 setPicked([]);
               }}
-              className={clsx("min-h-[40px] rounded-lg px-1 text-[12.5px] font-semibold", kind === k.kind ? "bg-white text-ink-900 shadow-sm" : "text-ink-500")}
+              className={clsx("min-h-[44px] rounded-[10px] px-1 text-[13px] font-semibold", kind === k.kind ? "bg-white text-ink-900 shadow-sm" : "text-ink-500")}
             >
               {L(k.text)}
             </button>
@@ -203,7 +208,7 @@ export default function ErpNewMessagePage() {
           <h2 className="text-[16px] font-bold text-brand-800">{L({ hi: "मैसेज", en: "Message" })}</h2>
           <div className="grid grid-cols-2 gap-1 rounded-lg bg-ink-100 p-0.5" role="radiogroup" aria-label={L({ hi: "भाषा", en: "Language" })}>
             {(["hi", "en"] as Lang[]).map((l) => (
-              <button key={l} type="button" role="radio" aria-checked={lang === l} onClick={() => switchLang(l)} className={clsx("min-h-[34px] rounded-md px-3 text-[13px] font-semibold", lang === l ? "bg-white text-ink-900 shadow-sm" : "text-ink-500")}>
+              <button key={l} type="button" role="radio" aria-checked={lang === l} onClick={() => switchLang(l)} className={clsx("min-h-[44px] rounded-[10px] px-3 text-[13px] font-semibold", lang === l ? "bg-white text-ink-900 shadow-sm" : "text-ink-500")}>
                 {l === "hi" ? "हिंदी" : "English"}
               </button>
             ))}
@@ -231,7 +236,7 @@ export default function ErpNewMessagePage() {
           <div className="flex flex-wrap items-center gap-1.5 text-[12px]">
             <span className="text-ink-500">{L({ hi: "हर माता-पिता के लिए भरेगा:", en: "Fill in for each parent:" })}</span>
             {FIELDS.filter((f) => !f.duesOnly || kind === "dues").map((f) => (
-              <button key={f.key} type="button" onClick={() => insert(f.key)} title={L(f.text)} className="min-h-[32px] rounded-md bg-ink-100 px-2 font-mono text-[12px] text-ink-700">
+              <button key={f.key} type="button" onClick={() => insert(f.key)} title={L(f.text)} className="min-h-[44px] rounded-[10px] bg-ink-100 px-3 font-mono text-[13px] text-ink-700">
                 {`{${f.key}}`}
               </button>
             ))}

@@ -162,7 +162,7 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
       {!editable && <p className="text-[13px] text-ink-500">{L({ hi: "सिर्फ़ क्लास टीचर हाज़िरी लगा सकते हैं।", en: "Only the class teacher can mark this class." })}</p>}
 
       <div className="teacher-register">
-      <div className="grid grid-cols-[28px_1fr_40px_40px_40px] items-center border-b border-ink-100 bg-ink-50 px-3.5 py-3 text-[12px] font-medium text-ink-500">
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_44px_44px_44px] items-center border-b border-ink-100 bg-ink-50 px-3.5 py-3 text-[12px] font-medium text-ink-500">
         <span>{L({ hi: "रोल", en: "No." })}</span>
         <span>{L({ hi: "नाम", en: "Name" })}</span>
         <abbr className="text-center no-underline" title={L({hi:"\u0909\u092a\u0938\u094d\u0925\u093f\u0924",en:"Present"})}>P</abbr>
@@ -181,9 +181,9 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
             // Absent or leave: no fill, just a black outline round the row (user's ask, 2026-10-14).
             // The outline fades in and the reason box slides open, so nothing jumps.
             <li key={s.id} className={clsx("roll-row px-3.5", m !== "P" && "roll-row-on")}>
-              <div className="grid min-h-[52px] grid-cols-[28px_1fr_40px_40px_40px] items-center text-[15px]">
+              <div className="grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)_44px_44px_44px] items-center text-[15px]">
                 <span className="tnum text-[13px] text-ink-400">{s.rollNo}</span>
-                <button type="button" onClick={() => toggle(s.id)} disabled={!editable} className="min-h-[44px] min-w-0 truncate text-left">
+                <button type="button" onClick={() => toggle(s.id)} disabled={!editable} className="min-h-[44px] min-w-0 break-words py-2 pr-2 text-left leading-snug">
                   {s.name}
                   {m === "H" && <span className="ml-1.5 text-[12px] font-semibold text-marigold-600">{L({ hi: "आधा दिन", en: "Half day" })}</span>}
                 </button>

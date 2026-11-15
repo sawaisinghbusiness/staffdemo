@@ -1,10 +1,12 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
-import { AlertTriangle, Ban, CalendarDays, Search, X } from "lucide-react";
+import { Download, AlertTriangle, Ban, CalendarDays, Search, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL, type Bi } from "@/lib/i18n";
+import { downloadWorkbook } from "@/lib/spreadsheet";
 import { rupees } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { toTransaction, type Receipt, type ReceiptList } from "@/lib/erpReceipts";
@@ -16,7 +18,7 @@ import { Empty, ErrorCard, ListSkeleton, SelectBox, Sheet } from "@/components/u
  * ERP login → Fees → Receipts: the ERP's receipt register (GET /api/fees/receipts). Pick the dates, search,
  * tap a receipt to print it again. The admin can cancel one (POST /api/fees/receipts/:id/cancel), which takes
  * the money back off the student's paid fee; the number stays in the register, marked cancelled.
- * Excel export stays on the ERP website.
+ * Exports the same filtered receipt fields as the web register in Excel workbook.
  */
 
 type Range = "today" | "week" | "month" | "session" | "custom";
@@ -30,7 +32,7 @@ const modeKey = (m: string): Exclude<ModeFilter, "all"> => (/upi|qr/i.test(m) ? 
 const PAGE = 100;
 
 /** Start and end dates (inclusive) for a preset. The session runs April to March (ERP rangeDates). */
-function rangeDates(r: Exclude<Range, "custom">): [string, string] {
+function rangeDates(r: Exclude<Range, "custom">, session?: {start:string;end:string} | null): [string, string] {
   const now = new Date();
   const today = iso(now);
   if (r === "today") return [today, today];
@@ -40,7 +42,7 @@ function rangeDates(r: Exclude<Range, "custom">): [string, string] {
     return [iso(d), today];
   }
   if (r === "month") return [iso(new Date(now.getFullYear(), now.getMonth(), 1)), today];
-  return ["2026-04-01", "2027-03-31"];
+  return [session?.start || "", session?.end || ""];
 }
 
 const CANCEL_REASONS = ["Wrong amount entered", "Wrong student selected", "Cheque bounced", "Entered twice", "Refunded to parent"];
@@ -53,6 +55,7 @@ const RANGES: [Range, Bi][] = [
 ];
 
 export default function ErpReceiptsPage() {
+  const { session, error: sessionError } = useErpSession();
   const L = useL();
   const school = useSchoolInfo();
   const who = useApi<{ user: { role: string } }>("/erp/auth/me");
@@ -66,7 +69,7 @@ export default function ErpReceiptsPage() {
   const [printing, setPrinting] = useState<Receipt | null>(null);
   const [cancelling, setCancelling] = useState<Receipt | null>(null);
 
-  const [from, to] = range === "custom" ? custom : rangeDates(range);
+  const [from, to] = range === "custom" ? custom : rangeDates(range, session);
   const { data: list, error, reload } = useApi<ReceiptList>(`/erp/fees/receipts?from=${from}&to=${to}`);
   useEffect(() => setLimit(PAGE), [from, to]);
 
@@ -83,11 +86,15 @@ export default function ErpReceiptsPage() {
   const tt = list?.totals;
   const split = tt ? (["Cash", "UPI", "Cheque"] as const).map((k) => ({ k, v: tt.byMode[k], pct: tt.total ? (tt.byMode[k] / tt.total) * 100 : 0 })) : [];
 
+  const exportRows = () => downloadWorkbook('Receipts_'+from+'_to_'+to+'.xlsx', ['Receipt no.','Date','Student','Class','SR no.','Mode','Reference','Amount (\u20b9)','Received by','Status'], shown.map(r => [r.receiptNo,r.date,r.student?.name || '',r.student?.classSec || '',r.student?.srNo || '',r.mode,r.ref || '',r.amount,r.collectedBy,r.cancelled ? 'Cancelled: '+(r.cancelReason || '') : 'Paid']));
+
   return (
     <div className="animate-rise space-y-3 pb-4">
+      {sessionError && <p role="alert" className="text-sm text-rose-700">{sessionError} Session-wide dates are unavailable.</p>}
+      <button type="button" onClick={exportRows} disabled={!shown.length} className="btn-line w-full"><Download className="h-4 w-4" aria-hidden />{L({hi:"\u0936\u0940\u091f \u0921\u093e\u0909\u0928\u0932\u094b\u0921 \u0915\u0930\u0947\u0902",en:"Export spreadsheet"})}</button>
       <div className="no-scrollbar stick-chips flex gap-1.5 overflow-x-auto" role="tablist" aria-label={L({ hi: "तारीख", en: "Date range" })}>
         {RANGES.map(([k, t]) => (
-          <button key={k} type="button" role="tab" aria-selected={range === k} onClick={() => setRange(k)} className={clsx("min-h-[38px] shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[13.5px] font-semibold", range === k ? "border-brand-600 bg-brand-50 text-brand-700" : "border-ink-200 bg-white text-ink-600")}>
+          <button key={k} type="button" role="tab" aria-selected={range === k} disabled={k === "session" && !session} onClick={() => setRange(k)} className={clsx("min-h-[38px] shrink-0 whitespace-nowrap rounded-full border px-3.5 text-[13.5px] font-semibold", range === k ? "border-brand-600 bg-brand-50 text-brand-700" : "border-ink-200 bg-white text-ink-600")}>
             {L(t)}
           </button>
         ))}

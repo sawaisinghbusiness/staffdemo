@@ -59,6 +59,7 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
 
 const KEY = "sa:cache:";
 export function readCache<T>(path: string): T | undefined {
+  if(isErpMode())return undefined; // ERP financial and administrative views always load current server data.
   try {
     const raw = localStorage.getItem(KEY + path);
     return raw ? (JSON.parse(raw).v as T) : undefined;
@@ -67,6 +68,7 @@ export function readCache<T>(path: string): T | undefined {
   }
 }
 function writeCache(path: string, v: unknown) {
+  if(isErpMode())return;
   try {
     localStorage.setItem(KEY + path, JSON.stringify({ at: Date.now(), v }));
   } catch {
@@ -110,20 +112,22 @@ export function useApi<T>(path: string | null) {
   const [loading, setLoading] = useState(!!path);
   const [stale, setStale] = useState(false);
   const live = useRef(path);
+  const requestId=useRef(0);
 
   const load = useCallback(async () => {
     if (!path) return;
     live.current = path;
+    const id=++requestId.current;
     setLoading(true);
     try {
       const fresh = await api<T>(path);
-      if (live.current !== path) return;
+      if (live.current !== path || requestId.current!==id) return;
       setData(fresh);
       setError(null);
       setStale(false);
       writeCache(path, fresh);
     } catch (e) {
-      if (live.current !== path) return;
+      if (live.current !== path || requestId.current!==id) return;
       const err = e instanceof ApiError ? e : new ApiError(0, "offline");
       setError(err);
       setStale(true);
@@ -132,7 +136,7 @@ export function useApi<T>(path: string | null) {
         window.location.replace("/login/");
       }
     } finally {
-      if (live.current === path) setLoading(false);
+      if (live.current === path&&requestId.current===id) setLoading(false);
     }
   }, [path]);
 
@@ -142,6 +146,7 @@ export function useApi<T>(path: string | null) {
     setError(null);
     setStale(false);
     load();
+    return()=>{requestId.current++;live.current=null;};
   }, [path, load]);
 
   return { data, error, loading, stale, reload: load };

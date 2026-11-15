@@ -1,4 +1,5 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
@@ -182,6 +183,7 @@ function ageOn1April(dob: string) {
 type Sibling = NonNullable<ErpStudentFull["siblings"]>[number];
 
 export default function ErpAdmissionPage() {
+  const { session } = useErpSession();
   const L = useL();
   const [editId, setEditId] = useState<string | null>(null);
   const [enquiryId, setEnquiryId] = useState("");
@@ -225,13 +227,14 @@ export default function ErpAdmissionPage() {
       stopsOf: (r: string) => Array.from(stopsByRoute.get(r) || []).sort(),
       houses: Array.from(houses).sort(),
       takenSr: new Set(students.filter((s) => s.id !== editId).map((s) => s.srNo)),
-      nextSr: `SR-2026-${nextNumber(students.map((s) => s.srNo), 1001)}`,
+      nextSr: session ? `SR-${session.start.slice(0,4)}-${nextNumber(students.map((s) => s.srNo), 1001)}` : "",
       nextAdm: `ADM-${nextNumber(students.map((s) => s.admissionNo), 1)}`,
       nextRoll: (c: string, sec: string) => String(nextNumber(students.filter((s) => s.class === c && s.section === sec).map((s) => s.rollNo || ""), 1)),
     };
-  }, [students, editId, transport.data]);
+  }, [students, editId, transport.data, session?.start]);
 
   const [form, setForm] = useState<Form | null>(null);
+  useEffect(() => { if(!editing && lookups.nextSr) setForm(previous => previous && !previous.srNo ? {...previous, srNo:lookups.nextSr} : previous); }, [lookups.nextSr, editing]);
   const [step, setStep] = useState(0);
   const [reached, setReached] = useState(0); // furthest step opened, for the ticks
   const [errors, setErrors] = useState<Errors>({});
@@ -550,7 +553,7 @@ export default function ErpAdmissionPage() {
               role="radio"
               aria-checked={on}
               onClick={() => set(k, (on && !required ? "" : o.value) as never)}
-              className={clsx("min-h-[40px] rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold transition-colors", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-200 bg-white text-ink-900")}
+              className={clsx("min-h-[44px] rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold transition-colors", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-200 bg-white text-ink-900")}
             >
               {o.text}
             </button>
@@ -724,7 +727,7 @@ export default function ErpAdmissionPage() {
               {text("admissionDate", L({ hi: "प्रवेश तिथि", en: "Admission date" }), { required: true, type: "date" })}
               <label className="field-box bg-ink-50">
                 <small>{L({ hi: "सत्र", en: "Session" })}</small>
-                <input readOnly tabIndex={-1} value="2026-27" className="text-[16px]" />
+                <input readOnly tabIndex={-1} value={session?.label || "Session unavailable"} className="text-[16px]" />
               </label>
             </div>
             {text("penNo", "PEN (UDISE+)", { num: true, max: 11, ph: L({ hi: "11 अंक, अगर हो", en: "11 digits, if the child has one" }) })}
@@ -944,7 +947,7 @@ export default function ErpAdmissionPage() {
                         scanFor.current = d.key;
                         scanInput.current?.click();
                       }}
-                      className={clsx("flex min-h-[38px] shrink-0 items-center gap-1 rounded-lg border-[1.5px] px-2.5 text-[12.5px] font-semibold", scanned ? "border-jade-600 text-jade-700" : "border-ink-200 text-ink-900")}
+                      className={clsx("flex min-h-[44px] shrink-0 items-center gap-1 rounded-lg border-[1.5px] px-2.5 text-[12.5px] font-semibold", scanned ? "border-jade-600 text-jade-700" : "border-ink-200 text-ink-900")}
                     >
                       {scanned ? <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden /> : <Camera className="h-3.5 w-3.5" aria-hidden />}
                       {scanned ? L({ hi: "फ़ोटो लगी", en: "Scanned" }) : L({ hi: "फ़ोटो", en: "Add photo" })}
@@ -1055,7 +1058,7 @@ export default function ErpAdmissionPage() {
           )}
           {!editing && (
             <section className="row-card tnum !p-3.5">
-              <h3 className="font-title text-[15.5px] font-bold">{L({ hi: "सत्र 2026-27 की फ़ीस", en: "Fee for session 2026-27" })}</h3>
+              <h3 className="font-title text-[15.5px] font-bold">{L({ hi: `सत्र ${session?.label || ""} की फ़ीस`, en: `Fee for session ${session?.label || "unavailable"}` })}</h3>
               <p className="text-[12.5px] text-ink-500">{L({ hi: `${f.class} कक्षा के फ़ीस सेटअप से। सेव के बाद फ़ीस जमा कर सकते हैं।`, en: `From the ${f.class} class fee setup. Fees can be collected after saving.` })}</p>
               {plan ? (
                 <div className="mt-1.5">
@@ -1078,7 +1081,7 @@ export default function ErpAdmissionPage() {
   return (
     <div className="pb-24">
       {/* Steps: tap any to jump; done ones get a tick. */}
-      <div className="-mx-4 -mt-1 bg-[#f7f7f7]/95 pb-0 pt-1 backdrop-blur-sm">
+      <div className="-mx-4 -mt-1 pb-0 pt-1" style={{ background: "var(--erp-canvas, #ECEEEB)" }}>
         <nav ref={stepNav} className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none]" aria-label={L({ hi: "फ़ॉर्म के चरण", en: "Form steps" })}>
           {STEPS.map((s, i) => {
             const on = i === step;
@@ -1092,7 +1095,7 @@ export default function ErpAdmissionPage() {
                 aria-current={on ? "step" : undefined}
                 data-step={i}
                 className={clsx(
-                  "flex min-h-[36px] shrink-0 items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 text-[13px] font-semibold transition-colors duration-200",
+                  "flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 text-[13px] font-semibold transition-colors duration-200",
                   on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : done ? "border-ink-900 bg-white text-ink-900" : "border-ink-200 bg-white text-ink-500"
                 )}
               >

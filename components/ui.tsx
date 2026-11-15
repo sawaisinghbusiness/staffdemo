@@ -1,6 +1,8 @@
 "use client";
 
 import { Children, isValidElement, useCallback, useEffect, useRef, useState } from "react";
+import { useErpAppearance } from "@/lib/erpAppearance";
+import { useActionPalette } from "@/lib/actionPalette";
 import { createPortal } from "react-dom";
 import clsx from "clsx";
 import { Check, ChevronDown, Phone, RotateCw, Search, WifiOff, X } from "lucide-react";
@@ -237,18 +239,22 @@ export function CallOffice({ phone, className }: { phone?: string; className?: s
  * otherwise pin this "fixed" bar to the end of the list instead of the screen.
  */
 export function StickyBar({ children }: { children: React.ReactNode }) {
-  const bar = <div className="staff-workspace staff-save-bar fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5">{children}</div>;
+  const actionPalette = useActionPalette();
+  const erpAppearance = useErpAppearance();
+  const bar = <div data-action-theme={actionPalette ? "evergreen" : undefined} className={clsx(erpAppearance && "erp-interface", "staff-workspace staff-save-bar fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5")}>{children}</div>;
   return typeof document === "undefined" ? bar : createPortal(bar, document.body);
 }
 
 /** Bottom sheet with a grab handle. Closes on the dim area, the X and Escape. */
 export function Sheet({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
+  const actionPalette = useActionPalette();
+  const erpAppearance = useErpAppearance();
   const L = useL();
   const panel = useRef<HTMLDivElement>(null);
   useDialog(true, panel, onClose);
 
   return createPortal(
-    <div className="staff-workspace fixed inset-0 z-50 flex items-end justify-center" role="dialog" aria-modal="true" aria-label={title}>
+    <div data-action-theme={actionPalette ? "evergreen" : undefined} className={clsx(erpAppearance && "erp-interface", "staff-workspace fixed inset-0 z-50 flex items-end justify-center")} role="dialog" aria-modal="true" aria-label={title}>
       <button className="absolute inset-0 animate-fadeIn bg-night-950/45" onClick={onClose} aria-label={L({ hi: "बंद करें", en: "Close" })} />
       <div ref={panel} tabIndex={-1} className="pb-safe relative max-h-[92dvh] w-full max-w-[560px] animate-slide-up overflow-y-auto rounded-t-[22px] bg-white">
         <div className="sticky top-0 z-10 bg-white px-4 pt-2">

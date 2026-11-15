@@ -34,8 +34,8 @@ export function Thinking({ steps }: { steps: Bi[] }) {
   return (
     <div className="flex max-w-[86%] flex-col gap-1.5 self-start" role="status">
       <p className="flex items-center gap-2 text-[14px]">
-        <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#DCE4ED] border-t-[#0D2A5E]" aria-hidden />
-        <span className="font-medium text-[#0D2A5E]">{slow ? L({ hi: "थोड़ा और समय लग रहा है…", en: "Taking a little longer…" }) : L({ hi: "सोच रहा हूँ…", en: "Thinking…" })}</span>
+        <span className="h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-[#E3DCFA] border-t-[#6A45E0]" aria-hidden />
+        <span className="sahayak-shine">{slow ? L({ hi: "थोड़ा और समय लग रहा है…", en: "Taking a little longer…" }) : L({ hi: "सोच रहा हूँ…", en: "Thinking…" })}</span>
       </p>
       <StepList steps={steps.slice(0, shown)} />
     </div>
@@ -48,7 +48,7 @@ export function Thought({ secs, steps }: { secs: number; steps: Bi[] }) {
   const [open, setOpen] = useState(false);
   return (
     <div className="flex flex-col gap-1">
-      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="-my-2 flex min-h-[44px] items-center gap-1.5 self-start text-[13.5px] text-[#666A6E]">
+      <button type="button" onClick={() => setOpen((o) => !o)} aria-expanded={open} className="-my-2 flex min-h-[44px] items-center gap-1.5 self-start text-[13.5px] text-[#6B6492]">
         <ChevronRight className={clsx("h-3.5 w-3.5 transition-transform", open && "rotate-90")} strokeWidth={2.5} aria-hidden />
         {L({ hi: `${secs} सेकंड सोचा`, en: `Thought for ${secs}s` })}
       </button>
@@ -60,7 +60,7 @@ export function Thought({ secs, steps }: { secs: number; steps: Bi[] }) {
 function StepList({ steps }: { steps: Bi[] }) {
   const L = useL();
   return (
-    <ol className="border-l border-[#DCE4ED] pl-2.5 text-[13.5px] leading-relaxed text-[#666A6E]">
+    <ol className="border-l-2 border-[#E3DCFA] pl-2.5 text-[13.5px] leading-relaxed text-[#6B6492]">
       {steps.map((s) => (
         <li key={s.en}>{L(s)}</li>
       ))}

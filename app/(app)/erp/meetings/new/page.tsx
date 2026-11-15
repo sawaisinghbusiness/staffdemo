@@ -6,7 +6,7 @@ import { CalendarDays } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
-import { SelectBox } from "@/components/ui";
+import { Empty, ErrorCard, ListSkeleton, SelectBox } from "@/components/ui";
 
 /*
  * ERP login → New meeting: the ERP's meeting form (POST /api/meetings). A PTM is cut into time slots parents pick
@@ -22,6 +22,8 @@ const todayIST = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkat
 
 export default function ErpNewMeetingPage() {
   const L = useL();
+  const who = useApi<{ user: { role: string } }>("/erp/auth/me");
+  const canManage = ["admin", "teacher"].includes(who.data?.user.role || "");
   const cls = useApi<{ data: ClassItem[] }>("/erp/classes");
   const classes = cls.data?.data || [];
   const t = todayIST();
@@ -32,6 +34,7 @@ export default function ErpNewMeetingPage() {
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
+    if (!canManage) return;
     if (!f.title.trim()) return toast(false, L({ hi: "मीटिंग का नाम लिखें।", en: "Write the meeting's title." }));
     if (!f.date || !f.start || !f.end) return toast(false, L({ hi: "तारीख और समय भरें।", en: "Fill in the date and time." }));
     setBusy(true);
@@ -51,6 +54,10 @@ export default function ErpNewMeetingPage() {
       <input id={`mt-${k}`} value={f[k]} onChange={(e) => set(k, e.target.value)} placeholder={placeholder} />
     </label>
   );
+
+  if (!who.data) return who.error ? <ErrorCard onRetry={who.reload} /> : <ListSkeleton rows={3} />;
+  if (!canManage) return <Empty>{L({ hi: "Only admin and teachers can create meetings.", en: "Only admin and teachers can create meetings." })}</Empty>;
+  if (cls.error && !cls.data) return <ErrorCard onRetry={cls.reload} />;
 
   return (
     <form onSubmit={save} noValidate className="animate-rise space-y-3 pb-4">

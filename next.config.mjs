@@ -6,7 +6,7 @@
 // The live backend, built in so a missing Vercel setting can't send /api to localhost.
 const LIVE_BACKEND = "https://sms-backend-6szn.onrender.com";
 // On Vercel only a public https address counts (a localhost value there is a mistake).
-const SET = (process.env.BACKEND_URL || "").trim();
+const SET = (process.env.ERP_BACKEND_URL || process.env.BACKEND_URL || "").trim();
 const BACKEND = (process.env.VERCEL ? (/^https:\/\//.test(SET) ? SET : LIVE_BACKEND) : SET || "http://localhost:4000").replace(/\/+$/, "");
 const staticExport = process.env.NODE_ENV === "production" && !process.env.VERCEL;
 

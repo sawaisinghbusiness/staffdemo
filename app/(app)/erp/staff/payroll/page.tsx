@@ -3,9 +3,10 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { CalendarDays, Check, ChevronLeft, ChevronRight, Loader2, Lock, Play, Printer, RefreshCw } from "lucide-react";
+import { CalendarDays, Download, Check, ChevronLeft, ChevronRight, Loader2, Lock, Play, Printer, RefreshCw } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
+import { downloadWorkbook } from "@/lib/spreadsheet";
 import { toast } from "@/lib/toast";
 import { useSchoolInfo } from "@/lib/erpCerts";
 import { EMPTY_STRUCTURE, inr, monthLabel, nowMonth, PAY_MODES, previewNet, rupees, shiftMonth, todayIso, type PayrollRow, type SalaryStructure } from "@/lib/erpPayroll";
@@ -34,6 +35,7 @@ export default function ErpPayrollPage() {
   const who = useApi<{ user: { role: string } }>("/erp/auth/me");
   const isAdmin = who.data?.user.role === "admin";
   const [running, setRunning] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const [salaryFor, setSalaryFor] = useState<PayrollRow | null>(null);
   const [slipFor, setSlipFor] = useState<string | null>(null);
   const [picking, setPicking] = useState(false);
@@ -54,6 +56,17 @@ export default function ErpPayrollPage() {
       made: slips.length,
     };
   }, [rows]);
+
+  const bankSheet = async () => {
+    setExporting(true);
+    try {
+      await downloadWorkbook('Salary ' + monthLabel(month) + '.xlsx', ['Emp. code', 'Name', 'Bank', 'Account no.', 'IFSC', 'Net pay', 'Status'], (rows || []).filter(r => r.slip).map(r => [r.empCode, r.name, r.structure?.bank_name || '', r.structure?.account_no || '', r.structure?.ifsc || '', Number(r.slip!.net), r.slip!.status === 'paid' ? 'Paid' : 'Not paid']));
+    } catch {
+      toast(false, L({ hi: 'बैंक शीट नहीं बनी। फिर कोशिश करें।', en: 'Could not create the bank sheet. Try again.' }));
+    } finally {
+      setExporting(false);
+    }
+  };
 
   const go = (by: number) => {
     setMonth((m) => shiftMonth(m, by));
@@ -130,6 +143,8 @@ export default function ErpPayrollPage() {
         <Figure label={L({ hi: "देनी बाकी", en: "To pay" })} value={rows ? inr(stats.due) : "…"} dot="bg-marigold-500" />
         <Figure label={L({ hi: "सैलरी तय नहीं", en: "Salary not set" })} value={rows ? String(stats.noSalary) : "…"} dot="bg-rose-500" />
       </div>
+
+      <button type="button" onClick={bankSheet} disabled={!stats.made || exporting} className="btn-line w-full"><Download className="h-4 w-4" aria-hidden />{L({ hi: "बैंक शीट डाउनलोड", en: "Download bank sheet" })}</button>
 
       {/* Run / recalculate, and paying many at once */}
       <div className="flex gap-2">
@@ -579,7 +594,7 @@ function SlipSheet({ row, school, place, isAdmin, onClose, onEditSalary, onChang
         {draft && (
           <section className="mt-4">
             <h3 className="mlabel mb-2">{L({ hi: "इस महीने", en: "This month" })}</h3>
-            <div className="grid grid-cols-3 gap-2">
+            <div className="grid grid-cols-1 gap-2 min-[420px]:grid-cols-3">
               <label className="field-box">
                 <small>{L({ hi: "LOP दिन", en: "LOP days" })}</small>
                 <input type="number" inputMode="decimal" step={0.5} min={0} max={slip.days_in_month} value={lop} onChange={(e) => setLop(e.target.value)} placeholder={slip.lop_manual ? "" : String(slip.lop_days)} className="tnum w-full text-right" />

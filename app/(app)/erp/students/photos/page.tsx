@@ -190,7 +190,7 @@ export default function ErpPhotosPage() {
                 <span className="tnum block text-[12px] text-ink-400">{s.rollNo ? `${L({ hi: "रोल", en: "Roll" })} ${s.rollNo}` : "—"}</span>
               </button>
               {canEdit && s.photoUrl && !busy.has(s.id) && (
-                <button type="button" onClick={() => setRemoving(s)} aria-label={`${L({ hi: "फ़ोटो हटाएँ", en: "Remove photo of" })} ${s.name}`} className="absolute right-1 top-1 grid h-8 w-8 place-items-center rounded-full bg-white text-ink-600 shadow ring-1 ring-ink-200">
+                <button type="button" onClick={() => setRemoving(s)} aria-label={`${L({ hi: "फ़ोटो हटाएँ", en: "Remove photo of" })} ${s.name}`} className="absolute right-0.5 top-0.5 grid h-11 w-11 place-items-center rounded-full bg-white text-ink-600 shadow ring-1 ring-ink-200">
                   <X className="h-4 w-4" aria-hidden />
                 </button>
               )}

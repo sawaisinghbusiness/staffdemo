@@ -138,7 +138,7 @@ export default function ErpHomeworkPage() {
       {!!section?.subjects.length && (
         <div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-0.5" role="tablist" aria-label={L({ hi: "विषय", en: "Subject" })}>
           {["", ...section.subjects].map((s) => (
-            <button key={s || "all"} role="tab" aria-selected={subject === s} onClick={() => setSubject(s)} className={clsx("min-h-[38px] shrink-0 rounded-lg px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#0D2A5E] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
+            <button key={s || "all"} role="tab" aria-selected={subject === s} onClick={() => setSubject(s)} className={clsx("min-h-[44px] shrink-0 rounded-[10px] px-3 text-[13.5px] font-semibold", subject === s ? "bg-[#0D2A5E] text-white" : "bg-white text-ink-700 ring-1 ring-ink-200")}>
               {s || L({ hi: "सभी विषय", en: "All subjects" })}
             </button>
           ))}
@@ -264,6 +264,7 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
   const [details, setDetails] = useState(editing?.details || "");
   const [due, setDue] = useState(editing?.dueDate || "");
   const [files, setFiles] = useState<HomeworkFile[]>(editing?.files || []);
+  const [uploading, setUploading] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const opt = options.find((o) => o.sectionId === sec);
@@ -278,6 +279,7 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
 
   const save = async () => {
     setBusy(true);
+    if (uploading) { setBusy(false); return; }
     const body = { sectionId: sec, subject: name, title, details, dueDate: due, files };
     try {
       await api(editing ? `/erp/homework/${editing.id}` : "/erp/homework", { method: editing ? "PATCH" : "POST", body });
@@ -289,7 +291,7 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
   };
 
   return (
-    <Sheet title={editing ? L({ hi: "होमवर्क बदलें", en: "Change homework" }) : L({ hi: "नया होमवर्क", en: "New homework" })} onClose={() => !busy && onClose()}>
+    <Sheet title={editing ? L({ hi: "होमवर्क बदलें", en: "Change homework" }) : L({ hi: "नया होमवर्क", en: "New homework" })} onClose={() => !busy && !uploading && onClose()}>
       <div className="space-y-3">
         <div className="grid grid-cols-2 gap-2.5">
           {editing ? (
@@ -331,8 +333,8 @@ function HomeworkSheet({ options, sectionId, editing, onClose, onSaved }: { opti
           <input type="date" value={due} min={todayIso()} onChange={(e) => setDue(e.target.value)} />
           <CalendarDays aria-hidden />
         </label>
-        <HomeworkFilePicker files={files} onChange={setFiles} uploadPath="/erp/homework/files" />
-        <button type="button" onClick={save} disabled={busy || !sec || name.length < 2 || title.trim().length < 2} className="btn-primary w-full">
+        <HomeworkFilePicker files={files} onChange={setFiles} uploadPath="/erp/homework/files" onBusyChange={setUploading} disabled={busy} />
+        <button type="button" onClick={save} disabled={busy || uploading || !sec || name.length < 2 || title.trim().length < 2} className="btn-primary w-full">
           {busy ? "…" : editing ? L({ hi: "सेव करें", en: "Save" }) : L({ hi: "होमवर्क भेजें", en: "Post homework" })}
         </button>
       </div>

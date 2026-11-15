@@ -1,0 +1,65 @@
+/* ERP mode only. Teacher, driver and official print surfaces keep their own authority. */
+.erp-interface{--erp-canvas:#ECEEEB;--erp-surface:#fff;--erp-ink:#242628;--erp-muted:#5E666D;--erp-line:#D5DAD5;--erp-brand:#0D2A5E;--erp-pressed:#E2E7E2;--staff-paper:var(--erp-canvas);--staff-ink:var(--erp-ink);--staff-muted:var(--erp-muted);--staff-line:var(--erp-line);--staff-brand:var(--erp-brand);font-family:'Plus Jakarta Sans Variable','Noto Sans Devanagari Variable',system-ui,sans-serif;color:var(--erp-ink);color-scheme:light}
+.erp-interface.app-page,.erp-interface:has(>.erp-home),.erp-interface:has(.erp-home){background:var(--erp-canvas)}
+.erp-interface.app-page::before{display:none}
+.erp-interface .staff-task-main{padding:20px 16px 112px}
+.erp-interface .staff-task-main>div.space-y-3\.5>:not([hidden])~:not([hidden]){margin-top:16px}
+.erp-interface>header{background:var(--erp-surface);border-color:var(--erp-line)}
+.erp-interface>header h1{color:var(--erp-brand);font-size:18px;font-weight:600}
+.erp-interface>header a:has(svg){min-height:44px}
+.erp-interface h2{font-size:17px;line-height:1.5;font-weight:600}
+.erp-interface .text-ink-400,.erp-interface .text-ink-500,.erp-interface .mlabel,.erp-interface .meta{color:var(--erp-muted)}
+.erp-interface .text-ink-900{color:var(--erp-ink)}
+.erp-interface .border-ink-100,.erp-interface .border-ink-200{border-color:var(--erp-line)}
+.erp-interface .row-card,.erp-interface .glass-line,.erp-interface .teacher-form,.erp-interface .teacher-register,.erp-interface .cal,.erp-interface .staff-summary{border-color:var(--erp-line);border-radius:14px;background:var(--erp-surface);box-shadow:none}
+.erp-interface .row-card{padding:16px}
+.erp-interface .field,.erp-interface .field-box,.erp-interface .textarea-box{border:1px solid #A8B1AA;border-radius:10px;background:var(--erp-surface);color:var(--erp-ink);box-shadow:none}
+.erp-interface .field,.erp-interface .field-box{min-height:48px}
+.erp-interface input,.erp-interface textarea,.erp-interface select{font-size:16px;caret-color:var(--erp-brand)}
+.erp-interface input::placeholder,.erp-interface textarea::placeholder{color:var(--erp-muted);opacity:1}
+.erp-interface .field:focus,.erp-interface .field-box:focus-within,.erp-interface .textarea-box:focus{outline:2px solid var(--erp-brand);outline-offset:2px;box-shadow:none}
+.erp-interface .btn,.erp-interface .btn-primary,.erp-interface .btn-go,.erp-interface .btn-line,.erp-interface .btn-quiet{min-height:46px;border-radius:10px;font-size:14px;font-weight:600}
+.erp-interface .btn-primary,.erp-interface .btn-go{background:var(--erp-brand);color:#fff}
+.erp-interface .btn-line,.erp-interface .btn-quiet{border:1px solid #A8B1AA;color:var(--erp-brand);background:#fff}
+.erp-interface .btn-line:active,.erp-interface .btn-quiet:active{background:var(--erp-pressed)}
+.erp-interface .tabs-line,.erp-interface .stick-chips{background:var(--erp-canvas);border-color:var(--erp-line)}
+.erp-interface main .tabs-line{box-shadow:-16px 0 0 var(--erp-canvas),16px 0 0 var(--erp-canvas)}
+.erp-interface .tabs-line>button{min-height:46px;color:var(--erp-muted)}
+.erp-interface .tabs-line>[aria-selected=true]{color:var(--erp-brand)}
+.erp-interface .staff-save-bar,.erp-interface.staff-save-bar{background:#fff;border-color:var(--erp-line);padding:12px 16px}
+.erp-interface .drop-in{border-color:var(--erp-line);border-radius:10px}
+.erp-interface .kv>div{padding-block:12px}
+.erp-interface .tnum{font-variant-numeric:tabular-nums}
+.erp-interface :focus-visible{outline:2px solid var(--erp-brand);outline-offset:3px;box-shadow:none}
+.erp-interface [tabindex="-1"]:focus{outline:none}
+.erp-interface ::selection{background:#DCE5F4;color:var(--erp-brand)}
+.erp-interface{scrollbar-color:#A8B1AA var(--erp-canvas)}
+/* Home retains its art; surface roles supply the hierarchy. */
+.erp-interface .erp-home{background:var(--erp-canvas);--home-line:var(--erp-line);--home-paper:var(--erp-canvas);--home-tint:var(--erp-canvas)}
+.erp-interface .erp-home-masthead{background:var(--erp-brand);color:#fff;border-bottom:1px solid #233F70}
+.erp-interface .erp-home-masthead h1,.erp-interface .erp-home-masthead .text-ink-900,.erp-interface .erp-home-masthead button,.erp-interface .erp-home-masthead>a{color:#fff}
+.erp-interface .erp-home-masthead .text-ink-500{color:#D0DCF0}
+.erp-interface .erp-home-masthead :focus-visible{outline-color:#fff}
+.erp-interface .erp-home-content>div.grid{border-bottom:0;padding-bottom:0}
+.erp-interface .erp-home .home-tile{border-color:var(--erp-line);background:#F8F8F5;animation:none;min-height:84px}
+.erp-interface .erp-home .home-tile>span{font-size:11.5px;line-height:1.25;font-weight:600}
+.erp-interface .erp-home .home-tile img{animation:none;transform:none}
+.erp-interface .erp-home h2{color:var(--erp-brand);margin-bottom:12px}
+.erp-interface .erp-home .home-updates{border:1px solid var(--erp-line);border-radius:14px;overflow:hidden;background:#fff}
+.erp-interface .erp-home .home-update{padding:14px;min-height:76px;border-color:var(--erp-line)}
+.erp-interface .erp-home .home-updates>li:last-child .home-update{border-bottom:0}
+.erp-interface .erp-home .home-update:hover{background:#F3F5F1}
+.erp-interface.erp-menu [aria-current=page]{background:#E5E9E3;color:var(--erp-brand)}
+.erp-interface.erp-menu [role=dialog]{background:#fff}
+/* Documents are still separate print artifacts, not app cards. */
+@media print{.erp-interface{background:#fff!important}.erp-interface .staff-task-main{padding:0}}
+
+/* Respect each summary's declared number of columns instead of inherited flex wrapping. */
+.erp-interface .staff-summary.grid-cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))}
+.erp-interface .staff-summary.grid-cols-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}
+.erp-interface .staff-summary>*{padding:14px 12px;overflow-wrap:anywhere}
+.erp-interface .staff-summary.grid-cols-2>*:nth-child(odd){border-left:0}
+.erp-interface .staff-summary.grid-cols-2>*:nth-child(n+3){border-top:1px solid var(--erp-line)}
+
+/* Persistent in-field labels need the same readable supporting-text role. */
+.erp-interface .field-box>small{color:var(--erp-muted);font-size:12px;line-height:1.35}

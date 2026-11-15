@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight, MessageCircle, Printer } from "lucide-react";
+import { ChevronLeft, ChevronRight, Download, MessageCircle, Printer } from "lucide-react";
+import { useErpSession } from "@/lib/useErpSession";
+import { downloadWorkbook } from "@/lib/spreadsheet";
 import { useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { lowAttendanceMessage, whatsappLink, type LowReport, type Mark, type MonthRegister, type RegisterSection, type RegisterStudent } from "@/lib/erpRegister";
@@ -20,7 +22,7 @@ import { useSchoolInfo } from "@/lib/erpCerts";
 
 type Tab = "register" | "low";
 const BELOW = 75;
-const SESSION_START_MONTH = "2026-04";
+
 const SEC_KEY = "att.register.sec";
 const todayIST = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" }).format(new Date());
 const shiftMonth = (m: string, by: number) => {
@@ -37,6 +39,8 @@ export default function ErpRegisterPage() {
   // The school's name from ERP Settings, on the printed register and the WhatsApp note.
   const SCHOOL = useSchoolInfo().name;
   const L = useL();
+  const { session } = useErpSession();
+  const sessionStartMonth = session?.start.slice(0, 7) || "";
   const today = todayIST();
   const thisMonth = today.slice(0, 7);
   const sections = useApi<RegisterSection[]>("/erp/attendance-register/sections");
@@ -83,6 +87,16 @@ export default function ErpRegisterPage() {
   const avg = reg?.totals.averagePercent ?? null;
   const classSec = reg?.classSec || sections.data?.find((s) => secKey(s) === sec)?.classSec || "";
 
+  const exportRegister = () => {
+    if (tab === "low") {
+      if (!low) return;
+      downloadWorkbook('Attendance_below_' + BELOW + '_' + month + '.xlsx', ['SR no.', 'Student', 'Class', 'Roll', 'Father', 'Mobile', 'Days marked', 'Present', 'Half day', 'Absent', 'Leave', 'Attendance %'], low.students.map(s => [s.srNo,s.name,s.classSec,s.rollNo,s.fatherName,s.mobile,s.workingDays,s.present,s.half,s.absent,s.leave,s.percent]));
+      return;
+    }
+    if (!reg) return;
+    downloadWorkbook('Attendance_' + reg.classSec.replace(/[^A-Za-z0-9]+/g,'_') + '_' + month + '.xlsx', ['Roll','Student','SR no.',...reg.days.map(d=>d.date),'Present','Half day','Absent','Leave','Days marked','Attendance %'],reg.students.map(s=>[s.rollNo,s.name,s.srNo,...reg.days.map(d=>s.marks[d.date]||(isOff(d)?(d.holiday?'Holiday':'Sunday'):'')),s.present,s.half,s.absent,s.leave,s.workingDays,s.percent]));
+  };
+
   return (
     <div className="animate-rise space-y-3 pb-4">
       <SelectBox label={L({ hi: "कक्षा", en: "Class" })} value={sec} onChange={setSec}>
@@ -93,7 +107,7 @@ export default function ErpRegisterPage() {
         ))}
       </SelectBox>
       <div className="flex items-center gap-2">
-        <button type="button" onClick={() => setMonth(shiftMonth(month, -1))} disabled={month <= SESSION_START_MONTH} aria-label={L({ hi: "पिछला महीना", en: "Previous month" })} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-white disabled:opacity-40">
+        <button type="button" onClick={() => setMonth(shiftMonth(month, -1))} disabled={!!sessionStartMonth && month <= sessionStartMonth} aria-label={L({ hi: "पिछला महीना", en: "Previous month" })} className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-ink-200 bg-white disabled:opacity-40">
           <ChevronLeft className="h-5 w-5" aria-hidden />
         </button>
         <span className="tnum flex-1 text-center text-[15px] font-semibold" aria-live="polite">
@@ -103,6 +117,7 @@ export default function ErpRegisterPage() {
           <ChevronRight className="h-5 w-5" aria-hidden />
         </button>
       </div>
+      <button type="button" onClick={exportRegister} disabled={tab === 'low' ? !low?.students.length : !reg?.students.length} className="btn-line w-full"><Download className="h-4 w-4" aria-hidden />{L({hi:"रजिस्टर Excel डाउनलोड करें",en:"Download register Excel"})}</button>
       {sections.error && !sections.data && sections.error.status !== 401 && <ErrorCard offline={sections.error.status === 0} onRetry={sections.reload} />}
 
       {/* One summary card (user, 2026-10-26: the four boxes were hard to read). */}

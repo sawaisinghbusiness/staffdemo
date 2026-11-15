@@ -12,7 +12,6 @@ import {
   dayLong,
   dayShort,
   daysBetween,
-  FALLBACK_SESSION,
   pickProfile,
   shrinkLogo,
   SUGGESTED_HOLIDAYS,
@@ -218,7 +217,7 @@ function LogoPick({ value, short, ro, onChange }: { value: string; short: string
             <ImagePlus className="h-4 w-4" aria-hidden /> {busy ? "…" : value ? L({ hi: "बदलें", en: "Change" }) : L({ hi: "लगाएँ", en: "Upload" })}
           </button>
           {value && (
-            <button type="button" onClick={() => onChange("")} className="min-h-[36px] px-1 text-[13px] font-semibold text-rose-600">
+            <button type="button" onClick={() => onChange("")} className="min-h-[44px] px-1 text-[13px] font-semibold text-rose-600">
               {L({ hi: "हटाएँ", en: "Remove" })}
             </button>
           )}
@@ -279,7 +278,7 @@ function HeroPick({ value, ro, onChange }: { value: string; ro: boolean; onChang
             <ImagePlus className="h-4 w-4" aria-hidden /> {busy ? "…" : value ? L({ hi: "बदलें", en: "Change" }) : L({ hi: "लगाएँ", en: "Upload" })}
           </button>
           {value && (
-            <button type="button" onClick={() => onChange("")} className="min-h-[36px] px-1 text-[13px] font-semibold text-rose-600">
+            <button type="button" onClick={() => onChange("")} className="min-h-[44px] px-1 text-[13px] font-semibold text-rose-600">
               {L({ hi: "हटाएँ", en: "Remove" })}
             </button>
           )}
@@ -298,7 +297,8 @@ function SessionTab({ isAdmin }: { isAdmin: boolean }) {
   const [busy, setBusy] = useState<string | null>(null);
 
   if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={4} />;
-  const s = data.session || FALLBACK_SESSION;
+  if (data.error || !data.session?.start || !data.session?.end) return <div className="row-card space-y-3" role="alert"><p>{data.error || L({ hi: "शैक्षणिक सत्र उपलब्ध नहीं है।", en: "Academic session unavailable." })}</p><button type="button" onClick={reload} className="btn-line">{L({ hi: "फिर कोशिश करें", en: "Try again" })}</button></div>;
+  const s = data.session;
   const holidays = data.holidays || [];
   const today = todayIso();
   const total = daysBetween(s.start, s.end);
@@ -353,9 +353,7 @@ function SessionTab({ isAdmin }: { isAdmin: boolean }) {
             en: `${pct}% of the session gone · ${holidayDays} holiday day${holidayDays === 1 ? "" : "s"} listed · Sundays are always off`,
           })}
         </p>
-        <p className="mt-3 rounded-xl bg-ink-50 px-3 py-2 text-[12.5px] leading-relaxed text-ink-600">
-          {L({ hi: "अगला सत्र (2027-28) मार्च के अंत में शुरू होता है, बच्चे → प्रमोट और ट्रांसफ़र के साथ।", en: "The next session (2027-28) starts at the end of March, together with promoting classes from Students → Promote & transfer." })}
-        </p>
+        <p className="mt-3 rounded-xl bg-ink-50 px-3 py-2 text-[12.5px] leading-relaxed text-ink-600">{L({ hi: "नया सत्र बच्चे → प्रमोट और ट्रांसफ़र से शुरू करें।", en: "Start a new academic session through Students → Promote & transfer." })}</p>
       </div>
 
       <div className="sec-head pt-1">
@@ -372,7 +370,7 @@ function SessionTab({ isAdmin }: { isAdmin: boolean }) {
             <div className="flex flex-wrap items-center gap-1.5 text-[13px] text-ink-500">
               {L({ hi: "जल्दी जोड़ें:", en: "Add quickly:" })}
               {suggestions.map((x) => (
-                <button key={x.date} type="button" disabled={busy === "add"} onClick={() => add(x.title, x.date, x.date)} className="min-h-[38px] rounded-full border border-ink-200 bg-white px-3 text-[13px] font-semibold text-ink-700">
+                <button key={x.date} type="button" disabled={busy === "add"} onClick={() => add(x.title, x.date, x.date)} className="min-h-[44px] rounded-full border border-ink-200 bg-white px-3 text-[13px] font-semibold text-ink-700">
                   {x.title} · {dayShort(x.date)}
                 </button>
               ))}

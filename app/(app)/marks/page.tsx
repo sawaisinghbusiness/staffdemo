@@ -148,7 +148,7 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
           <li key={s.id} className="flex min-h-[76px] flex-wrap items-center gap-2.5 border-b border-ink-100 px-3.5 py-3">
             <Avatar name={s.name} size={34} />
             <span className="min-w-0 flex-1">
-              <span className="block truncate text-[15px]">{s.name}</span>
+              <span className="block break-words text-[15px] leading-snug">{s.name}</span>
               <span className="block text-[12px] text-ink-400">
                 {L({ hi: "रोल", en: "Roll" })} {s.rollNo}
                 {multi && ` · ${L({ hi: "कुल", en: "total" })} ${total(s.id)}`}
@@ -158,8 +158,8 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
               const raw=vals[s.id]?.[p.key];
               const bad = raw !== undefined && raw !== "" && (!Number.isFinite(Number(raw)) || Number(raw) < 0 || Number(raw) > p.max);
               return (
-                <label key={p.key} className="flex shrink-0 flex-col items-center">
-                  {multi && <span className="max-w-[76px] text-center text-[11px] leading-tight text-ink-500">{p.name}</span>}
+                <label key={p.key} className="flex min-w-[84px] max-w-[144px] flex-1 flex-col items-stretch">
+                  {multi && <span className="break-words text-center text-[12.5px] leading-snug text-ink-500">{p.name}</span>}
                   <input
                     value={vals[s.id]?.[p.key] ?? ""}
                     onChange={(e) => setVals((v) => ({ ...v, [s.id]: { ...v[s.id], [p.key]: e.target.value.replace(/[^\d.]/g, "").slice(0, 5) } }))}
@@ -167,7 +167,7 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
                     disabled={locked}
                     aria-label={`${s.name} ${p.name}`}
                     aria-invalid={bad}
-                    className={clsx("tnum mt-0.5 h-11 w-[54px] rounded-xl border bg-white text-center font-semibold outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:bg-ink-50", bad ? "border-rose-500 text-rose-600" : "border-ink-200")}
+                    className={clsx("tnum mt-1 h-11 w-full rounded-xl border bg-white text-center font-semibold outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-100 disabled:bg-ink-50", bad ? "border-rose-500 text-rose-600" : "border-ink-200")}
                   />
                 </label>
               );

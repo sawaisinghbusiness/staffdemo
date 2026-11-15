@@ -126,7 +126,7 @@ export function StaffHome() {
       {/* School photograph fades into the cool Home background, as on the parent app. */}
       <header className="relative h-[calc(210px+env(safe-area-inset-top,0px))] overflow-hidden bg-[#25282A]">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img ref={fx.img} src={school?.heroUrl || "/img/school-hero-morning.jpg"} alt="" className="absolute inset-0 h-full w-full object-cover object-[72%_60%] will-change-transform" />
+        <img ref={fx.img} src={school?.heroUrl || "/img/school-hero-morning.webp"} alt="" className="absolute inset-0 h-full w-full object-cover object-[72%_60%] will-change-transform" />
         <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, rgba(18,22,24,.52) 0%, rgba(18,22,24,.36) 45%, rgba(18,22,24,.12) 75%, rgba(18,22,24,0) 100%)" }} />
         <div className="absolute inset-x-0 top-0 h-[130px]" style={{ background: "linear-gradient(180deg, rgba(18,22,24,.28) 0%, rgba(18,22,24,0) 100%)" }} />
         <div ref={fx.shade} className="absolute inset-0 bg-[#25282A] opacity-0" aria-hidden />
@@ -206,7 +206,7 @@ export function StaffHome() {
             <Link key={href} href={href} className="home-tile relative flex h-[68px] flex-col items-center justify-between overflow-hidden rounded-[10px] border px-0.5 pt-1.5 active:opacity-80" style={{ animationDelay: `${i * 80}ms` }}>
               <span className="text-[11.5px] font-bold leading-[1.15]">{t}</span>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={`/img/tiles/${art}.png`} alt="" className={`home-art-${fx} h-[42px] max-w-full object-contain object-bottom`} style={{ animationDelay: `${i * 80 + 150}ms` }} />
+              <img src={`/img/tiles/${art}.webp`} alt="" className={`home-art-${fx} h-[42px] max-w-full object-contain object-bottom`} style={{ animationDelay: `${i * 80 + 150}ms` }} />
               {!!n && <span className="absolute right-1 top-1 grid h-[16px] min-w-[16px] place-items-center rounded-full bg-[#E53935] px-1 text-[10px] font-semibold leading-none text-white">{n > 9 ? "9+" : n}</span>}
             </Link>
           ))}

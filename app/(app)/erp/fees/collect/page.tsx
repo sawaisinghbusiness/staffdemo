@@ -1,4 +1,5 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
@@ -35,6 +36,7 @@ const todayKey = () => new Date().toLocaleDateString("en-CA");
 const dm = (iso: string) => new Date(iso + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
 export default function ErpCollectFeePage() {
+  const { session } = useErpSession();
   const L = useL();
   const school = useSchoolInfo();
   const [q, setQ] = useState("");
@@ -224,7 +226,7 @@ export default function ErpCollectFeePage() {
             </div>
             <div className="mt-3 flex justify-between text-[12px] text-ink-500">
               <span>
-                {L({ hi: "सत्र 2026-27", en: "Session 2026-27" })}
+                {L({ hi: session?.label || "Session unavailable", en: session ? `Session ${session.label}` : "Session unavailable" })}
                 {position && position.ledger.finePaid > 0 ? ` · ${L({ hi: "लेट फ़ाइन दिया", en: "late fine paid" })} ${rupees(position.ledger.finePaid)}` : ""}
               </span>
               <span className="tnum">

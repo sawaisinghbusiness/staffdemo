@@ -175,7 +175,7 @@ function Create() {
                   <span className="flex shrink-0 items-center gap-1">
                     <span className="text-[14px] font-bold text-ink-900">{dayMonth(h.assignedOn, lang)}</span>
                     {!h.id.startsWith("seed") && h.mine !== false && (
-                      <button onClick={() => remove(h.id)} className="-my-2 -mr-2 grid h-9 w-9 place-items-center rounded-full text-ink-500 active:bg-ink-100" aria-label={L({ hi: "हटाएँ", en: "Delete" })}>
+                      <button onClick={() => remove(h.id)} className="-my-2 -mr-2 grid h-11 w-11 place-items-center rounded-full text-ink-500 active:bg-ink-100" aria-label={L({ hi: "हटाएँ", en: "Delete" })}>
                         <Trash2 className="h-[17px] w-[17px]" aria-hidden />
                       </button>
                     )}

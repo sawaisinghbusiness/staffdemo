@@ -1,4 +1,5 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
@@ -26,10 +27,10 @@ function chunk<T>(list: T[], size: number): T[][] {
 }
 
 export default function ErpIdCardsPage() {
+  const { session, error: sessionError } = useErpSession();
   const L = useL();
   const { data, error, reload } = useApi<{ data: ErpStudent[] }>("/erp/students");
   const { data: p } = useApi<Record<string, string>>("/erp/school");
-  const { data: ses } = useApi<{ session: { label: string; end: string } }>("/erp/school/session");
   const [cls, setCls] = useState("");
   const [sec, setSec] = useState("");
   const [q, setQ] = useState("");
@@ -44,8 +45,8 @@ export default function ErpIdCardsPage() {
     address: [p?.address, p?.city, [p?.state, p?.pincode].filter(Boolean).join(" ")].filter(Boolean).join(", "),
     phone: p?.contact1 || undefined,
     affiliation: p?.affiliation_no ? `${p.board || "CBSE"} Affiliation No. ${p.affiliation_no}` : undefined,
-    session: ses?.session.label || "2026-27",
-    validTill: ses?.session.end ? longDate(ses.session.end) : undefined,
+    session: session?.label || "",
+    validTill: session?.end ? longDate(session.end) : undefined,
   };
 
   const students = useMemo(() => (data?.data || []).filter((s) => s.status !== "Inactive"), [data]);
@@ -100,6 +101,7 @@ export default function ErpIdCardsPage() {
 
   return (
     <div className="animate-rise space-y-3 pb-20">
+      {!session && <p role="status" className="text-sm text-ink-600">{sessionError || "Loading academic session before printing..."}</p>}
       {preview && <CardPreview key={preview.id} s={preview} school={school} />}
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -167,12 +169,12 @@ export default function ErpIdCardsPage() {
       </ul>
 
       <StickyBar>
-        <button type="button" onClick={() => setPrinting(true)} disabled={!chosen.length} className="btn-primary w-full">
+        <button type="button" onClick={() => setPrinting(true)} disabled={!chosen.length || !session} className="btn-primary w-full">
           <Printer className="h-4 w-4" aria-hidden /> {chosen.length === 1 ? L({ hi: "1 कार्ड छापें", en: "Print 1 card" }) : L({ hi: `${chosen.length} कार्ड छापें`, en: `Print ${chosen.length} cards` })}
         </button>
       </StickyBar>
 
-      {printing && (
+      {printing && session && (
         <PrintReportCards onDone={() => setPrinting(false)}>
           {sheets.flatMap((group, i) => [<IdCardSheet key={`f${i}`} students={group} side="front" school={school} />, <IdCardSheet key={`b${i}`} students={group} side="back" school={school} />])}
         </PrintReportCards>

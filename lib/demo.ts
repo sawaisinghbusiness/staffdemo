@@ -25,7 +25,7 @@ const addDays = (iso: string, n: number) => new Date(Date.parse(iso + "T00:00:00
 const weekday = (iso: string) => new Date(iso + "T00:00:00Z").getUTCDay();
 const schoolDay = (iso: string) => (weekday(iso) === 0 ? addDays(iso, -1) : iso);
 
-const SCHOOL = { name: "Mother Teresa Nobles Academy", shortName: "MTNA", logoUrl: "/school-logo.png" as string | null, address: "Nehru Nagar, Barmer", officePhone: "94600 62543" };
+const SCHOOL = { name: "Mother Teresa Nobles Academy", shortName: "MTNA", logoUrl: "/school-logo.webp" as string | null, address: "Nehru Nagar, Barmer", officePhone: "94600 62543" };
 
 const PEOPLE: Record<Role, { name: string; roleLabel: { hi: string; en: string }; empCode: string; joined: string; salary: number }> = {
   teacher: { name: "Rakesh Bishnoi", roleLabel: { hi: "अध्यापक", en: "Teacher" }, empCode: "T-014", joined: "2019-06-15", salary: 28000 },

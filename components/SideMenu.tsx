@@ -31,6 +31,7 @@ import { isErpMode } from "@/lib/erpMode";
 import { toast } from "@/lib/toast";
 import { ERP_MENU, ERP_SETTINGS, type ErpItem } from "@/lib/erpNav";
 import { useCounts } from "@/lib/counts";
+import { useSahayakPreference } from "@/lib/sahayakPreference";
 import { useL, useLang, type Bi } from "@/lib/i18n";
 import { Avatar, CountBadge, SchoolMark } from "./ui";
 
@@ -76,6 +77,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
   const [erp] = useState(isErpMode);
   const [openKey, setOpenKey] = useState<string | null>(null);
   const counts = useCounts();
+  const [owlEnabled, setOwlEnabled] = useSahayakPreference();
   const count: Record<string, number> = { "/messages/": counts.chats, "/notice/": counts.notices, "/leave/": counts.leaves };
 
   useDialog(true, panel, close);
@@ -142,9 +144,9 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
               {item.children.map((c) => (
                 <li key={c.href}>
                   {c.soon ? (
-                    <button type="button" onClick={() => soon(c.text)} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px] font-medium text-ink-400")}>
+                    <Link href={c.href} onClick={close} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px] font-medium text-ink-400")}>
                       <span className="min-w-0 flex-1 truncate">{L(c.text)}</span>
-                    </button>
+                    </Link>
                   ) : (
                     <Link href={c.href} onClick={close} aria-current={path === c.href ? "page" : undefined} className={clsx(rowCls, "min-h-[44px] pl-[50px] text-[14.5px]", path === c.href ? "bg-ink-100 font-semibold text-ink-900" : "font-medium text-ink-700")}>
                       <span className="min-w-0 flex-1 truncate">{L(c.text)}</span>
@@ -176,7 +178,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
 
   // Drawn on <body>, so the page's own layers (and the tab bar) can't sit on top of it.
   return createPortal(
-    <div className="staff-workspace fixed inset-0 z-50" role="dialog" aria-modal="true" aria-label={L({ hi: "मेन्यू", en: "Menu" })}>
+    <div className={clsx(erp && "erp-interface", "staff-workspace erp-menu fixed inset-0 z-50")} role="dialog" aria-modal="true" aria-label={L({ hi: "मेन्यू", en: "Menu" })}>
       <button type="button" aria-label={L({ hi: "बंद करें", en: "Close" })} onClick={close} className={clsx("absolute inset-0 bg-ink-950/40 transition-opacity duration-200", shown ? "opacity-100" : "opacity-0")} />
       {/* Opens from the left edge of the app itself (it is centred, max 560px, on a wide screen). */}
       <div className="pointer-events-none absolute inset-y-0 left-1/2 w-full max-w-[560px] -translate-x-1/2 overflow-hidden">
@@ -253,6 +255,18 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
               {L({ hi: "साइन आउट", en: "Sign out" })}
             </button>
           </div>
+
+          {/* AI Assistant on/off, as on the parent app: the floating owl shows only when it is on. */}
+          {me?.role !== "driver" && (
+            <div className="shrink-0 border-t border-ink-100 px-4 pb-2">
+              <button type="button" role="switch" aria-checked={owlEnabled} onClick={() => setOwlEnabled(!owlEnabled)} className="flex min-h-[52px] w-full items-center justify-between gap-3 rounded-md px-1 text-left text-[14px] font-medium text-ink-800 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#34483D]">
+                <span>{L({ hi: "एआई असिस्टेंट", en: "AI Assistant" })}</span>
+                <span aria-hidden="true" className={clsx("relative h-[26px] w-[46px] shrink-0 rounded-full transition-colors motion-reduce:transition-none", owlEnabled ? "bg-[#15803D]" : "bg-[#C9CEC9]")}>
+                  <span className={clsx("absolute left-[3px] top-[3px] h-5 w-5 rounded-full bg-white shadow-sm transition-transform motion-reduce:transition-none", owlEnabled && "translate-x-5")} />
+                </span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </div>,

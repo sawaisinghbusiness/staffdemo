@@ -67,7 +67,7 @@ export default function ApplyLeavePage() {
           </option>
         ))}
       </SelectBox>
-      <div className="grid grid-cols-2 gap-2.5">
+      <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2">
         <label className="field-box">
           <small>{L({ hi: "किस दिन से", en: "From" })}</small>
           <input

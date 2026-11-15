@@ -51,3 +51,7 @@
 .staff-workspace .teacher-register .roll-row:last-child{border-bottom:0}
 .staff-workspace .teacher-register .roll-row-on{background:#F1F5FA}
 .staff-workspace [tabindex="-1"]:focus{outline:none}
+
+/* Shared working controls: readable persistent labels; existing personal-mode palette retained. */
+.staff-workspace .field-box>small{color:var(--staff-muted);font-size:12px;line-height:1.35}
+.staff-workspace input,.staff-workspace select,.staff-workspace textarea{font-size:16px}

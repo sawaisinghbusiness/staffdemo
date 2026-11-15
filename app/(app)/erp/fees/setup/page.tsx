@@ -1,4 +1,5 @@
 "use client";
+import { useErpSession } from "@/lib/useErpSession";
 
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
@@ -87,6 +88,7 @@ function Card({ title, note, children }: { title: string; note?: string; childre
 }
 
 export default function ErpFeeSetupPage() {
+  const { session } = useErpSession();
   const L = useL();
   const [cfg, setCfg] = useState<FeeConfig | null>(null);
   const [savedCfg, setSavedCfg] = useState<FeeConfig | null>(null);
@@ -152,7 +154,7 @@ export default function ErpFeeSetupPage() {
   return (
     <div className="animate-rise space-y-4 pb-24">
       <p className="text-[13px] text-ink-500">
-        {L({ hi: "सत्र 2026-27", en: "Session 2026-27" })} ·{" "}
+        {L({hi:session?.label || "Session unavailable",en:session ? `Session ${session.label}` : "Session unavailable"})} ·{" "}
         {meta.saved ? `${L({ hi: "सेव", en: "saved" })} ${meta.updatedAt ? when(meta.updatedAt) : ""}${meta.updatedBy ? ` · ${meta.updatedBy.split(" (")[0]}` : ""}` : L({ hi: "अभी सेव नहीं: आज की फ़ीस जिस ढाँचे पर है, वह दिख रहा है", en: "not saved yet: showing the structure your current fees follow" })}
       </p>
       {meta.setupMissing && (

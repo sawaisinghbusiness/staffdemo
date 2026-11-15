@@ -158,11 +158,11 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
         <small>{L({ hi: "कौन-सा काम (अगर लिखना हो)", en: "Topic (optional)" })}</small>
         <input id="cc-topic" value={f.topic} maxLength={120} onChange={(e) => setF((p) => ({ ...p, topic: e.target.value }))} placeholder={L({ hi: "जैसे अध्याय 3 के प्रश्न", en: "e.g. Chapter 3 questions" })} />
       </label>
-      <button type="button" onClick={() => setMarks(Object.fromEntries(students.map((s) => [s.id, "Complete" as CStatus])))} className="flex min-h-[36px] items-center gap-1 text-[13.5px] font-semibold text-brand-600">
+      <button type="button" onClick={() => setMarks(Object.fromEntries(students.map((s) => [s.id, "Complete" as CStatus])))} className="flex min-h-[44px] items-center gap-1 text-[13.5px] font-semibold text-brand-600">
         <Check className="h-4 w-4" aria-hidden /> {L({ hi: "सब पूरी", en: "All complete" })}
       </button>
 
-      <div className="grid grid-cols-[28px_1fr_40px_40px_40px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
+      <div className="grid grid-cols-[28px_minmax(0,1fr)_44px_44px_44px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
         <span>{L({ hi: "रोल", en: "No." })}</span>
         <span>{L({ hi: "नाम", en: "Name" })}</span>
         <span className="text-center">{L({ hi: "पूरी", en: "C" })}</span>
@@ -178,9 +178,9 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
             const note = m !== "Complete";
             return (
               <li key={s.id} className={clsx("roll-row px-1", note && "roll-row-on")}>
-                <div className="grid min-h-[52px] grid-cols-[28px_1fr_40px_40px_40px] items-center text-[15px]">
+                <div className="grid min-h-[52px] grid-cols-[28px_minmax(0,1fr)_44px_44px_44px] items-center text-[15px]">
                   <span className="tnum text-[13px] text-ink-400">{s.rollNo || "—"}</span>
-                  <span className="block min-w-0 truncate">{s.name}</span>
+                  <span className="block min-w-0 break-words py-2 pr-2 leading-snug">{s.name}</span>
                   {circle(s, "Complete", L({ hi: "पूरी", en: "Complete" }))}
                   {circle(s, "Incomplete", L({ hi: "अधूरी", en: "Incomplete" }))}
                   {circle(s, "NotSubmitted", L({ hi: "नहीं दी", en: "Not submitted" }))}
@@ -193,7 +193,7 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
                           const t = L(r);
                           const on = remarks[s.id] === t;
                           return (
-                            <button key={r.en} type="button" onClick={() => setRemarks((x) => ({ ...x, [s.id]: on ? "" : t }))} aria-pressed={on} className={clsx("min-h-[34px] rounded-full border px-3 text-[12.5px] font-medium", on ? "border-ink-900 bg-ink-900 text-white" : "border-ink-200 bg-white text-ink-700")}>
+                            <button key={r.en} type="button" onClick={() => setRemarks((x) => ({ ...x, [s.id]: on ? "" : t }))} aria-pressed={on} className={clsx("min-h-[44px] rounded-[10px] border px-3 text-[13px] font-medium", on ? "border-ink-900 bg-ink-900 text-white" : "border-ink-200 bg-white text-ink-700")}>
                               {t}
                             </button>
                           );
