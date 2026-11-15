@@ -6,7 +6,7 @@ import clsx from "clsx";
 import { Bell, ChevronDown, ArrowRight, BusFront, UsersRound, Check, School } from "lucide-react";
 import { SlideConfirm } from "./SlideConfirm";
 import { askForLocation, markTripStartSound } from "@/lib/slideFeedback";
-import { SIMULATE_BUS } from "@/lib/demo";
+import { DEMO } from "@/lib/demo";
 import { api, useApi } from "@/lib/api";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
@@ -29,7 +29,7 @@ export function DriverHome() {
   const [kind, setKind] = useState<TripKind>(defaultKind);
   // The first time the driver opens the app, the phone asks for location now, not after the trip has started.
   useEffect(() => {
-    if (!SIMULATE_BUS) askForLocation();
+    if (!DEMO) askForLocation();
   }, []);
   const first = me?.name.split(" ")[0] || "";
 

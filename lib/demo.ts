@@ -7,12 +7,6 @@
 import { demoChats } from "./demoChats";
 
 export const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
-/**
- * The bus drives itself along the route (no phone location is read or asked for) unless the build sets
- * NEXT_PUBLIC_LIVE_GPS=1. This app is a demo, so the pretend bus is the default; set the variable when a real
- * driver should be tracked by the phone's GPS.
- */
-export const SIMULATE_BUS = DEMO || process.env.NEXT_PUBLIC_LIVE_GPS !== "1";
 export const DEMO_CODE = "123456";
 
 const SESSION = "sa:demo-session";
