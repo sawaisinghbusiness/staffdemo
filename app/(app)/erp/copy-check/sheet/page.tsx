@@ -1,6 +1,7 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays, Check, Minus, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
@@ -91,6 +92,8 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
   const [remarks, setRemarks] = useState<Record<string, string>>(() => Object.fromEntries(students.map((s) => [s.id, s.remark || ""])));
   const [busy, setBusy] = useState(false);
   const [sure, setSure] = useState(false);
+  const initial=useRef(JSON.stringify({f,marks,remarks}));
+  const {markSaved}=useUnsavedChanges(JSON.stringify({f,marks,remarks})!==initial.current);
   const counts = useMemo(() => {
     const c = { Complete: 0, Incomplete: 0, NotSubmitted: 0 };
     Object.values(marks).forEach((m) => (c[m] += 1));
@@ -103,6 +106,7 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
     try {
       await api("/erp/copy-checks", { body: { id: id || undefined, classSec: section, subject: f.subject, date: f.date, topic: f.topic, marks: students.map((s) => ({ studentId: s.id, status: marks[s.id], remark: marks[s.id] === "Complete" ? "" : remarks[s.id] || "" })) } });
       toast(true, L({ hi: `${section} ${f.subject}: ${counts.Complete} पूरी, ${counts.Incomplete} अधूरी, ${counts.NotSubmitted} नहीं दी।`, en: `${section} ${f.subject}: ${counts.Complete} complete, ${counts.Incomplete} incomplete, ${counts.NotSubmitted} not given.` }));
+      markSaved();
       window.location.assign(`/erp/copy-check/`);
     } catch (err) {
       toast(false, (err instanceof ApiError && err.message) || L({ hi: "सेव नहीं हुआ।", en: "Could not save." }));
@@ -116,6 +120,7 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
     try {
       await api(`/erp/copy-checks/${id}`, { method: "DELETE" });
       toast(true, L({ hi: "जाँच हटा दी।", en: "Check deleted." }));
+      markSaved();
       window.location.assign(`/erp/copy-check/`);
     } catch (err) {
       toast(false, (err instanceof ApiError && err.message) || L({ hi: "हटाया नहीं गया।", en: "Could not delete." }));
@@ -140,6 +145,7 @@ function Form({ id, section, subjects, students, init, by, L }: { id: string; se
           {by && <span className="block text-[12.5px] font-normal text-ink-500">{L({ hi: "जाँच", en: "Checked by" })}: {by.split(" (")[0]} · {L({ hi: "बदल सकते हैं", en: "you can change it" })}</span>}
         </p>
       )}
+      <p className="mb-2 text-[12px] leading-relaxed text-ink-600">{L({hi:"C: पूरी · I: अधूरी · N: नहीं दी",en:"C: Complete · I: Incomplete · N: Not submitted"})}</p>
       <div className="grid grid-cols-2 gap-2.5">
         <SelectBox label={L({ hi: "विषय", en: "Subject" })} value={f.subject} onChange={(v) => setF((p) => ({ ...p, subject: v }))}>
           {subjects.map((s) => (

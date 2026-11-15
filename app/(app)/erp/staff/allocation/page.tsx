@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -50,6 +51,7 @@ export default function ErpAllocationPage() {
   const totalCells = sections.reduce((n, s) => n + s.subjects.length, 0);
   const filled = sections.reduce((n, s) => n + s.subjects.length - gaps(s), 0);
   const changed = Object.keys({ ...pick, ...start }).filter((k) => (pick[k] || "") !== (start[k] || ""));
+  useUnsavedChanges(changed.length > 0);
 
   useEffect(() => {
     if (!sec && sections.length) setSec((sections.find((s) => s.subjects.length && gaps(s)) || sections.find((s) => s.subjects.length) || sections[0]).classSec);
@@ -95,7 +97,7 @@ export default function ErpAllocationPage() {
     );
   if (!data || !cls.data) {
     const e = error || cls.error;
-    return e && e.status !== 401 ? <ErrorCard offline={e.status === 0} onRetry={() => (reload(), cls.reload())} /> : <ListSkeleton rows={6} />;
+    return e && e.status !== 401 ? <ErrorCard offline={e.status === 0} onRetry={() => Promise.all([reload(), cls.reload()])} /> : <ListSkeleton rows={6} />;
   }
 
   const cur = sections.find((s) => s.classSec === sec);

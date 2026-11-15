@@ -77,7 +77,7 @@ export default function ErpClassTeachersPage() {
     );
   if (!data || !cls.data) {
     const e = error || cls.error;
-    return e && e.status !== 401 ? <ErrorCard offline={e.status === 0} onRetry={() => (reload(), cls.reload())} /> : <ListSkeleton rows={6} />;
+    return e && e.status !== 401 ? <ErrorCard offline={e.status === 0} onRetry={() => Promise.all([reload(), cls.reload()])} /> : <ListSkeleton rows={6} />;
   }
 
   return (

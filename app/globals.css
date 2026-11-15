@@ -1123,3 +1123,31 @@ form.sahayak-glass:focus-within {
     animation: none;
   }
 }
+
+/* "Try again" (components/ui.tsx RetryButton): presses in on tap, and a failed retry nudges its message. */
+.retry-button {
+  transition: transform 150ms cubic-bezier(0.32, 0.72, 0, 1), background-color 150ms ease;
+}
+.retry-button:active:not(:disabled) {
+  transform: scale(0.96);
+}
+.retry-button:disabled {
+  opacity: 0.85;
+  cursor: progress;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .retry-still {
+    animation: retryShake 360ms cubic-bezier(0.32, 0.72, 0, 1);
+  }
+}
+@keyframes retryShake {
+  0%, 100% { transform: translateX(0); }
+  16% { transform: translateX(-6px); }
+  33% { transform: translateX(6px); }
+  50% { transform: translateX(-4px); }
+  66% { transform: translateX(4px); }
+  83% { transform: translateX(-2px); }
+}
+
+/* A single context transition is enough for frequent teacher tasks. */
+.staff-task-main .animate-rise{animation:none}

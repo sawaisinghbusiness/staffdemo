@@ -1,4 +1,5 @@
 "use client";
+import { ResourceStatus } from "@/components/ResourceStatus";
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
@@ -40,8 +41,8 @@ interface PageInfo {
 }
 
 const PAGES: Record<string, PageInfo> = {
-  "/erp/reports/":{title:{en:"All reports",hi:"\u0938\u093e\u0930\u0940 \u0930\u093f\u092a\u094b\u0930\u094d\u091f"}},
-  "/erp/settings/data/":{title:{en:"Data",hi:"\u0921\u0947\u091f\u093e"},back:"/erp/settings/"},
+  "/erp/reports/":{title:{en:"All reports",hi:"\u0938\u093e\u0930\u0940 \u0930\u093f\u092a\u094b\u0930\u094d\u091f"},tab:"/erp/report/"},
+  "/erp/settings/data/":{title:{en:"Data",hi:"\u0921\u0947\u091f\u093e"},back:"/erp/settings/",tab:"/profile/"},
   "/students/": { title: { hi: "बच्चे", en: "Students" }, teacher: true },
   "/students/detail/": { title: { hi: "बच्चा", en: "Student" }, back: "/students/", tab: "/students/", teacher: true },
   "/attendance/": { title: { hi: "हाज़िरी", en: "Attendance" }, teacher: true },
@@ -55,13 +56,13 @@ const PAGES: Record<string, PageInfo> = {
   "/lectures/": { title: { hi: "आज की कक्षाएँ", en: "Today's Lectures" }, tab: "/", teacher: true },
   "/notes/": { title: { hi: "टीचर का नोट", en: "Teacher's Note" }, tab: "/", teacher: true },
   "/leave/": { title: { hi: "छुट्टी", en: "Leave" }, tab: "/", action: { href: "/leave/apply/", text: { hi: "छुट्टी की अर्ज़ी", en: "Apply leave" } } },
-  "/leave/apply/": { title: { hi: "छुट्टी की अर्ज़ी", en: "Apply Leave" }, back: "/leave/" },
+  "/leave/apply/": { title: { hi: "छुट्टी की अर्ज़ी", en: "Apply Leave" }, back: "/leave/" ,tab:"/profile/"},
   "/notice/": { title: { hi: "सूचनाएँ", en: "Notice" }, tab: "/" },
   "/trip/": { title: { hi: "ट्रिप", en: "Trip" }, back: "/" },
   "/trip/history/": { title: { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, back: "/" },
   "/messages/": { title: { hi: "अभिभावकों की पूछताछ", en: "Parent Enquiries" }, tab: "/", teacher: true },
   "/messages/chat/": { title: { hi: "संदेश", en: "Message" }, back: "/messages/", teacher: true, own: true, bare: true },
-  "/assistant/": { title: { hi: "स्कूल सहायक", en: "School Sahayak" }, back: "/", own: true, bare: true },
+  "/assistant/": { title: { hi: "एआई असिस्टेंट", en: "AI Assistant" }, back: "/", own: true, bare: true },
   // ERP login's own screens (the ERP website's modules, one by one).
   "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" }, badge: { hi: "बच्चा जोड़ें", en: "Add student" } } },
   "/erp/students/excel/": { title: { hi: "Excel से भरें", en: "Students in Excel" }, back: "/erp/students/", tab: "/erp/students/" },
@@ -75,13 +76,15 @@ const PAGES: Record<string, PageInfo> = {
   "/erp/students/id-cards/": { title: { hi: "आईडी कार्ड", en: "ID Cards" }, tab: "/erp/students/" },
   "/erp/fees/dues/": { title: { hi: "बाकी फ़ीस और याद", en: "Dues & Reminders" }, tab: "/" },
   "/erp/fees/receipts/": { title: { hi: "रसीदें", en: "Receipts" }, tab: "/" },
-  "/erp/fees/reports/": { title: { hi: "फ़ीस रिपोर्ट", en: "Fee Reports" }, tab: "/" },
+  "/erp/fees/reports/": { title: { hi: "फ़ीस रिपोर्ट", en: "Fee Reports" }, tab:"/erp/report/" },
   "/erp/fees/online/": { title: { hi: "ऑनलाइन पेमेंट", en: "Online Payments" }, tab: "/" },
+  "/erp/fees/cheques/": { title: { hi: "चेक (क्लियर होने बाकी)", en: "Unclear Payments" }, tab: "/" },
+  "/erp/fees/carry-forward/": { title: { hi: "सत्र बंद: बकाया आगे", en: "Session Close: Carry Dues" }, tab: "/" },
   "/erp/attendance/mark/": { title: { hi: "हाज़िरी लगाएँ", en: "Mark Attendance" }, tab: "/erp/attendance/mark/" },
   "/erp/attendance/mark/section/": { title: { hi: "हाज़िरी", en: "Roll Call" }, back: "/erp/attendance/mark/", tab: "/erp/attendance/mark/" },
   "/erp/exams/marks/": { title: { hi: "अंक भरें", en: "Marks Entry" }, tab: "/" },
   "/erp/exams/marks/sheet/": { title: { hi: "अंक", en: "Marks" }, back: "/erp/exams/marks/", tab: "/" },
-  "/erp/exams/report-cards/": { title: { hi: "रिपोर्ट कार्ड", en: "Report Cards" }, tab: "/" },
+  "/erp/exams/report-cards/": { title: { hi: "रिपोर्ट कार्ड", en: "Report Cards" }, tab:"/erp/report/" },
   "/erp/exams/setup/": { title: { hi: "परीक्षा सेटअप", en: "Exam Setup" }, tab: "/" },
   "/erp/exams/setup/edit/": { title: { hi: "परीक्षा", en: "Exam" }, back: "/erp/exams/setup/", tab: "/" },
   "/erp/timetable/": { title: { hi: "टाइम टेबल", en: "Time Table" }, tab: "/" },
@@ -93,7 +96,7 @@ const PAGES: Record<string, PageInfo> = {
   "/erp/messages/": { title: { hi: "मैसेज", en: "Messages" }, tab: "/", action: { href: "/erp/messages/new/", text: { hi: "नया मैसेज", en: "New message" }, badge: { hi: "नया", en: "New" } } },
   "/erp/messages/new/": { title: { hi: "नया मैसेज", en: "New Message" }, back: "/erp/messages/", tab: "/" },
   "/erp/messages/detail/": { title: { hi: "मैसेज भेजें", en: "Send Message" }, back: "/erp/messages/", tab: "/" },
-  "/erp/settings/templates/": { title: { hi: "मैसेज टेम्पलेट", en: "Message Templates" }, tab: "/" },
+  "/erp/settings/templates/": { title: { hi: "मैसेज टेम्पलेट", en: "Message Templates" }, tab:"/profile/" },
   "/erp/copy-check/": { title: { hi: "कॉपी जाँच", en: "Copy Check" }, tab: "/" },
   "/erp/copy-check/sheet/": { title: { hi: "कॉपी जाँच", en: "Copy Check" }, back: "/erp/copy-check/", tab: "/" },
   "/erp/syllabus/": { title: { hi: "सिलेबस", en: "Syllabus" }, tab: "/", action: { href: "/erp/syllabus/excel/", text: { hi: "Excel से भरें", en: "Excel import / export" }, badge: { hi: "Excel", en: "Excel" } } },
@@ -118,10 +121,10 @@ const PAGES: Record<string, PageInfo> = {
   "/erp/transport/": { title: { hi: "रूट और बस", en: "Routes & Buses" }, tab: "/" },
   "/erp/transport/route/": { title: { hi: "बस रूट", en: "Bus Route" }, back: "/erp/transport/", tab: "/" },
   "/erp/transport/students/": { title: { hi: "बस के बच्चे", en: "Bus Students" }, tab: "/" },
-  "/erp/settings/": { title: { hi: "स्कूल और सत्र", en: "School & Session" }, tab: "/" },
-  "/erp/settings/classes/": { title: { hi: "कक्षा और विषय", en: "Classes & Subjects" }, tab: "/" },
-  "/erp/settings/users/": { title: { hi: "यूज़र और रोल", en: "Users & Roles" }, tab: "/" },
-  "/erp/settings/whatsapp/": { title: { hi: "WhatsApp", en: "WhatsApp" }, tab: "/" },
+  "/erp/settings/": { title: { hi: "स्कूल और सत्र", en: "School & Session" }, tab:"/profile/" },
+  "/erp/settings/classes/": { title: { hi: "कक्षा और विषय", en: "Classes & Subjects" }, tab:"/profile/" },
+  "/erp/settings/users/": { title: { hi: "यूज़र और रोल", en: "Users & Roles" }, tab:"/profile/" },
+  "/erp/settings/whatsapp/": { title: { hi: "WhatsApp", en: "WhatsApp" }, tab:"/profile/" },
   "/erp/report/": { title: { hi: "आज का सार", en: "Overview" }, tab: "/" },
   "/erp/staff/payroll/": { title: { hi: "सैलरी", en: "Payroll" }, tab: "/" },
   "/erp/students/detail/": { title: { hi: "बच्चा", en: "Student" }, back: "/erp/students/", tab: "/erp/students/" },
@@ -146,10 +149,10 @@ function DriverNav({ path }: { path: string }) {
         aria-current={on ? "page" : undefined}
         className={clsx(
           "flex min-w-[72px] flex-col items-center justify-center gap-1.5 rounded-xl px-2",
-          mid ? "min-h-[56px] bg-drv-yellow text-black" : clsx("min-h-[56px]", on ? "text-drv-yellow" : "text-[#9A9A9A]")
+          mid && on ? "min-h-[56px] bg-drv-yellow text-black" : clsx("min-h-[56px]", on ? "text-drv-yellow" : "text-[#9A9A9A]")
         )}
       >
-        <Icon className="h-5 w-5" strokeWidth={on || mid ? 2.2 : 1.9} aria-hidden />
+        <Icon className="h-5 w-5" strokeWidth={on ? 2.2 : 1.9} aria-hidden />
         <span className="text-[11.5px] font-medium leading-tight">{L(text)}</span>
       </Link>
     );
@@ -190,7 +193,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const home = !driver && isHome;
   const onBand = "text-ink-900 active:bg-ink-100";
   const blocked = !!me && me.role !== "teacher" && !!page?.teacher;
-  const lit = isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
+  const [leaveContext,setLeaveContext] = useState("mine");
+  useEffect(() => {
+    const read = () => setLeaveContext(new URLSearchParams(window.location.search).get("tab") || "mine");
+    const update = (event: Event) => setLeaveContext((event as CustomEvent<string>).detail);
+    read(); window.addEventListener("staff:leave-tab",update);
+    return () => window.removeEventListener("staff:leave-tab",update);
+  },[path]);
+  const lit = path === "/leave/" && leaveContext !== "requests" ? "/profile/" : isHome ? "/" : page?.tab || (page && !page.back ? path : "/");
   // Four-tab bars get the raised Report button in the middle (Dhan's centre button, 2026-10-17).
   const mid = tabs.length === 4 ? (erp ? ERP_REPORT : TEACHER_REPORT) : null;
   const midOn = !!mid && (path === mid.href || lit === mid.href);
@@ -286,8 +296,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", driver && "driver-route-enter",!page?.bare && !driverTrip && "pb-28", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
-        {!isHome && !own && <OfflineNote show={stale && !!me} />}
+      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", !page?.bare && !driverTrip && "pb-28", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
+        {!isHome && !own && <ResourceStatus />}
         {blocked ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
             <ErrorCard offline={error.status === 0} onRetry={reload} />
@@ -305,7 +315,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       </main>
 
-      {/* School Sahayak (the AI chat): the parent app's round button, draggable to either side, shown only when
+      {/* AI Assistant (the AI chat): the parent app's round button, draggable to either side, shown only when
           switched on in the side menu (as on the parent app). Not for drivers. */}
       {!page?.bare && !driver && owlEnabled && <SahayakButton />}
 
@@ -315,15 +325,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       // Teachers and other staff: the parent app's flat bar (user, 2026-11-13): white, a hairline on top,
       // a navy line over the lit tab, whose icon is filled navy. Report sits in the middle as a plain tab.
       <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-[#DFE5EF] bg-white pb-[env(safe-area-inset-bottom,0px)]" aria-label="Main">
-        <ul className={clsx("relative grid h-16", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
+        <ul className={clsx("relative grid min-h-[64px]", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
           {(mid ? [...tabs.slice(0, 2), { ...mid, icon: LayoutDashboard }, ...tabs.slice(2)] : tabs).map(({ href, text, icon: Icon }) => {
             const on = mid && href === mid.href ? midOn : !midOn && lit === href;
             return (
               <li key={href} className="relative">
                 {on && <span className="absolute inset-x-1 top-[-1px] h-[3px] rounded-b bg-[#0D2A5E]" aria-hidden />}
-                <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-16 flex-col items-center justify-center gap-1 text-[12px] transition-colors duration-300", on ? "font-bold text-[#0D2A5E]" : "font-medium text-[#5B6478]")}>
+                <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-full min-h-[64px] min-w-0 flex-col items-center justify-center gap-1 py-2 text-[12px] transition-colors duration-300", on ? "font-bold text-[#0D2A5E]" : "font-medium text-[#5B6478]")}>
                   <Icon className="h-6 w-6" strokeWidth={on ? 2.2 : 1.7} fill={on ? "currentColor" : "none"} aria-hidden />
-                  {L(text)}
+                  <span className="max-w-full break-words text-center leading-snug">{L(text)}</span>
                 </Link>
               </li>
             );

@@ -1,4 +1,6 @@
 "use client";
+import { clearEditorDrafts } from "@/lib/editorDrafts";
+import { setResourceFailure } from "@/lib/resourceStatus";
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DEMO, demoApi } from "./demo";
@@ -69,7 +71,24 @@ export function readCache<T>(path: string): T | undefined {
     return undefined;
   }
 }
+/**
+ * Answers kept in memory for this visit only (gone on reload or sign-out, never written to the phone).
+ * They let a screen you come back to open filled at once, including /bus/route, which is never saved to the
+ * phone because it decides which app the person sees. Not used in ERP mode: those views always load fresh.
+ */
+const memory = new Map<string, unknown>();
+function recall<T>(path: string): T | undefined {
+  const saved = readCache<T>(path);
+  if (saved !== undefined) return saved;
+  return path === "/me" || isErpMode() ? undefined : (memory.get(path) as T | undefined);
+}
+/** Changes the in-memory answer for a path (for example: the trip has just ended, so Home must not show it running). */
+export function patchMemory<T>(path: string, change: (old: T) => T) {
+  const old = memory.get(path) as T | undefined;
+  if (old !== undefined) memory.set(path, change(old));
+}
 function writeCache(path: string, v: unknown) {
+  if (path !== "/me" && !isErpMode()) memory.set(path, v);
   if (path === "/me" || path === "/bus/route") return;
   if(isErpMode())return;
   try {
@@ -97,6 +116,8 @@ export function hasSignInMark() {
 }
 
 export function clearCache() {
+  clearEditorDrafts();
+  memory.clear();
   try {
     for (const k of Object.keys(localStorage)) if (k.startsWith(KEY)) localStorage.removeItem(k);
   } catch {
@@ -110,15 +131,16 @@ export function clearCache() {
  */
 export function useApi<T>(path: string | null) {
   // What was saved last time shows in the very first frame, so a screen opens filled, not as grey boxes.
-  const [data, setData] = useState<T | undefined>(() => (path && typeof window !== "undefined" ? readCache<T>(path) : undefined));
+  const [data, setData] = useState<T | undefined>(() => (path && typeof window !== "undefined" ? recall<T>(path) : undefined));
   const [error, setError] = useState<ApiError | null>(null);
   const [loading, setLoading] = useState(!!path);
   const [stale, setStale] = useState(false);
   const live = useRef(path);
+  const resourceKey = useRef(Symbol("resource"));
   const requestId=useRef(0);
 
   const load = useCallback(async () => {
-    if (!path) return;
+    if (!path) return false;
     live.current = path;
     const id=++requestId.current;
     setLoading(true);
@@ -129,6 +151,7 @@ export function useApi<T>(path: string | null) {
       setError(null);
       setStale(false);
       writeCache(path, fresh);
+      return true;
     } catch (e) {
       if (live.current !== path || requestId.current!==id) return;
       const err = e instanceof ApiError ? e : new ApiError(0, "offline");
@@ -138,6 +161,7 @@ export function useApi<T>(path: string | null) {
         markSignedIn(false);
         window.location.replace("/login/");
       }
+      return false;
     } finally {
       if (live.current === path&&requestId.current===id) setLoading(false);
     }
@@ -145,12 +169,17 @@ export function useApi<T>(path: string | null) {
 
   useEffect(() => {
     if (!path) return;
-    setData(readCache<T>(path));
+    setData(recall<T>(path));
     setError(null);
     setStale(false);
     load();
     return()=>{requestId.current++;live.current=null;};
   }, [path, load]);
 
+  useEffect(() => {
+    const key = resourceKey.current;
+    setResourceFailure(key, path && error ? {path,hasData:data!==undefined,status:error.status,retry:load} : null);
+    return () => setResourceFailure(key,null);
+  }, [path,error,data,load]);
   return { data, error, loading, stale, reload: load };
 }

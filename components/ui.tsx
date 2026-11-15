@@ -1,6 +1,6 @@
 "use client";
 
-import { Children, isValidElement, useCallback, useEffect, useRef, useState } from "react";
+import { Children, isValidElement, useCallback, useEffect, useId, useRef, useState } from "react";
 import { useErpAppearance } from "@/lib/erpAppearance";
 import { useActionPalette } from "@/lib/actionPalette";
 import { createPortal } from "react-dom";
@@ -78,6 +78,57 @@ export function LineTabs<K extends string>({ value, onChange, options, label }: 
   );
 }
 
+/**
+ * Tabs in one row that scrolls sideways when there are many (the student profile). Each tab is as wide as
+ * its word; the picked one scrolls into view. Arrow keys move between tabs. Codex owns its final look.
+ */
+export function ScrollTabs<K extends string>({ value, onChange, options, label }: { value: K; onChange: (k: K) => void; options: { key: K; text: React.ReactNode }[]; label: string }) {
+  const row = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const el = row.current?.querySelector<HTMLElement>('[aria-selected="true"]');
+    if (!el) return;
+    const reduce = typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+    el.scrollIntoView({ inline: "center", block: "nearest", behavior: reduce ? "auto" : "smooth" });
+  }, [value]);
+  const move = (by: number) => {
+    const i = options.findIndex((o) => o.key === value);
+    const next = options[(i + by + options.length) % options.length];
+    onChange(next.key);
+    requestAnimationFrame(() => row.current?.querySelector<HTMLElement>('[aria-selected="true"]')?.focus());
+  };
+  return (
+    <div
+      ref={row}
+      className="scroll-tabs flex gap-1 overflow-x-auto border-b border-ink-100 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+      role="tablist"
+      aria-label={label}
+      onKeyDown={(e) => {
+        if (e.key === "ArrowRight") (e.preventDefault(), move(1));
+        else if (e.key === "ArrowLeft") (e.preventDefault(), move(-1));
+        else if (e.key === "Home") (e.preventDefault(), onChange(options[0].key));
+        else if (e.key === "End") (e.preventDefault(), onChange(options[options.length - 1].key));
+      }}
+    >
+      {options.map((o) => {
+        const on = value === o.key;
+        return (
+          <button
+            key={o.key}
+            type="button"
+            role="tab"
+            aria-selected={on}
+            tabIndex={on ? 0 : -1}
+            onClick={() => onChange(o.key)}
+            className={clsx("min-h-[46px] shrink-0 whitespace-nowrap border-b-2 px-4 text-[14px] font-semibold", on ? "border-[#0D2A5E] text-[#0D2A5E]" : "border-transparent text-ink-500")}
+          >
+            {o.text}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 /** Bordered dropdown with its small label inside, as the kit draws it. */
 /** Plain text of an <option>'s children ("12", ". ", "Aarav" → "12. Aarav"). */
 const textOf = (n: React.ReactNode): string =>
@@ -88,93 +139,43 @@ const textOf = (n: React.ReactNode): string =>
  * About six rows show; the rest scroll inside the box. Takes <option> children as before.
  */
 export function SelectBox({ label, value, onChange, children, className }: { label: string; value: string; onChange: (v: string) => void; children: React.ReactNode; className?: string }) {
-  const L = useL();
-  const [open, setOpen] = useState(false);
-  const [q, setQ] = useState("");
-  const wrap = useRef<HTMLDivElement>(null);
-  const list = useRef<HTMLUListElement>(null);
-  const options = Children.toArray(children)
-    .filter(isValidElement)
-    .map((o) => {
-      const p = o.props as { value?: string | number; children?: React.ReactNode };
-      const text = textOf(p.children).trim();
-      return { value: p.value !== undefined ? String(p.value) : text, text };
-    });
-  const current = options.find((o) => o.value === value);
-  const close = useCallback(() => {
-    setOpen(false);
-    setQ("");
-  }, []);
-  const search = options.length > 8;
-  const shown = q ? options.filter((o) => o.text.toLowerCase().includes(q.trim().toLowerCase())) : options;
-
-  // A tap outside or Escape closes the box; on opening, the chosen row is scrolled into view.
-  useEffect(() => {
-    if (!open) return;
-    const out = (e: PointerEvent) => wrap.current && !wrap.current.contains(e.target as Node) && close();
-    const esc = (e: KeyboardEvent) => e.key === "Escape" && close();
-    document.addEventListener("pointerdown", out);
-    window.addEventListener("keydown", esc);
-    const box = list.current;
-    const sel = box?.querySelector<HTMLElement>("[aria-selected='true']");
-    if (box && sel) box.scrollTop = sel.offsetTop - box.clientHeight / 2 + sel.offsetHeight / 2;
-    return () => {
-      document.removeEventListener("pointerdown", out);
-      window.removeEventListener("keydown", esc);
-    };
-  }, [open, close]);
-
-  return (
-    <div ref={wrap} className={clsx("relative min-w-0", open && "z-30")}>
-      <button type="button" onClick={() => (open ? close() : setOpen(true))} disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} className={clsx("field-box text-left disabled:opacity-60", open && "!border-[#0D2A5E]", className)}>
-        {/* One line: "Class - 5th B". */}
-        <span className="min-w-0 flex-1 truncate text-[15.5px]">
-          <span className="text-ink-500">{label} - </span>
-          <span className="font-semibold text-ink-900">{current?.text || "—"}</span>
-        </span>
-        <ChevronDown className={clsx("transition-transform duration-200", open && "rotate-180")} aria-hidden />
-      </button>
-      {open && (
-        <div className="drop-in absolute inset-x-0 top-full mt-1.5 min-w-[200px] overflow-hidden rounded-xl border-[1.5px] border-ink-900 bg-white shadow-[0_12px_28px_rgba(22,33,58,.16)]">
-          {search && (
-            <label className="block border-b border-ink-100 p-2">
-              <span className="sr-only">{L({ hi: "खोजें", en: "Search" })}</span>
-              <span className="flex h-9 items-center gap-2 rounded-lg bg-ink-100 px-2.5">
-                <Search className="h-4 w-4 shrink-0 text-ink-400" aria-hidden />
-                <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={L({ hi: "खोजें", en: "Search" })} className="min-w-0 flex-1 bg-transparent text-[16px] outline-none placeholder:text-ink-400" />
-              </span>
-            </label>
-          )}
-          {shown.length === 0 ? (
-            <p className="px-3 py-4 text-center text-[14px] text-ink-500">{L({ hi: "कुछ नहीं मिला", en: "Nothing found" })}</p>
-          ) : (
-            <ul ref={list} role="listbox" aria-label={label} className="max-h-[264px] overflow-y-auto overscroll-contain py-1">
-              {shown.map((o) => {
-                const on = o.value === value;
-                return (
-                  <li key={o.value}>
-                    <button
-                      type="button"
-                      role="option"
-                      aria-selected={on}
-                      onClick={() => {
-                        onChange(o.value);
-                        close();
-                      }}
-                      className={clsx("flex min-h-[44px] w-full items-center gap-2.5 px-3 text-left active:bg-ink-100", on && "bg-[#0D2A5E]/10")}
-                    >
-                      <span className={clsx("min-w-0 flex-1 truncate text-[15px]", on ? "font-semibold text-[#0D2A5E]" : "text-ink-900")}>{o.text}</span>
-                      {on && <Check className="h-4 w-4 shrink-0 text-[#0D2A5E]" strokeWidth={2.6} aria-hidden />}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          )}
-        </div>
-      )}
-    </div>
-  );
+  const L = useL(); const id = useId();
+  const [open,setOpen] = useState(false); const [q,setQ] = useState(""); const [active,setActive] = useState(0);
+  const wrap=useRef<HTMLDivElement>(null); const trigger=useRef<HTMLButtonElement>(null); const list=useRef<HTMLUListElement>(null);
+  const options=Children.toArray(children).filter(isValidElement).map(o=>{const p=o.props as {value?:string|number;children?:React.ReactNode};return{value:p.value!==undefined?String(p.value):textOf(p.children).trim(),text:textOf(p.children).trim()}});
+  const current=options.find(o=>o.value===value); const search=options.length>8;
+  const shown=q?options.filter(o=>o.text.toLowerCase().includes(q.trim().toLowerCase())):options;
+  const close=useCallback((restore=false)=>{setOpen(false);setQ("");if(restore)requestAnimationFrame(()=>trigger.current?.focus())},[]);
+  useEffect(()=>{
+    if(!open)return;
+    const out=(e:PointerEvent)=>{if(wrap.current&&!wrap.current.contains(e.target as Node))close()};
+    document.addEventListener("pointerdown",out);
+    const index=Math.max(0,options.findIndex(o=>o.value===value));setActive(index);
+    const frame=requestAnimationFrame(()=>list.current?.focus());
+    return()=>{cancelAnimationFrame(frame);document.removeEventListener("pointerdown",out)};
+  },[open,close]); // Selection is read when the list opens, not on every rerender.
+  useEffect(()=>{if(open)list.current?.querySelector<HTMLElement>(`[data-option-index="${active}"]`)?.scrollIntoView({block:"nearest"})},[active,open]);
+  const choose=(index:number)=>{const option=shown[index];if(option){onChange(option.value);close(true)}};
+  return <div ref={wrap} className={clsx("relative min-w-0",open&&"z-30")} onKeyDown={e=>{
+    if(!open)return;
+    if(e.key==="Escape"){e.preventDefault();e.stopPropagation();close(true)}
+    else if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();setActive(i=>(i+(e.key==="ArrowDown"?1:-1)+Math.max(1,shown.length))%Math.max(1,shown.length));list.current?.focus()}
+    else if(e.key==="Home"&&e.target===list.current){e.preventDefault();setActive(0)}
+    else if(e.key==="End"&&e.target===list.current){e.preventDefault();setActive(Math.max(0,shown.length-1))}
+    else if((e.key==="Enter"||e.key===" ")&&e.target===list.current){e.preventDefault();choose(active)}
+    else if(e.key==="Tab"){close()}
+    else if(e.target===list.current&&e.key.length===1&&!e.ctrlKey&&!e.metaKey){e.preventDefault();if(search){setQ(text=>text+e.key);setActive(0);requestAnimationFrame(()=>wrap.current?.querySelector<HTMLInputElement>("input")?.focus())}else{const match=shown.findIndex(o=>o.text.toLowerCase().startsWith(e.key.toLowerCase()));if(match>=0)setActive(match)}}
+  }}>
+    <button ref={trigger} type="button" disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} aria-controls={id} onClick={()=>open?close(true):setOpen(true)} onKeyDown={e=>{if(!open&&(e.key==="ArrowDown"||e.key==="ArrowUp")){e.preventDefault();setOpen(true)}}} className={clsx("field-box text-left disabled:opacity-60",open&&"!border-[#0D2A5E]",className)}>
+      <span className="min-w-0 flex-1 break-words text-[15.5px] leading-snug"><span className="text-ink-500">{label} - </span><span className="font-semibold text-ink-900">{current?.text||"—"}</span></span><ChevronDown aria-hidden className={clsx("shrink-0 transition-transform duration-150",open&&"rotate-180")}/>
+    </button>
+    {open&&<div className="drop-in absolute inset-x-0 top-full mt-1.5 overflow-hidden rounded-xl border border-ink-900 bg-white shadow-[0_12px_28px_rgba(22,33,58,.16)]">
+      {search&&<label className="block border-b border-ink-100 p-2"><span className="sr-only">{L({hi:"खोजें",en:"Search"})}</span><span className="flex min-h-[44px] items-center gap-2 rounded-lg bg-ink-100 px-2.5"><Search size={16} aria-hidden/><input value={q} onChange={e=>{setQ(e.target.value);setActive(0)}} placeholder={L({hi:"खोजें",en:"Search"})} className="min-w-0 flex-1 bg-transparent text-[16px] outline-none"/></span></label>}
+      <ul id={id} ref={list} role="listbox" aria-label={label} tabIndex={0} aria-activedescendant={shown[active]?`${id}-${active}`:undefined} className="max-h-[264px] overflow-y-auto overscroll-contain py-1 outline-none">
+        {!shown.length?<li className="px-3 py-4 text-[14px] text-ink-500">{L({hi:"कुछ नहीं मिला",en:"Nothing found"})}</li>:shown.map((o,i)=><li id={`${id}-${i}`} key={o.value} role="option" aria-selected={o.value===value} data-option-index={i} onPointerMove={()=>setActive(i)} onClick={()=>choose(i)} className={clsx("flex min-h-[44px] cursor-pointer items-center gap-2.5 px-3 py-2 text-[15px] leading-snug",i===active&&"bg-ink-100",o.value===value&&"font-semibold")}><span className="min-w-0 flex-1 break-words">{o.text}</span>{o.value===value&&<Check size={16} aria-hidden className="shrink-0"/>}</li>)}
+      </ul>
+    </div>}
+  </div>;
 }
 
 export function Skeleton({ className }: { className?: string }) {
@@ -200,21 +201,75 @@ export function OfflineNote({ show }: { show: boolean }) {
   return (
     <div className="flex items-center gap-2 rounded-xl border border-marigold-300/70 bg-marigold-50 px-3 py-2 text-sm font-medium text-ink-700">
       <WifiOff className="h-4 w-4 shrink-0 text-marigold-600" aria-hidden />
-      {L({ hi: "इंटरनेट नहीं है। पुरानी जानकारी दिख रही है।", en: "No internet. Showing saved information." })}
+      {L({ hi: "नई जानकारी नहीं मिली। सेव की हुई जानकारी दिख रही है।", en: "Could not refresh. Showing saved information." })}
     </div>
   );
 }
 
-export function ErrorCard({ offline, onRetry }: { offline?: boolean; onRetry: () => void }) {
+export function ErrorCard({ offline, onRetry }: { offline?: boolean; onRetry: () => unknown }) {
   const L = useL();
   return (
-    <div className="row-card flex flex-col items-start gap-3 p-4">
+    <div className="row-card flex flex-col items-start gap-3 p-4" role="alert">
       <p className="text-ink-700">
         {offline ? L({ hi: "इंटरनेट नहीं है। कनेक्शन आने पर दोबारा कोशिश करें।", en: "No internet. Try again when you are connected." }) : L({ hi: "कुछ गड़बड़ हुई। दोबारा कोशिश करें।", en: "Something went wrong. Please try again." })}
       </p>
-      <button className="btn-line min-h-[44px]" onClick={onRetry}>
-        <RotateCw className="h-4 w-4" aria-hidden /> {L({ hi: "दोबारा कोशिश करें", en: "Try again" })}
-      </button>
+      <RetryButton onRetry={onRetry} />
+    </div>
+  );
+}
+
+/**
+ * "Try again" that visibly works: it presses in, the icon spins and the label reads "Trying…" until the reload
+ * has finished. If the screen is still
+ * showing the error afterwards, a short line says so with a small shake, and after two failures
+ * "Reopen page" offers a full reload. When the retry works, the error card goes away with this button.
+ */
+export function RetryButton({ onRetry, className }: { onRetry: () => unknown; className?: string }) {
+  const L = useL();
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState(0);
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  async function run() {
+    if (busy) return;
+    setBusy(true);
+
+    try {
+      const result = await onRetry();
+      if (result === true || (Array.isArray(result) && result.every(v => v === true))) { if(alive.current)setFailed(0); return; }
+    } catch {
+      /* The owning screen retains its failure. */
+    } finally {
+      if(alive.current)setBusy(false);
+    }
+
+    if (!alive.current) return;
+    setBusy(false);
+    setFailed((n) => n + 1);
+  }
+  return (
+    <div className="flex flex-col items-start gap-2">
+      <div className="flex flex-wrap items-center gap-2">
+        <button type="button" className={clsx("btn-line retry-button min-h-[44px]", className)} onClick={run} disabled={busy} aria-busy={busy}>
+          <RotateCw className={clsx("h-4 w-4", busy && "animate-spin")} aria-hidden />
+          {busy ? L({ hi: "कोशिश हो रही है…", en: "Trying…" }) : L({ hi: "दोबारा कोशिश करें", en: "Try again" })}
+        </button>
+        {failed >= 2 && !busy && (
+          <button type="button" className="btn-quiet retry-button min-h-[44px]" onClick={() => window.location.reload()}>
+            {L({ hi: "पेज दोबारा खोलें", en: "Reopen page" })}
+          </button>
+        )}
+      </div>
+      {failed > 0 && !busy && (
+        <p key={failed} role="status" className="retry-still text-[13px] text-rose-700">
+          {L({ hi: "नई जानकारी नहीं मिली। फिर कोशिश करें या पेज दोबारा खोलें।", en: "Could not refresh. Try again or reopen the page." })}
+        </p>
+      )}
     </div>
   );
 }

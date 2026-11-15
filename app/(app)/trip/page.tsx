@@ -2,11 +2,12 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import clsx from "clsx";
-import { Bus, ChevronDown, ChevronLeft, ChevronRight, Info, MapPin, Play, RefreshCw, TriangleAlert, X } from "lucide-react";
-import { api, useApi } from "@/lib/api";
+import { ArrowRight, Bus, ChevronDown, ChevronLeft, ChevronRight, Info, MapPin, Play, RefreshCw, TriangleAlert, X } from "lucide-react";
+import { api, patchMemory, useApi } from "@/lib/api";
 import { useDialog } from "@/lib/useDialog";
-import { DEMO } from "@/lib/demo";
+import { PRETEND_BUS } from "@/lib/demo";
 import { useL } from "@/lib/i18n";
 import { readAlertClose } from "@/lib/driverPrefs";
 import {
@@ -28,7 +29,7 @@ import {
   type TripKind,
 } from "@/lib/bus";
 import { SlideConfirm } from "@/components/driver/SlideConfirm";
-import { askForLocation, markTripStartSound, playTripEnd, playTripStartIfNew, startTripClicks } from "@/lib/slideFeedback";
+import { markTripEndSound, markTripStartSound, playTripStartIfNew, startTripClicks } from "@/lib/slideFeedback";
 import { ALERT_BUZZ, DONE_BUZZ, useHapticsReady, vibrate } from "@/lib/haptics";
 import { BusMap, type MapStop } from "@/components/BusMap";
 import { ErrorCard, Skeleton } from "@/components/ui";
@@ -63,6 +64,7 @@ function bearing(a: LatLng, b: LatLng) {
  */
 export default function TripPage() {
   const L = useL();
+  const router = useRouter();
   const { data, error, reload } = useApi<RouteData>("/bus/route");
   const [route, setRoute] = useState<BusRoute | null>(null);
   const [trip, setTrip] = useState<Trip | null>(null);
@@ -168,7 +170,7 @@ export default function TripPage() {
     setHeading(null);
     setKmh(null);
     setGpsProblem(null);
-    if (DEMO) {
+    if (PRETEND_BUS) {
       // A pretend bus that drives along the road line towards the next stop and waits there.
       const line = ptsRef.current;
       let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || { lat: 25.75, lng: 71.4 };
@@ -247,21 +249,13 @@ export default function TripPage() {
   // A soft snap on every tap while the trip screen is open.
   useEffect(() => startTripClicks(), []);
 
-  // The trip screen is up and a trip was just started: play the start sound once.
+  // A trip was just started from "Slide to confirm": once the running trip screen is up with its route loaded,
+  // play the start sound (with a buzz) once. A short pause lets the screen draw first.
   useEffect(() => {
-    if (trip) playTripStartIfNew();
-  }, [trip?.id]); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Ask for the phone's location before the trip, not after it has started.
-  const [loc, setLoc] = useState<"ask" | "ok" | "denied">("ask");
-  useEffect(() => {
-    if (DEMO || trip || !route) return;
-    let gone = false;
-    askForLocation((state) => !gone && setLoc(state));
-    return () => {
-      gone = true;
-    };
-  }, [!!trip, route?.id]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (!trip || !route) return;
+    const t = setTimeout(playTripStartIfNew, 350);
+    return () => clearTimeout(t);
+  }, [trip?.id, !!route]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Publish only fresh fixes; a response failure must not be presented as live sharing.
   useEffect(() => {
@@ -365,6 +359,7 @@ export default function TripPage() {
 
   async function start() {
     const saved=await act("/bus/trip", { kind: planKind });
+    // The trip starts on this screen's "Slide to confirm"; the start sound plays when the running trip screen is up.
     if(saved){markTripStartSound();window.history.replaceState(null,"","/trip/")}
     return saved;
   }
@@ -382,9 +377,10 @@ export default function TripPage() {
     setFail("");
     try {
       await api("/bus/trip/end", { body: {} });
-      vibrate(DONE_BUZZ);
-      await playTripEnd(); // leave only after the closing sound has played
-      window.location.replace("/");
+      // Home opens at once (no page reload) and already knows the trip is over; it plays the end sound itself.
+      markTripEndSound();
+      patchMemory<RouteData>("/bus/route", (old) => ({ ...old, trip: null }));
+      router.replace("/");
     } catch (problem: any) {
       setFail(problem?.message || L({ hi: "\u091f\u094d\u0930\u093f\u092a \u092c\u0902\u0926 \u0928\u0939\u0940\u0902 \u0939\u0941\u0908", en: "Could not end the trip. Try again." }));
     } finally {
@@ -472,7 +468,7 @@ export default function TripPage() {
             </p>
           )}
           {fail && <p className="mt-2 text-[13px] text-rose-600">{fail}</p>}
-          <div className="my-4"><SlideConfirm tone="yellow" sound="start" label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={busy||!order.length} onConfirm={start}/></div>
+          <div className="my-4"><SlideConfirm tone="yellow" sound="start" hold label={L({hi:"कन्फ़र्म करने को स्वाइप करें",en:"Slide to confirm"})} disabled={busy||!order.length} onConfirm={start}/></div>
         </div>
       </Shell>
     );
@@ -518,13 +514,13 @@ export default function TripPage() {
 
         <section
           className={clsx(
-            "d-card mt-2 origin-top-left px-3.5 pt-3 transition-all duration-300 ease-[cubic-bezier(.16,1,.3,1)]",
+            "d-card mt-2 origin-top-left px-3.5 pt-3 transition-[opacity,transform] duration-200 ease-[cubic-bezier(.16,1,.3,1)]",
             card ? "translate-y-0 scale-100 opacity-100" : "pointer-events-none -translate-y-2 scale-[.97] opacity-0"
           )}
           aria-hidden={!card}
         >
           <div className="flex items-start gap-2.5">
-            <Link href="/" tabIndex={card ? 0 : -1} className="-ml-1 grid h-8 w-8 shrink-0 place-items-center rounded-full active:bg-drv-soft" aria-label={L({ hi: "होम", en: "Home" })}>
+            <Link href="/" tabIndex={card ? 0 : -1} className="-ml-1 grid h-11 w-11 shrink-0 place-items-center rounded-full active:bg-drv-soft" aria-label={L({ hi: "होम", en: "Home" })}>
               <ChevronLeft className="h-5 w-5" aria-hidden />
             </Link>
             <div className="min-w-0 flex-1">
@@ -535,14 +531,12 @@ export default function TripPage() {
           </div>
           <div className="mt-2 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-2.5">
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold">{from}</p>
+              <p className="break-words text-[14px] font-semibold leading-snug">{from}</p>
               <p className="text-[11.5px] text-drv-mute">{timeOf(trip.startedAt)}</p>
             </div>
-            <div className="relative grid h-[18px] w-16 place-items-center before:absolute before:inset-x-0 before:top-1/2 before:border-t-[1.5px] before:border-dashed before:border-[#D3D3CF]">
-              <Bus className="relative h-[15px] w-[26px] bg-white px-[5px] text-drv-green" aria-hidden />
-            </div>
+            <ArrowRight className="h-4 w-4 text-drv-mute" aria-hidden />
             <div className="min-w-0 text-right">
-              <p className="truncate text-[13px] font-semibold">{to}</p>
+              <p className="break-words text-[14px] font-semibold leading-snug">{to}</p>
               <p className="text-[11.5px] text-drv-mute">{endAt ? `~${endAt}` : "—"}</p>
             </div>
           </div>
@@ -581,10 +575,7 @@ export default function TripPage() {
             <div className="pointer-events-auto mt-[68px] w-full rounded-[14px] bg-drv-black px-3.5 py-3 text-white shadow-[0_8px_24px_rgba(0,0,0,.25)]">
               <p className="text-[14px] font-semibold">{L({ hi: "फ़ोन की लोकेशन नहीं मिल रही", en: "Can't get the phone's location" })}</p>
               <p className="mt-1 text-[13px] leading-snug text-white/85">
-                {gpsProblem === "denied" ? L({ hi: "\u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u0940 \u0907\u091c\u093e\u091c\u093c\u0924 \u0926\u0947\u0902\u0964", en: "Location permission is blocked. Allow it in your browser or phone settings." }) : gpsProblem === "stale" ? L({ hi: "\u0928\u0908 \u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u093e \u0907\u0902\u0924\u091c\u093c\u093e\u0930 \u0939\u0948\u0964", en: "The last location is too old. Waiting for a fresh fix." }) : null}
-              </p>
-              <p className="mt-1 text-[13px] leading-snug text-white/85">
-                {L({ hi: "फ़ोन में Location चालू करें और इस ऐप को लोकेशन की इजाज़त दें। तभी बस नक्शे पर दिखेगी और स्टॉप का अलर्ट आएगा।", en: "Turn on Location and allow this app to use it. Only then the bus shows on the map and stop alerts come." })}
+                {gpsProblem === "denied" ? L({ hi: "\u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u0940 \u0907\u091c\u093e\u091c\u093c\u0924 \u0926\u0947\u0902\u0964", en: "Location permission is blocked. Allow it in your browser or phone settings." }) : gpsProblem === "stale" ? L({ hi: "\u0928\u0908 \u0932\u094b\u0915\u0947\u0936\u0928 \u0915\u093e \u0907\u0902\u0924\u091c\u093c\u093e\u0930 \u0939\u0948\u0964", en: "The last location is too old. Waiting for a fresh fix." }) : L({hi:"फ़ोन की Location चालू करें और इस ऐप को अनुमति दें।",en:"Turn on Location and allow this app to use it."})}
               </p>
               <button onClick={() => setGpsTry((x) => x + 1)} className="mt-2.5 min-h-[48px] rounded-[10px] bg-drv-yellow px-3.5 py-2 text-[14px] font-semibold text-black active:translate-y-px">
                 {L({ hi: "फिर कोशिश करें", en: "Try again" })}

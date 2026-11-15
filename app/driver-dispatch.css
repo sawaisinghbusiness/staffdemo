@@ -13,7 +13,6 @@
 .dispatch-ready{color:#596158;font-size:12px;white-space:nowrap}
 .dispatch-running{color:#0C7158;font-size:12px;font-weight:650;white-space:nowrap}
 .dispatch-sheet h2{font-size:23px;line-height:1.25;font-weight:650;letter-spacing:-.025em;overflow-wrap:anywhere}
-.dispatch-direction{font-size:14px;color:#596158;margin-top:5px}
 .dispatch-destination{display:flex;gap:14px;margin:23px 0 20px}
 .dispatch-destination p{color:#596158;font-size:12px}.dispatch-destination strong{font-size:17px;font-weight:600;line-height:1.4;display:block;margin-top:4px}
 .dispatch-destination .dispatch-end{font-size:13px;line-height:1.5;margin-top:12px}
@@ -36,24 +35,45 @@
 
 /* Motion conveys navigation, a deliberate selection and saved feedback; never fake activity. */
 @media(prefers-reduced-motion:no-preference){
- .driver-route-enter{animation:driverRouteIn .22s cubic-bezier(.16,1,.3,1)}
- .drv button,.drv .dispatch-start,.drv a.d-btn{transition:background-color .14s ease,color .14s ease,border-color .18s ease,transform .14s ease}
+
+ .drv button,.drv .dispatch-start,.drv a.d-btn{transition:background-color var(--driver-motion-press,.14s) ease,color var(--driver-motion-press,.14s) ease,border-color var(--driver-motion-disclosure,.18s) ease,transform var(--driver-motion-press,.14s) ease}
  .drv button:active:not(:disabled),.drv .dispatch-start:active,.drv a.d-btn:active{transform:translateY(1px)}
- .dispatch-tabs button{transition:color .18s ease,border-color .2s ease}
+ .dispatch-tabs button{transition:color var(--driver-motion-disclosure,.18s) ease,border-color .2s ease}
  .dispatch-start>svg{transition:transform .18s cubic-bezier(.16,1,.3,1)}
  .dispatch-start:hover>svg{transform:translateX(3px)}
  .drv button[aria-pressed=true]>svg{animation:driverCheckIn .18s cubic-bezier(.16,1,.3,1)}
  .drv[role=dialog],.drv [role=alertdialog]{animation:driverSheetIn .2s cubic-bezier(.16,1,.3,1)}
- @keyframes driverRouteIn{from{opacity:.65;transform:translateY(5px)}to{opacity:1;transform:none}}
+
  @keyframes driverCheckIn{from{transform:scale(.86)}to{transform:scale(1)}}
  @keyframes driverSheetIn{from{opacity:.6;translate:0 10px}to{opacity:1;translate:0 0}}
 }
 
 .driver-history-heading{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:4px 0 12px;border-bottom:1px solid #D8DED7}.driver-history-heading h2{font-size:19px;font-weight:650;line-height:1.4;letter-spacing:-.02em}.driver-history-heading p{font-size:12px;line-height:1.5;color:#59665E}.driver-history-records{padding-top:16px}.history-trip{padding:16px;background:#fff;border:1px solid #D8DED7;border-radius:13px}.history-trip header{display:flex;align-items:center;justify-content:space-between;gap:10px}.history-trip h3{font-size:15px;font-weight:600}.history-trip header>span{font-size:11px;line-height:1.4;border-radius:5px;padding:4px 7px;background:#EEF2EC;color:#526454}.history-trip header>.is-running{color:#0C7158;background:#E2F0E5}.history-trip-times{display:grid;grid-template-columns:1fr 20px 1fr;gap:18px;align-items:center;padding:20px 0 16px}.history-trip-times>div:last-child{text-align:right}.history-trip-times span{display:block;font-size:12px;color:#59665E}.history-trip-times time{display:block;font-size:23px;line-height:1.35;font-weight:650;letter-spacing:-.015em;margin-top:4px;font-variant-numeric:tabular-nums}.history-trip-times>svg{color:#859286}.history-trip-route{font-size:12px;line-height:1.5;color:#59665E;padding-bottom:12px}.history-trip footer{border-top:1px solid #E2E7DE;padding-top:12px;font-size:12px;line-height:1.5;color:#465448;display:flex;gap:8px;flex-wrap:wrap}.history-trip-delay{margin-top:10px;font-size:12px;color:#795900}.driver-history-date{touch-action:manipulation;min-height:68px}
-.salary-slip-detail{display:grid;grid-template-rows:0fr}.salary-slip-detail[data-open=true]{grid-template-rows:1fr}.salary-slip-detail>div{overflow:hidden;min-height:0}.salary-slip-arrow{transition:transform .18s ease-out}.salary-slip-detail{transition:grid-template-rows .18s ease-out}
-@media(prefers-reduced-motion:no-preference){.driver-history-day{animation:historyDayIn .18s cubic-bezier(.2,.8,.2,1)}.driver-history-records{animation:historyRecordIn .2s cubic-bezier(.2,.8,.2,1)}.driver-history-date{transition:background-color .16s ease,color .16s ease}.driver-history-date:active{transform:translateY(1px)}@keyframes historyDayIn{from{opacity:.6;translate:0 4px}to{opacity:1;translate:0 0}}@keyframes historyRecordIn{from{opacity:.55;translate:0 6px}to{opacity:1;translate:0 0}}}
+.salary-slip-detail{display:grid;grid-template-rows:0fr}.salary-slip-detail[data-open=true]{grid-template-rows:1fr}.salary-slip-detail>div{overflow:hidden;min-height:0}.salary-slip-arrow{transition:transform var(--driver-motion-disclosure,.18s) ease-out}.salary-slip-detail{transition:grid-template-rows var(--driver-motion-disclosure,.18s) ease-out}
+/* Trip record: the dark pill glides to the picked day, and that day's record slides in from its side
+   (a later day from the right, an earlier one from the left). While the next day loads, the current one fades back a little. */
+.driver-history-pill{position:absolute;top:0;bottom:0;left:0;width:calc((100% - 24px)/7);border-radius:999px;background:#0A0A0A;transform:translateX(calc(var(--picked,6)*(100% + 4px)));pointer-events:none}
+.driver-history-day{transition:opacity .15s ease}.driver-history-day[data-loading=true]{opacity:.55}
+.driver-history-date:active{transform:scale(.96)}
+@media(prefers-reduced-motion:no-preference){
+.driver-history-pill{transition:transform 300ms cubic-bezier(.32,.72,0,1)}
+.driver-history-date{transition:color .15s ease,transform .15s cubic-bezier(.32,.72,0,1)}
+.driver-history-day[data-dir="1"]{animation:historyDayFromRight 260ms cubic-bezier(.32,.72,0,1)}
+.driver-history-day[data-dir="-1"]{animation:historyDayFromLeft 260ms cubic-bezier(.32,.72,0,1)}
+@keyframes historyDayFromRight{from{opacity:0;transform:translateX(24px)}to{opacity:1;transform:none}}
+@keyframes historyDayFromLeft{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+}
 @media(prefers-reduced-motion:reduce){.salary-slip-detail,.salary-slip-arrow{transition:none}}
 
-.driver-bus-position{display:grid;place-items:center;width:52px;height:62px;filter:drop-shadow(0 3px 4px rgba(20,35,25,.3))}.driver-trip-secondary{display:flex;align-items:center;gap:7px;min-height:42px;font-size:13px;color:#465448;padding:6px 3px;background:transparent;border:0}.driver-trip-secondary svg{transition:transform .18s ease}
+.driver-bus-position{display:grid;place-items:center;width:52px;height:62px;filter:drop-shadow(0 3px 4px rgba(20,35,25,.3))}.driver-trip-secondary{display:flex;align-items:center;gap:7px;min-height:44px;font-size:14px;color:#465448;padding:6px 3px;background:transparent;border:0}.driver-trip-secondary svg{transition:transform var(--driver-motion-disclosure,.18s) ease}
 
-.dispatch-stops-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;min-height:56px;padding:12px 0;border-top:1px solid #D8DED7;border-bottom:1px solid #D8DED7;font-size:17px;font-weight:600;text-align:left}.dispatch-stops-toggle>svg{flex-shrink:0;color:#59665E;transition:transform .2s ease-out}.dispatch-stops-toggle>svg.is-open{transform:rotate(180deg)}.dispatch-stops-reveal{display:grid;grid-template-rows:0fr;transition:grid-template-rows .22s cubic-bezier(.2,.8,.2,1)}.dispatch-stops-reveal>div{min-height:0;overflow:hidden;visibility:hidden;transition:visibility 0s .22s}.dispatch-stops-reveal[data-open=true]{grid-template-rows:1fr}.dispatch-stops-reveal[data-open=true]>div{visibility:visible;transition-delay:0s}@media(prefers-reduced-motion:reduce){.dispatch-stops-reveal,.dispatch-stops-toggle>svg,.dispatch-stops-reveal>div{transition:none}}
+.dispatch-stops-toggle{display:flex;align-items:center;justify-content:space-between;gap:16px;width:100%;min-height:56px;padding:12px 0;border-top:1px solid #D8DED7;border-bottom:1px solid #D8DED7;font-size:17px;font-weight:600;text-align:left}.dispatch-stops-toggle>svg{flex-shrink:0;color:#59665E;transition:transform .2s ease-out}.dispatch-stops-toggle>svg.is-open{transform:rotate(180deg)}.dispatch-stops-reveal{display:grid;grid-template-rows:0fr;transition:grid-template-rows var(--driver-motion-disclosure,.22s) cubic-bezier(.2,.8,.2,1)}.dispatch-stops-reveal>div{min-height:0;overflow:hidden;visibility:hidden;transition:visibility 0s .22s}.dispatch-stops-reveal[data-open=true]{grid-template-rows:1fr}.dispatch-stops-reveal[data-open=true]>div{visibility:visible;transition-delay:0s}@media(prefers-reduced-motion:reduce){.dispatch-stops-reveal,.dispatch-stops-toggle>svg,.dispatch-stops-reveal>div{transition:none}}
+/* Vehicle card: a soft red glow OUTSIDE the card, only behind its two bottom corners (a quiet "AI" feel).
+   Two blurred red blobs sit under the corners and rise just a little above them; they breathe slowly.
+   The card is drawn on top, so nothing shows inside it or along its sides. */
+.dispatch-glow{position:relative}
+.dispatch-glow>.dispatch-sheet{position:relative;z-index:1}
+.dispatch-glow::before,.dispatch-glow::after{content:"";position:absolute;z-index:0;bottom:-12px;width:96px;height:44px;border-radius:50%;background:radial-gradient(closest-side,rgba(239,68,68,.55),rgba(239,68,68,.22) 60%,transparent);filter:blur(12px);pointer-events:none}
+.dispatch-glow::before{left:-14px}.dispatch-glow::after{right:-14px}
+@media(prefers-reduced-motion:no-preference){.dispatch-glow::before,.dispatch-glow::after{animation:dispatchGlow 5.5s ease-in-out infinite}}
+@keyframes dispatchGlow{0%,100%{opacity:.65}50%{opacity:1}}

@@ -182,7 +182,7 @@ export function BusMap({
     return cancel;
   }, [ready, bus?.lat, bus?.lng, heading, follow, view, bottomInset]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const btn = "grid h-10 w-10 place-items-center rounded-[10px] bg-white text-drv-ink shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)] active:bg-drv-soft";
+  const btn = "grid h-12 w-12 place-items-center rounded-[10px] bg-white text-drv-ink shadow-[0_1px_2px_rgba(0,0,0,.08),0_4px_14px_rgba(0,0,0,.10)] active:bg-drv-soft";
 
   return (
     // `className` sets the position too (the trip screen passes `absolute inset-0`).

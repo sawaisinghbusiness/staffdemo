@@ -54,6 +54,7 @@ export default function LeavePage() {
   const [tab, setTab] = useState<Tab>("mine");
   const teacher = me?.role === "teacher";
   const reqs = useApi<{ requests: Req[] }>(teacher ? "/leave-requests" : null);
+  useEffect(() => { window.dispatchEvent(new CustomEvent("staff:leave-tab",{detail:tab})); },[tab]);
   const waiting = reqs.data?.requests.filter((r) => r.status === "pending").length || 0;
   useEffect(() => {
     if (new URLSearchParams(window.location.search).get("tab") === "requests") setTab("requests");

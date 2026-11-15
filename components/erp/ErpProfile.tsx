@@ -11,7 +11,7 @@ import { Avatar, Sheet, Skeleton } from "@/components/ui";
 
 /*
  * ERP login → Profile (user's approved preview, 2026-10-26, PhonePe-like): who is signed in, then grouped rows:
- * Account (password, language), School (school, users, WhatsApp), Help (School Sahayak), and Log out.
+ * Account (password, language), School (school, users, WhatsApp), Help (AI Assistant), and Log out.
  */
 
 const ROLE: Record<string, { hi: string; en: string }> = {
@@ -119,7 +119,7 @@ export function ErpProfile() {
       </Group>
 
       <Group title={L({ hi: "मदद", en: "Help" })}>
-        <Row icon={CircleHelp} text={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} href="/assistant/" last />
+        <Row icon={CircleHelp} text={L({ hi: "एआई असिस्टेंट से पूछें", en: "Ask AI Assistant" })} href="/assistant/" last />
       </Group>
 
       <button type="button" onClick={logout} disabled={leaving} className="min-h-[50px] w-full rounded-2xl border border-ink-100 bg-white text-[15px] font-semibold text-rose-700 active:bg-ink-50 disabled:opacity-60">

@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
@@ -20,7 +21,7 @@ import {
   type SchoolProfile,
   type SessionInfo,
 } from "@/lib/erpSettings";
-import { Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox, Sheet, StickyBar } from "@/components/ui";
+import { Empty, ErrorCard, LineTabs, ListSkeleton, RetryButton, SelectBox, Sheet, StickyBar } from "@/components/ui";
 
 /*
  * ERP login → Settings → School & sessions: the ERP's app/settings page.
@@ -63,9 +64,11 @@ function SchoolTab({ isAdmin, known }: { isAdmin: boolean; known: boolean }) {
     if (saved) setForm(saved);
   }, [saved]);
 
+  const dirty = !!form && !!saved && (Object.keys(form) as (keyof SchoolProfile)[]).some((k) => k !== "updated_at" && (form[k] || "") !== (saved[k] || ""));
+  useUnsavedChanges(dirty);
+
   if (!form || !saved) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />;
 
-  const dirty = (Object.keys(form) as (keyof SchoolProfile)[]).some((k) => k !== "updated_at" && (form[k] || "") !== (saved[k] || ""));
   const set = (k: keyof SchoolProfile, v: string) => setForm((f) => (f ? { ...f, [k]: v } : f));
   const ro = !isAdmin;
 
@@ -297,7 +300,7 @@ function SessionTab({ isAdmin }: { isAdmin: boolean }) {
   const [busy, setBusy] = useState<string | null>(null);
 
   if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={4} />;
-  if (data.error || !data.session?.start || !data.session?.end) return <div className="row-card space-y-3" role="alert"><p>{data.error || L({ hi: "शैक्षणिक सत्र उपलब्ध नहीं है।", en: "Academic session unavailable." })}</p><button type="button" onClick={reload} className="btn-line">{L({ hi: "फिर कोशिश करें", en: "Try again" })}</button></div>;
+  if (data.error || !data.session?.start || !data.session?.end) return <div className="row-card space-y-3" role="alert"><p>{data.error || L({ hi: "शैक्षणिक सत्र उपलब्ध नहीं है।", en: "Academic session unavailable." })}</p><RetryButton onRetry={reload} /></div>;
   const s = data.session;
   const holidays = data.holidays || [];
   const today = todayIso();

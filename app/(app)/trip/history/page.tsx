@@ -1,14 +1,14 @@
 "use client";
 
 import { ArrowRight } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import clsx from "clsx";
 import { useApi } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { weekdayDate } from "@/lib/format";
 import { DELAY_REASONS, type DayTrip, type History } from "@/lib/bus";
 import { ErrorCard, Skeleton } from "@/components/ui";
-import { Pin, timeOf } from "@/components/driver/parts";
+import { timeOf } from "@/components/driver/parts";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
@@ -22,14 +22,33 @@ export default function TripHistoryPage() {
     return d;
   });
   const [day, setDay] = useState(iso(week[6]));
+  // Which way the record slides in: from the right for a later day, from the left for an earlier one.
+  const [dir, setDir] = useState<1 | -1>(1);
   const { data: response, error, reload, stale } = useApi<History>(`/bus/history?date=${day}`);
-  const data = response?.date === day ? response : undefined;
+  const fresh = response?.date === day ? response : undefined;
+  // While the new day loads, the last day stays on screen (a little faded) instead of a grey box,
+  // and the new day slides in once, when its own record has arrived.
+  const [shown, setShown] = useState<History | undefined>(fresh);
+  useEffect(() => {
+    if (fresh) setShown(fresh);
+  }, [fresh]);
+  const data = fresh || shown;
+  const loading = !fresh;
+  const failed = !fresh && !!error && error.status !== 401;
   const ran = new Set(data?.days || []);
+  const picked = Math.max(0, week.findIndex((d) => iso(d) === day));
+  const pick = (k: string) => {
+    if (k === day) return;
+    setDir(k > day ? 1 : -1);
+    setDay(k);
+  };
 
   return (
-    <div className="drv space-y-4">
-      {stale && data && <p role="status" className="rounded-xl bg-drv-note p-3 text-[14px] text-drv-ink">{L({ hi: "\u092a\u0941\u0930\u093e\u0928\u093e \u0930\u093f\u0915\u0949\u0930\u094d\u0921 \u0926\u093f\u0916 \u0930\u0939\u093e \u0939\u0948\u0964", en: "Showing a saved record. Reconnect and refresh for updates." })}</p>}
-      <div className="grid grid-cols-7 gap-1" role="radiogroup" aria-label={L({ hi: "दिन चुनें", en: "Pick a day" })}>
+    <div className="drv driver-history space-y-4">
+      {stale && fresh && <p role="status" className="rounded-xl bg-drv-note p-3 text-[14px] text-drv-ink">{L({ hi: "पुराना रिकॉर्ड दिख रहा है।", en: "Showing a saved record. Reconnect and refresh for updates." })}</p>}
+      <div className="driver-history-week relative grid grid-cols-7 gap-1" role="radiogroup" aria-label={L({ hi: "दिन चुनें", en: "Pick a day" })} style={{ ["--picked" as string]: picked }}>
+        {/* One dark pill that glides to the picked day, so the switch is seen, not just the colour flipping. */}
+        <span className="driver-history-pill" aria-hidden />
         {week.map((d) => {
           const k = iso(d);
           const on = k === day;
@@ -38,8 +57,8 @@ export default function TripHistoryPage() {
               key={k}
               role="radio"
               aria-checked={on}
-              onClick={() => setDay(k)}
-              className={clsx("driver-history-date flex flex-col items-center gap-1.5 rounded-full pb-2.5 pt-2 text-[11px] font-medium", on ? "bg-drv-black text-[#B5B5B5]" : "text-drv-mute")}
+              onClick={() => pick(k)}
+              className={clsx("driver-history-date relative z-[1] flex flex-col items-center gap-1.5 rounded-full pb-2.5 pt-2 text-[12px] font-medium", on ? "text-[#B5B5B5]" : "text-drv-mute")}
             >
               {d.toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN", { weekday: "short" })}
               <b className={clsx("text-[14px] font-semibold", on ? "text-white" : "text-drv-ink")}>{d.getDate()}</b>
@@ -49,46 +68,47 @@ export default function TripHistoryPage() {
         })}
       </div>
 
-      <div key={day} className="driver-history-day">
-      <div className="driver-history-heading">
-        <h2>{weekdayDate(day, lang)}</h2>
-        <p className="text-[12px] text-drv-mute">{L({ hi: "रूट की जानकारी", en: data ? `${data.trips.length} trip records` : "Loading records…" })}</p>
-      </div>
-
-      <div key={data ? `${day}:loaded` : `${day}:loading`} className="driver-history-records" aria-live="polite" aria-busy={!data}>
-      {!data ? (
-        error && error.status !== 401 ? (
-          <ErrorCard offline={error.status === 0} onRetry={reload} />
-        ) : (
-          <Skeleton className="h-48 w-full rounded-[14px]" />
-        )
-      ) : data.trips.length === 0 ? (
-        <p className="rounded-[12px] bg-drv-soft px-3.5 py-4 text-[13px] text-drv-mute">{L({ hi: "इस दिन कोई ट्रिप नहीं चली।", en: "No trips on this day." })}</p>
+      {failed ? (
+        <ErrorCard offline={error!.status === 0} onRetry={reload} />
+      ) : !data ? (
+        <Skeleton className="h-48 w-full rounded-[14px]" />
       ) : (
-        <>
-          <div className="space-y-5">
-            {data.trips.map((t) => (
-              <TripRow key={t.id} t={t} />
-            ))}
+        <div key={data.date} className="driver-history-day" data-dir={dir} data-loading={loading} aria-busy={loading}>
+          <div className="driver-history-heading">
+            <h2>{weekdayDate(data.date, lang)}</h2>
+            <p className="text-[12px] text-drv-mute">{L({ hi: `${data.trips.length} ट्रिप`, en: `${data.trips.length} trip${data.trips.length === 1 ? "" : "s"}` })}</p>
           </div>
-          <dl className="grid grid-cols-3 rounded-[12px] bg-drv-soft py-2.5 text-center">
-            <div>
-              <dd className="text-[15px] font-semibold">{data.km !== null ? `${(data.km * data.trips.length).toFixed(1)} km` : "—"}</dd>
-              <dt className="text-[11px] text-drv-mute">{L({ hi: "\u0930\u0942\u091f \u0915\u093e \u0905\u0928\u0941\u092e\u093e\u0928", en: "Route estimate" })}</dt>
-            </div>
-            <div className="border-l border-[#E2E2DE]">
-              <dd className="text-[15px] font-semibold">{data.trips.filter((t) => t.delay).length}</dd>
-              <dt className="text-[11px] text-drv-mute">{L({ hi: "देरी", en: "Delays" })}</dt>
-            </div>
-            <div className="border-l border-[#E2E2DE]">
-              <dd className="text-[15px] font-semibold">{data.trips.reduce((a, t) => a + t.ticked, 0)}</dd>
-              <dt className="text-[11px] text-drv-mute">{L({ hi: "चढ़े / उतरे", en: "On / off" })}</dt>
-            </div>
-          </dl>
-          <p className="text-[13px] leading-relaxed text-drv-mute">{L({ hi: "\u0926\u0942\u0930\u0940 \u0930\u0942\u091f \u0915\u0947 \u0905\u0928\u0941\u0938\u093e\u0930 \u0905\u0928\u0941\u092e\u093e\u0928 \u0939\u0948\u0964", en: "Distance is an estimate from the route length, not measured GPS distance travelled." })}</p>
-        </>
+
+          <div className="driver-history-records" aria-live="polite">
+            {data.trips.length === 0 ? (
+              <p className="rounded-[12px] bg-drv-soft px-3.5 py-4 text-[13px] text-drv-mute">{L({ hi: "इस दिन कोई ट्रिप नहीं चली।", en: "No trips on this day." })}</p>
+            ) : (
+              <>
+                <div className="space-y-5">
+                  {data.trips.map((t) => (
+                    <TripRow key={t.id} t={t} />
+                  ))}
+                </div>
+                <dl className="grid grid-cols-3 rounded-[12px] bg-drv-soft py-2.5 text-center">
+                  <div>
+                    <dd className="text-[15px] font-semibold">{data.km !== null ? `${(data.km * data.trips.length).toFixed(1)} km` : "—"}</dd>
+                    <dt className="text-[12px] text-drv-mute">{L({ hi: "रूट का अनुमान", en: "Route estimate" })}</dt>
+                  </div>
+                  <div className="border-l border-[#E2E2DE]">
+                    <dd className="text-[15px] font-semibold">{data.trips.filter((t) => t.delay).length}</dd>
+                    <dt className="text-[12px] text-drv-mute">{L({ hi: "देरी", en: "Delays" })}</dt>
+                  </div>
+                  <div className="border-l border-[#E2E2DE]">
+                    <dd className="text-[15px] font-semibold">{data.trips.reduce((a, t) => a + t.ticked, 0)}</dd>
+                    <dt className="text-[12px] text-drv-mute">{L({ hi: "चढ़े / उतरे", en: "Board / drop entries" })}</dt>
+                  </div>
+                </dl>
+                <p className="text-[13px] leading-relaxed text-drv-mute">{L({ hi: "दूरी रूट के अनुसार अनुमान है।", en: "Planned route distance · not GPS distance." })}</p>
+              </>
+            )}
+          </div>
+        </div>
       )}
-      </div></div>
     </div>
   );
 }

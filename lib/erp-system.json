@@ -211,6 +211,44 @@
       "status": "available"
     },
     {
+      "id": "fees/cheques",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "चेक (क्लियर होने बाकी)",
+        "en": "Unclear payments"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/cheques/",
+      "web": "/fees/cheques",
+      "status": "available"
+    },
+    {
+      "id": "fees/carry-forward",
+      "group": {
+        "hi": "रोज़ का काम",
+        "en": "Daily work"
+      },
+      "module": {
+        "hi": "फ़ीस",
+        "en": "Fees"
+      },
+      "title": {
+        "hi": "सत्र बंद: बकाया आगे",
+        "en": "Session close: carry dues"
+      },
+      "icon": "IndianRupee",
+      "app": "/erp/fees/carry-forward/",
+      "web": "/fees/carry-forward",
+      "status": "available"
+    },
+    {
       "id": "fees/receipts",
       "group": {
         "hi": "रोज़ का काम",
@@ -759,25 +797,6 @@
       "icon": "Bus",
       "app": "/erp/transport/",
       "web": "/transport",
-      "status": "available"
-    },
-    {
-      "id": "transport/students",
-      "group": {
-        "hi": "स्कूल",
-        "en": "School"
-      },
-      "module": {
-        "hi": "ट्रांसपोर्ट",
-        "en": "Transport"
-      },
-      "title": {
-        "hi": "बस के बच्चे",
-        "en": "Bus students"
-      },
-      "icon": "Bus",
-      "app": "/erp/transport/students/",
-      "web": "/transport/students",
       "status": "available"
     },
     {

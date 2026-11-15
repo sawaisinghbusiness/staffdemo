@@ -96,7 +96,7 @@ export default function ErpDuesPage() {
       <p className="text-[13px] text-ink-500">
         {report
           ? `${L({ hi: "आज तक", en: "As on" })} ${day(report.asOf)} · ${dueNames.length ? `${dueNames.join(", ")} ${L({ hi: "की फ़ीस देनी थी", en: dueNames.length > 1 ? "are due" : "is due" })}` : L({ hi: "अभी कोई किस्त देय नहीं", en: "no instalment is due yet" })}`
-          : L({ hi: "हर बच्चे की बाकी फ़ीस निकाली जा रही है…", en: "Working out every student's dues…" })}
+          : L({ hi: error ? "बाकी फ़ीस की जानकारी उपलब्ध नहीं है।" : "हर बच्चे की बाकी फ़ीस निकाली जा रही है…", en: error ? "Fee dues are unavailable." : "Working out every student's dues…" })}
       </p>
       {error && !report && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}
 
@@ -106,7 +106,7 @@ export default function ErpDuesPage() {
         <Figure
           label={s?.next ? `${s.next.name} · ${day(s.next.due)}` : L({ hi: "अगली किस्त", en: "Next instalment" })}
           value={s?.next ? lakh(s.next.amount) : "—"}
-          note={s?.next ? `${s.next.students.toLocaleString("en-IN")} ${L({ hi: "बच्चों से", en: "students" })}` : L({ hi: "सारी किस्तें देय हैं", en: "All instalments are due" })}
+          note={s?.next ? `${s.next.students.toLocaleString("en-IN")} ${L({ hi: "बच्चों से", en: "students" })}` : s ? L({ hi: "सारी किस्तें देय हैं", en: "All instalments are due" }) : ""}
           dot="bg-brand-500"
         />
         <Figure label={L({ hi: "समय पर", en: "Up to date" })} value={s ? s.upToDate.toLocaleString("en-IN") : "…"} note={s ? `${L({ hi: "कुल", en: "of" })} ${s.active.toLocaleString("en-IN")} ${L({ hi: "बच्चे", en: "students" })}` : ""} dot="bg-jade-500" />

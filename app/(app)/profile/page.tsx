@@ -88,10 +88,10 @@ export default function ProfilePage() {
         {me.role === "driver" && <AlertSetting />}
       </Group>
 
-      <Group title={L({ hi: "मदद", en: "Help" })}>
-        {me.school.officePhone && <GRow icon={Phone} text={L({ hi: "स्कूल ऑफ़िस को कॉल करें", en: "Call school office" })} value={me.school.officePhone} href={`tel:${me.school.officePhone.replace(/\s/g, "")}`} />}
-        {me.role !== "driver" && <GRow icon={CircleHelp} text={L({ hi: "स्कूल सहायक से पूछें", en: "Ask School Sahayak" })} href="/assistant/" last />}
-      </Group>
+      {(me.school.officePhone || me.role !== "driver") && <Group title={L({ hi: "मदद", en: "Help" })}>
+        {me.school.officePhone && <GRow icon={Phone} text={L({ hi: "स्कूल ऑफ़िस को कॉल करें", en: "Call school office" })} value={me.school.officePhone} href={`tel:${me.school.officePhone.replace(/\s/g, "")}`} last={me.role === "driver"} />}
+        {me.role !== "driver" && <GRow icon={CircleHelp} text={L({ hi: "एआई असिस्टेंट से पूछें", en: "Ask AI Assistant" })} href="/assistant/" last />}
+      </Group>}
 
       <button type="button" onClick={logout} disabled={leaving} className="min-h-[50px] w-full rounded-2xl border border-ink-100 bg-white text-[15px] font-semibold text-rose-700 active:bg-ink-50 disabled:opacity-60">
         {leaving ? "…" : L({ hi: "लॉग आउट", en: "Log out" })}

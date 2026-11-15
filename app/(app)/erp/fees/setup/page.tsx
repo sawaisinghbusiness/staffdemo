@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { useErpSession } from "@/lib/useErpSession";
 
 import { useEffect, useMemo, useState } from "react";
@@ -115,16 +116,7 @@ export default function ErpFeeSetupPage() {
 
   const dirty = useMemo(() => !!cfg && !!savedCfg && JSON.stringify(cfg) !== JSON.stringify(savedCfg), [cfg, savedCfg]);
   const problem = useMemo(() => (cfg ? validateConfig(cfg) : null), [cfg]);
-  // Leaving with unsaved changes loses them: ask first.
-  useEffect(() => {
-    if (!dirty) return;
-    const onLeave = (e: BeforeUnloadEvent) => {
-      e.preventDefault();
-      e.returnValue = "";
-    };
-    window.addEventListener("beforeunload", onLeave);
-    return () => window.removeEventListener("beforeunload", onLeave);
-  }, [dirty]);
+  useUnsavedChanges(dirty);
 
   async function save() {
     if (!cfg) return;

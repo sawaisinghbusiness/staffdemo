@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useMemo, useState } from "react";
 import clsx from "clsx";
@@ -71,6 +72,7 @@ function Create() {
   const [details, setDetails] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [files, setFiles] = useState<HomeworkFile[]>([]);
+  useUnsavedChanges(!!title.trim()||!!details.trim()||files.length>0);
   const [busy, setBusy] = useState(false);
   const setMsg = useToastMsg();
 
@@ -85,7 +87,7 @@ function Create() {
 
   if (!opts.data || !list.data) {
     const err = opts.error || list.error;
-    if (err && err.status !== 401) return <ErrorCard offline={err.status === 0} onRetry={() => { opts.reload(); list.reload(); }} />;
+    if (err && err.status !== 401) return <ErrorCard offline={err.status === 0} onRetry={() => Promise.all([opts.reload(), list.reload()])} />;
     return <ListSkeleton rows={3} />;
   }
 

@@ -86,7 +86,7 @@ export function ErpHome() {
             <span className="block truncate text-[12.5px] font-medium text-ink-500">{greet}</span>
             <span className="block truncate text-[17px] font-bold text-ink-900">{first}</span>
           </h1>
-          <Link href="/notice/" className="relative grid h-10 w-9 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
+          <Link href="/notice/" className="relative grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100" aria-label={unread ? `${unread} ${L({ hi: "नई सूचनाएँ", en: "new notices" })}` : L({ hi: "सूचनाएँ", en: "Notices" })}>
             <Bell className="h-[21px] w-[21px]" strokeWidth={2} aria-hidden />
             {unread > 0 && <CountBadge n={unread} className="absolute -right-1.5 -top-0.5" />}
           </Link>

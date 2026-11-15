@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { useErpSession } from "@/lib/useErpSession";
 
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -235,6 +236,8 @@ export default function ErpAdmissionPage() {
 
   const [form, setForm] = useState<Form | null>(null);
   useEffect(() => { if(!editing && lookups.nextSr) setForm(previous => previous && !previous.srNo ? {...previous, srNo:lookups.nextSr} : previous); }, [lookups.nextSr, editing]);
+  const [touched,setTouched]=useState(false);
+  const {markSaved}=useUnsavedChanges(touched);
   const [step, setStep] = useState(0);
   const [reached, setReached] = useState(0); // furthest step opened, for the ticks
   const [errors, setErrors] = useState<Errors>({});
@@ -315,10 +318,10 @@ export default function ErpAdmissionPage() {
   }, [feeSetup.data, form, editing]);
 
   const err = list.error || one.error;
-  if (!form) return err && err.status !== 401 ? <ErrorCard offline={err.status === 0} onRetry={() => (list.reload(), one.reload())} /> : <ListSkeleton rows={5} />;
+  if (!form) return err && err.status !== 401 ? <ErrorCard offline={err.status === 0} onRetry={() => Promise.all([list.reload(), one.reload()])} /> : <ListSkeleton rows={5} />;
 
   const set = <K extends Key>(key: K, value: Form[K]) =>
-    setForm((prev) => {
+    (setTouched(true), setForm((prev) => {
       const next = { ...prev!, [key]: value };
       if (key === "class") {
         next.section = lookups.sectionsOf(value as string)[0] || "";
@@ -330,7 +333,7 @@ export default function ErpAdmissionPage() {
       const checks = Array.from(tried);
       if (checks.length) setErrors(Object.assign({}, ...checks.map((s) => validate(s, next, lookups.takenSr, L))));
       return next;
-    });
+    }));
 
   const go = (i: number) => {
     const to = Math.max(0, Math.min(STEPS.length - 1, i));
@@ -445,9 +448,11 @@ export default function ErpAdmissionPage() {
         toast(false, L({ hi: "नाम, कक्षा, माता-पिता सेव हुए; बाकी जानकारी के लिए सर्वर पर नई SQL चलानी है।", en: "Name, class and parents are saved; the other details need the new SQL on the server." }));
       if (editing) {
         toast(true, L({ hi: `${res.data.name} की जानकारी सेव हो गई।`, en: `${res.data.name}'s details are saved.` }));
-        window.location.replace(`/erp/students/detail/?id=${encodeURIComponent(id)}`);
+        markSaved();setTouched(false);
+      window.location.replace(`/erp/students/detail/?id=${encodeURIComponent(id)}`);
         return;
       }
+      markSaved();setTouched(false);
       setSaved(res.data);
       list.reload();
       window.scrollTo(0, 0);
@@ -628,7 +633,7 @@ export default function ErpAdmissionPage() {
           null,
           <div className="flex items-center gap-3.5">
             <button type="button" onClick={() => photoInput.current?.click()} className="grid h-[104px] w-[84px] shrink-0 place-items-center overflow-hidden rounded-xl border-[1.5px] border-dashed border-ink-900 bg-white text-center text-[11.5px] text-ink-500">
-              {photoUrl ? <img src={photoUrl} alt="" className="h-full w-full object-cover" /> : <span>{L({ hi: "पासपोर्ट फ़ोटो", en: "Passport photo" })}</span>}
+              {photoUrl ? <img src={photoUrl} alt="" className="h-full w-full object-cover" /> : <span className="max-w-full break-words px-1">{L({ hi: "पासपोर्ट फ़ोटो", en: "Passport photo" })}</span>}
             </button>
             <div className="min-w-0 space-y-2">
               <p className="text-[13px] text-ink-500">{L({ hi: "साफ़ चेहरा, सादा पीछे। ID कार्ड, रिपोर्ट कार्ड और पेरेंट ऐप में दिखेगी।", en: "Clear face, plain background. It shows on the ID card, report card and the parent app." })}</p>

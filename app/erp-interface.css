@@ -63,3 +63,25 @@
 
 /* Persistent in-field labels need the same readable supporting-text role. */
 .erp-interface .field-box>small{color:var(--erp-muted);font-size:12px;line-height:1.35}
+
+/* Operational refinements; approved home/assistant/document identities stay scoped. */
+.fee-instalment[data-allocated=true]{border-color:#294E43;outline:1px solid #294E43;outline-offset:1px}
+.fee-instalment-status{display:inline-flex;align-items:center;gap:6px;border:1px solid #30363A;border-radius:999px;padding:1px 6px;background:white;color:#202124;font-size:12px;line-height:1.5}
+.fee-instalment-status i{width:7px;height:7px;border-radius:50%;background:#21A04F;flex:none}
+.fee-instalment[data-state=late] .fee-instalment-status i{background:#D93636}
+.erp-interface .field-box{min-width:0;height:auto;padding-block:10px}
+.erp-interface .field-box>input{min-width:0}
+.erp-interface .scroll-tabs button,.erp-interface .btn-sm{min-height:44px}
+
+/* Approved Petrol + Sand; scoped to ERP, including ERP portals. */
+.erp-interface{--erp-canvas:#F2EEE7;--erp-surface:#FFFEFA;--erp-ink:#263735;--erp-muted:#59635F;--erp-line:#D8D5CD;--erp-brand:#163F49;--erp-pressed:#E6EEEC;--action-primary:#163F49;--action-hover:#10323B;--action-pressed:#0C2830;--action-disabled:#D7DFDC;--action-disabled-ink:#43564C;}
+.erp-interface[data-action-theme],.erp-interface [data-action-theme]{--action-primary:#163F49;--action-hover:#10323B;--action-pressed:#0C2830;--action-disabled:#D7DFDC;--action-disabled-ink:#43564C;}
+.erp-interface .bg-white,.erp-interface>nav{background-color:var(--erp-surface)}
+.erp-interface>nav [aria-current=page]{color:#163F49}
+.erp-interface>nav li>span[aria-hidden]{background:#163F49}
+.erp-interface.erp-menu [tabindex="-1"]{background:#163F49;color:#FFFEFA}
+.erp-interface.erp-menu [tabindex="-1"] :is(.text-ink-900,.text-ink-800,.text-ink-700,.text-ink-600,.text-ink-500,.text-ink-400){color:#DCE8E7}
+.erp-interface.erp-menu a[aria-current=page]{background:#FFFEFA;color:#163F49}
+.erp-interface.erp-menu a[aria-current=page] *{color:inherit}
+.erp-interface.erp-menu [class*=border-ink]{border-color:#496A72}
+.erp-interface thead{background:#E6EEEC;color:#163F49}

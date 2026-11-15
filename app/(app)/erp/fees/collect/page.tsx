@@ -255,22 +255,23 @@ export default function ErpCollectFeePage() {
                   const cleared = calc.split.cleared.includes(i);
                   const tone = ins.outstanding === 0 ? "paid" : ins.overdue ? "late" : "open";
                   return (
-                    <div key={ins.name} className={clsx("rounded-xl border px-3 py-2.5", now > 0 ? "border-brand-500 ring-2 ring-brand-100" : "border-ink-100", tone === "paid" ? "bg-jade-50" : tone === "late" ? "bg-rose-50" : "bg-white")}>
+                    <div key={ins.name} data-state={tone} data-allocated={now>0} className="fee-instalment rounded-xl border border-ink-200 bg-white px-3 py-2.5">
                       <div className="flex items-center justify-between gap-1">
                         <span className="truncate text-[13px] font-semibold">{ins.name}</span>
                         <span className="shrink-0 text-[11.5px] text-ink-500">{dm(ins.due)}</span>
                       </div>
                       {tone === "paid" ? (
-                        <p className="mt-1 flex items-center gap-1 text-[13px] font-semibold text-jade-700">
-                          <Check className="h-3.5 w-3.5" strokeWidth={3} aria-hidden /> {L({ hi: "जमा", en: "Paid" })} {rupees(ins.amount)}
+                        <p className="mt-1 flex flex-wrap items-center gap-1 text-[13px] font-semibold text-ink-900">
+                          <span className="fee-instalment-status">{L({ hi: "जमा", en: "Paid" })}<i aria-hidden /></span> {rupees(ins.amount)}
                         </p>
                       ) : (
-                        <p className={clsx("tnum mt-1 text-[13px] font-bold", tone === "late" ? "text-rose-600" : "text-ink-900")}>
+                        <p className={clsx("tnum mt-1 flex flex-wrap items-center gap-x-1 gap-y-1 text-[13px] font-bold", "text-ink-900")}>
                           {rupees(ins.outstanding)}
+                          {tone==="late"&&<span className="fee-instalment-status mt-1">{L({hi:"देरी",en:"Overdue"})}<i aria-hidden /></span>}
                           <span className="ml-1 text-[11.5px] font-medium">{tone === "late" ? `· ${ins.daysLate}${L({ hi: " दिन देर", en: "d late" })}` : ins.paid > 0 ? L({ hi: "बाकी", en: "left" }) : ""}</span>
                         </p>
                       )}
-                      {now > 0 && <p className="mt-0.5 text-[11.5px] font-semibold text-brand-700">{cleared ? L({ hi: "इस पेमेंट से पूरी", en: "Cleared by this payment" }) : `${rupees(now)} ${L({ hi: "इस पेमेंट से", en: "from this payment" })}`}</p>}
+                      {now > 0 && <p className="mt-0.5 text-[11.5px] font-semibold text-brand-700">{cleared ? L({ hi: "इस पेमेंट से पूरी होगी", en: "Will be cleared by this payment" }) : `${rupees(now)} ${L({ hi: "इस पेमेंट से", en: "from this payment" })}`}</p>}
                     </div>
                   );
                 })}

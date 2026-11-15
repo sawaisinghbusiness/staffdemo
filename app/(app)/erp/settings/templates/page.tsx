@@ -42,7 +42,7 @@ export default function ErpMessageTemplatesPage() {
       <div className="flex items-center justify-between gap-2">
         <h2 className="mlabel">{L({ hi: "स्कूल के अपने", en: "The school's own" })}</h2>
         {isAdmin && (
-          <button type="button" onClick={() => setEdit("new")} className="flex min-h-[40px] items-center gap-1.5 rounded-full border-[1.5px] border-ink-900 bg-white px-3.5 text-[13.5px] font-semibold text-ink-900 active:bg-ink-100">
+          <button type="button" onClick={() => setEdit("new")} className="flex min-h-[44px] items-center gap-1.5 rounded-full border-[1.5px] border-ink-900 bg-white px-3.5 text-[13.5px] font-semibold text-ink-900 active:bg-ink-100">
             <Plus className="h-4 w-4" aria-hidden />
             {L({ hi: "नया टेम्पलेट", en: "New template" })}
           </button>
@@ -51,10 +51,10 @@ export default function ErpMessageTemplatesPage() {
       {!data.data.length ? (
         <Empty>{L({ hi: "अभी कोई अपना टेम्पलेट नहीं। जो मैसेज बार-बार भेजते हैं, उन्हें यहाँ एक बार लिख लें।", en: "No templates of your own yet. Write the messages you send often here once." })}</Empty>
       ) : (
-        <ul className="space-y-2.5">
+        <ul className="overflow-hidden rounded-xl border border-ink-200 bg-white divide-y divide-ink-100">
           {data.data.map((t) => (
             <li key={t.id}>
-              <button type="button" disabled={!isAdmin} onClick={() => setEdit(t)} className="glass-line card-in block w-full !rounded-2xl px-4 py-3 text-left disabled:cursor-default">
+              <button type="button" disabled={!isAdmin} onClick={() => setEdit(t)} className="block min-h-[44px] w-full bg-white px-4 py-3 text-left disabled:cursor-default">
                 <span className="flex items-center gap-2">
                   <span className="min-w-0 flex-1 truncate text-[15.5px] font-semibold text-ink-900">{t.title}</span>
                   <span className="shrink-0 rounded-full border border-ink-200 px-2 text-[11.5px] text-ink-500">{t.lang === "hi" ? "हिंदी" : "English"}</span>
@@ -67,9 +67,9 @@ export default function ErpMessageTemplatesPage() {
       )}
 
       <h2 className="mlabel pt-2">{L({ hi: "पहले से बने", en: "Built in" })}</h2>
-      <ul className="space-y-2">
+      <ul className="overflow-hidden rounded-xl border border-ink-200 bg-white divide-y divide-ink-100">
         {TEMPLATES.map((t) => (
-          <li key={t.key} className="rounded-2xl border border-ink-100 bg-white px-4 py-3">
+          <li key={t.key} className="px-4 py-3">
             <span className="block text-[14.5px] font-semibold text-ink-900">{L(t.title)}</span>
             <span className="mt-1 block line-clamp-2 whitespace-pre-line text-[13px] text-ink-500">{L(t.body)}</span>
           </li>

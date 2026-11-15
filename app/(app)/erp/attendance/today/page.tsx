@@ -93,7 +93,7 @@ export default function ErpAttendanceTodayPage() {
       {t && (
         <div className="rounded-2xl border border-ink-100 bg-white px-3.5 py-3">
           <div className="flex items-baseline justify-between">
-            <span className="text-[13px] font-medium text-ink-500">{L({ hi: "आज की उपस्थिति", en: "Present today" })}</span>
+            <span className="text-[13px] font-medium text-ink-500">{L({ hi: "दर्ज बच्चों में उपस्थित", en: "Present among marked" })}</span>
             <span className="tnum text-[12px] text-ink-400">
               {t.marked.toLocaleString("en-IN")} / {t.students.toLocaleString("en-IN")} {L({ hi: "बच्चों की लगी", en: "students marked" })}
             </span>

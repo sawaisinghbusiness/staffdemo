@@ -29,3 +29,15 @@
 .drv .driver-proximity-alert>*{flex-shrink:0}
 .drv .driver-proximity-alert>div:last-child{padding-top:24px}
 @media(max-height:650px){.drv .driver-proximity-alert{padding-top:20px!important}.drv .driver-proximity-alert .d-ripple{margin-top:16px;height:110px}.drv .driver-proximity-alert h2{margin-top:16px}}
+
+/* Driver roles: use semantic type and motion values across task screens. */
+.drv{--driver-type-caption:12px;--driver-type-support:14px;--driver-type-body:16px;--driver-type-section:20px;--driver-motion-press:140ms;--driver-motion-disclosure:180ms;--driver-motion-page:180ms;--driver-motion-settle:320ms;--driver-ease:cubic-bezier(.16,1,.3,1)}
+.drv [class~="text-[11px]"],.drv [class~="text-[11.5px]"]{font-size:var(--driver-type-caption)}
+.drv .history-trip-route,.drv .history-trip footer,.drv .dispatch-manifest{font-size:var(--driver-type-support)}
+.drv .driver-history-heading h2{font-size:var(--driver-type-section);font-weight:600}
+.drv .driver-history-records{min-height:220px}
+.drv .driver-history dl{font-variant-numeric:tabular-nums}
+.drv .driver-history dt{padding-inline:4px;line-height:1.45}
+.drv .driver-proximity-alert .d-ripple::before{animation-iteration-count:1}
+.driver-shell :focus-visible{outline:2px solid #0C7158;outline-offset:3px}
+@media(prefers-reduced-motion:reduce){.driver-shell *,.driver-shell *::before,.driver-shell *::after{animation:none!important;transition:none!important}}

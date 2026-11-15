@@ -1,4 +1,6 @@
 "use client";
+import { readEditorDraft, writeEditorDraft } from "@/lib/editorDrafts";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
@@ -45,6 +47,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
   const enc = encodeURIComponent;
   const { data: sheet, error, reload } = useApi<Sheet>(`/erp/exams/${examId}/sheet?section=${enc(section)}&subject=${enc(subject)}`);
   const [rows, setRows] = useState<Row[]>([]);
+  const draftKey = `erp:${examId}|${section}|${subject}`;
   const [saved, setSaved] = useState("");
   const [busy, setBusy] = useState(false);
   const [importResult,setImportResult]=useState<{matched:number;errors:string[]}|null>(null);
@@ -54,9 +57,10 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
   useEffect(() => {
     if (!sheet) return;
     const rs: Row[] = sheet.rows.map((r) => ({ studentId: r.studentId, rollNo: r.rollNo, name: r.name, absent: r.absent, values: Object.fromEntries(sheet.exam.components.map((p) => [p.key, typeof r.marks[p.key] === "number" ? String(r.marks[p.key]) : ""])) }));
-    setRows(rs);
+    setRows(JSON.parse(readEditorDraft(draftKey) || JSON.stringify(rs)));
     setSaved(JSON.stringify(rs));
-  }, [sheet]);
+  }, [sheet, draftKey]);
+  useEffect(() => { if(saved) writeEditorDraft(draftKey,JSON.stringify(rows)===saved?null:JSON.stringify(rows)); },[rows,saved,draftKey]);
 
   const parts = useMemo(() => sheet?.exam.components || [], [sheet]);
   const max = sheet?.exam.max || 100;
@@ -79,13 +83,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
   const filled = rows.filter((r) => r.absent || parts.some((p) => r.values[p.key] !== "")).length;
   const partial = rows.filter((r) => !r.absent && parts.some((p) => r.values[p.key] !== "") && parts.some((p) => r.values[p.key] === "")).length;
 
-  // Leaving with unsaved marks loses them: ask first.
-  useEffect(() => {
-    if (!dirty || locked) return;
-    const onLeave = (e: BeforeUnloadEvent) => e.preventDefault();
-    window.addEventListener("beforeunload", onLeave);
-    return () => window.removeEventListener("beforeunload", onLeave);
-  }, [dirty, locked]);
+  useUnsavedChanges(dirty && !locked, () => writeEditorDraft(draftKey,null));
 
   if (!sheet) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={8} />;
 
@@ -158,7 +156,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
         </p>
       ) : (
         <>
-          <p className="text-[12.5px] text-ink-500">{L({ hi: "कीबोर्ड पर आगे दबाएँ तो अगला बच्चा · a लिखें = अनुपस्थित", en: "Next on the keyboard moves down · type a for absent" })}</p>
+          <p className="text-[12.5px] text-ink-500">{L({ hi: "कीबोर्ड पर आगे दबाएँ तो अगला बच्चा · a लिखें = अनुपस्थित", en: "Next moves down · AB means Absent · type a for absent" })}</p>
           {rows.length > 0 && (
             <div className="grid grid-cols-2 gap-2">
               <button type="button" onClick={downloadSheet} className="btn-line min-h-[44px] text-[13.5px]">

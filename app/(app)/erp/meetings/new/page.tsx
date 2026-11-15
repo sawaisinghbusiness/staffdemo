@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useState } from "react";
 import clsx from "clsx";
@@ -28,6 +29,7 @@ export default function ErpNewMeetingPage() {
   const classes = cls.data?.data || [];
   const t = todayIST();
   const [f, setF] = useState({ title: "", kind: "ptm" as "ptm" | "general", className: "", section: "", host: "", date: t, start: "10:00", end: "12:00", slotMinutes: "10", place: "", onlineUrl: "", agenda: "" });
+  const {markSaved}=useUnsavedChanges(!!f.title.trim()||!!f.agenda.trim()||!!f.place.trim());
   const [busy, setBusy] = useState(false);
   const set = (k: keyof typeof f, v: string) => setF((p) => ({ ...p, [k]: v }));
   const sections = classes.find((c) => c.name === f.className)?.sections || [];
@@ -41,6 +43,7 @@ export default function ErpNewMeetingPage() {
     try {
       await api("/erp/meetings", { body: { ...f, slotMinutes: Number(f.slotMinutes) } });
       toast(true, L({ hi: "मीटिंग माता-पिता के ऐप में भेज दी।", en: "Meeting sent to parents' app." }));
+      markSaved();
       window.location.replace("/erp/meetings/");
     } catch (err) {
       toast(false, (err instanceof ApiError && err.message) || L({ hi: "सेव नहीं हुआ।", en: "Could not save." }));
@@ -119,6 +122,7 @@ export default function ErpNewMeetingPage() {
       {text("host", L({ hi: "किनके साथ (टीचर / प्रिंसिपल)", en: "With (teacher / principal)" }), "Neha Sharma")}
       {text("place", L({ hi: "जगह", en: "Place" }), "Room 4")}
       {text("onlineUrl", L({ hi: "ऑनलाइन लिंक (अगर हो)", en: "Online link (optional)" }), "https://meet.google.com/…")}
+      <label htmlFor="mt-agenda" className="block text-[14px] font-medium">{L({hi:"बैठक का विषय (वैकल्पिक)",en:"Agenda (optional)"})}</label>
       <textarea id="mt-agenda" value={f.agenda} onChange={(e) => set("agenda", e.target.value)} rows={3} className="textarea-box" placeholder={L({ hi: "किस बारे में (अगर लिखना हो)", en: "Agenda (optional)" })} />
       <button type="submit" disabled={busy} className="btn-primary w-full">
         {busy ? "…" : L({ hi: "माता-पिता को भेजें", en: "Send to parents" })}

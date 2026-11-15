@@ -7,6 +7,11 @@
 import { demoChats } from "./demoChats";
 
 export const DEMO = process.env.NEXT_PUBLIC_DEMO === "1";
+/**
+ * The driver's bus drives itself along the route, online as well as in the demo, so the phone's
+ * location is never read or asked for. Its moving position is still sent to the backend for parents.
+ */
+export const PRETEND_BUS = true;
 export const DEMO_CODE = "123456";
 
 const SESSION = "sa:demo-session";
@@ -97,7 +102,7 @@ interface Store {
   decided: Record<string, "approved" | "rejected">;
   subs: Record<string, Record<string, boolean>>; // homework id -> studentId -> submitted
   notes: any[];
-  bus: { trip: any | null; saved: Record<string, { lat: number; lng: number }> };
+  bus: { trip: any | null; saved: Record<string, { lat: number; lng: number }>; log?: any[] };
 }
 function load(): Store {
   const base: Store = { role: "teacher", att: {}, hw: [], marks: {}, leave: null, decided: {}, subs: {}, notes: [], bus: { trip: null, saved: {} } };
@@ -238,6 +243,52 @@ const SCHOOL_AT = { name: SCHOOL.name, lat: 25.7563, lng: 71.4002 };
 // One child is absent today, so the driver doesn't wait and gets no alert for them.
 const ABSENT_TODAY = "Rohit Saran";
 
+const localDay = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const at = (date: string, minutes: number) => `${date}T${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}:00+05:30`;
+
+/**
+ * Made-up runs for a past school day. Each date gets its own record (start and end times, children marked,
+ * stops reached, the odd delay or missed run), and the same date always gives the same record.
+ */
+function pastTrips(date: string) {
+  let seed = 0;
+  for (const ch of date) seed = (seed * 31 + ch.charCodeAt(0)) >>> 0;
+  const rand = () => {
+    seed = (seed * 1664525 + 1013904223) >>> 0;
+    return seed / 2 ** 32;
+  };
+  const weekday = new Date(date + "T00:00:00").getDay();
+  if (weekday === 0 || rand() < 0.08) return []; // Sunday, or a school holiday
+  const kids = BUS_STOPS.reduce((n, st) => n + st.kids.length, 0);
+  const first = BUS_STOPS[0].name;
+  const last = BUS_STOPS[BUS_STOPS.length - 1].name;
+  const reasons = ["traffic", "puncture", "road", "traffic", "other"];
+  const run = (kind: "morning" | "afternoon", startMin: number) => {
+    const delayed = rand() < 0.22;
+    const late = delayed ? 5 + Math.floor(rand() * 4) * 5 : 0;
+    const length = 42 + Math.floor(rand() * 14) + late;
+    const missedStop = rand() < 0.12;
+    const start = startMin + Math.floor(rand() * 16);
+    return {
+      id: `h-${date}-${kind[0]}`,
+      kind,
+      startedAt: at(date, start),
+      endedAt: at(date, start + length),
+      ticked: kids - 1 - Math.floor(rand() * 4),
+      stopsDone: BUS_STOPS.length - (missedStop ? 1 : 0),
+      firstStop: kind === "morning" ? first : last,
+      lastStop: kind === "morning" ? last : first,
+      delay: delayed ? { reason: reasons[Math.floor(rand() * reasons.length)], minutes: late, at: at(date, start + 15) } : null,
+    };
+  };
+  const trips = [run("morning", 6 * 60 + 40)];
+  // Saturdays are half days: the drop runs late morning, and now and then there is no drop at all.
+  if (weekday === 6) {
+    if (rand() < 0.75) trips.push(run("afternoon", 11 * 60 + 30));
+  } else trips.push(run("afternoon", 14 * 60));
+  return trips;
+}
+
 /**
  * The road line through the saved stops and the school, from the same free road service the
  * backend uses (OSRM), kept in this browser. Straight lines if it can't be reached.
@@ -356,23 +407,17 @@ export async function demoApi(path: string, method: string, body: any): Promise<
       const trip = s.bus.trip && s.bus.trip.startedAt.slice(0, 10) === new Date().toISOString().slice(0, 10) ? s.bus.trip : null;
       if (p === "/bus/route") return { route: await busRoute(s), trip };
       if (p === "/bus/history") {
-        // Today's runs from this browser, and a made-up morning run on the other school days.
+        // Past days: a made-up record of their own. Today: the runs finished in this browser, and the one running now.
         const date = /^\d{4}-\d{2}-\d{2}$/.test(q("date")) ? q("date") : t;
-        const day = new Date(date + "T00:00:00").getDay();
-        const past = date < t && day !== 0;
-        const trips = [
-          ...(past ? [{ id: `h-${date}-m`, kind: "morning", startedAt: `${date}T06:52:00+05:30`, endedAt: `${date}T07:41:00+05:30`, ticked: 13, stopsDone: 5, firstStop: "Gandhi Chowk", lastStop: "Ambedkar Circle", delay: null }] : []),
-          ...(past ? [{ id: `h-${date}-a`, kind: "afternoon", startedAt: `${date}T14:10:00+05:30`, endedAt: `${date}T14:58:00+05:30`, ticked: 13, stopsDone: 5, firstStop: "Ambedkar Circle", lastStop: "Gandhi Chowk", delay: day === 3 ? { reason: "traffic", minutes: 10, at: `${date}T14:30:00+05:30` } : null }] : []),
-          ...(date === t && trip ? [{ id: trip.id, kind: trip.kind, startedAt: trip.startedAt, endedAt: null, ticked: Object.keys(trip.marks).length, stopsDone: trip.done.length, firstStop: null, lastStop: null, delay: trip.delay || null }] : []),
-        ];
+        const doneToday = (s.bus.log || []).filter((x) => localDay(new Date(x.startedAt)) === t);
+        const running = trip ? [{ id: trip.id, kind: trip.kind, startedAt: trip.startedAt, endedAt: null, ticked: Object.keys(trip.marks).length, stopsDone: trip.done.length, firstStop: null, lastStop: null, delay: trip.delay || null }] : [];
+        const tripsOn = (d: string) => (d < t ? pastTrips(d) : d === t ? [...doneToday, ...running] : []);
+        const trips = tripsOn(date);
         const days = Array.from({ length: 14 }, (_, i) => {
           const d = new Date(date + "T00:00:00");
-          d.setDate(d.getDate() - i);
-          return d;
-        })
-          .filter((d) => d.getDay() !== 0)
-          .map((d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)
-          .filter((d) => d < t || (d === t && !!trip));
+          d.setDate(d.getDate() - 6 + i);
+          return localDay(d);
+        }).filter((d) => tripsOn(d).length > 0);
         return { date, trips, days, km: 6.8 };
       }
       if (p === "/bus/trip" && method === "POST") {
@@ -382,6 +427,13 @@ export async function demoApi(path: string, method: string, body: any): Promise<
       }
       if (!trip) throw new DemoError(409, "No trip is running. Start one from Home.");
       if (p === "/bus/trip/end" && method === "POST") {
+        // Keep the finished run, so today's record shows it (only the last few days are kept).
+        const order = trip.kind === "morning" ? BUS_STOPS : [...BUS_STOPS].reverse();
+        const cutoff = Date.now() - 8 * 86_400_000;
+        s.bus.log = [
+          ...(s.bus.log || []).filter((x) => Date.parse(x.startedAt) > cutoff),
+          { id: trip.id, kind: trip.kind, startedAt: trip.startedAt, endedAt: new Date().toISOString(), ticked: Object.keys(trip.marks).length, stopsDone: trip.done.length, firstStop: order[0].name, lastStop: order[order.length - 1].name, delay: trip.delay || null },
+        ];
         s.bus.trip = null;
         save(s);
         return { success: true };

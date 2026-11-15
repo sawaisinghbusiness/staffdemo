@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
@@ -61,6 +62,7 @@ export default function ErpNewMessagePage() {
   const [body, setBody] = useState("");
   const [onWebsite, setOnWebsite] = useState(false);
   const [until, setUntil] = useState(plusDays(7));
+  const {markSaved}=useUnsavedChanges(!!title.trim()||!!body.trim());
   const [preview, setPreview] = useState<Preview | null>(null);
   const [previewing, setPreviewing] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -140,6 +142,7 @@ export default function ErpNewMessagePage() {
     setBusy(true);
     try {
       const r = await api<{ data: Message }>("/erp/messages", { body: { title: title.trim(), body: body.trim(), lang, audience, showOnWebsite: onWebsite, websiteUntil: onWebsite ? until : null } });
+      markSaved();
       window.location.replace(`/erp/messages/detail/?id=${encodeURIComponent(r.data.id)}`);
     } catch (e) {
       toast(false, (e instanceof ApiError && e.message) || L({ hi: "मैसेज सेव नहीं हुआ।", en: "Could not save the message." }));
@@ -168,7 +171,7 @@ export default function ErpNewMessagePage() {
                 setKind(k.kind);
                 setPicked([]);
               }}
-              className={clsx("min-h-[44px] rounded-[10px] px-1 text-[13px] font-semibold", kind === k.kind ? "bg-white text-ink-900 shadow-sm" : "text-ink-500")}
+              className={clsx("min-h-[44px] min-w-0 break-words rounded-[10px] px-1 py-2 text-[13px] font-semibold", kind === k.kind ? "bg-white text-ink-900 shadow-sm" : "text-ink-500")}
             >
               {L(k.text)}
             </button>
@@ -204,7 +207,7 @@ export default function ErpNewMessagePage() {
       </section>
 
       <section className="space-y-2.5">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-[16px] font-bold text-brand-800">{L({ hi: "मैसेज", en: "Message" })}</h2>
           <div className="grid grid-cols-2 gap-1 rounded-lg bg-ink-100 p-0.5" role="radiogroup" aria-label={L({ hi: "भाषा", en: "Language" })}>
             {(["hi", "en"] as Lang[]).map((l) => (
@@ -231,6 +234,7 @@ export default function ErpNewMessagePage() {
           <input id="m-title" value={title} onChange={(e) => setTitle(e.target.value)} placeholder={L({ hi: "जैसे: दिवाली की छुट्टियाँ", en: "e.g. Diwali holidays" })} maxLength={120} />
         </label>
         <div>
+          <label htmlFor="m-body" className="mb-2 block text-[14px] font-medium">{L({hi:"मैसेज का पाठ",en:"Message text"})}</label>
           <textarea id="m-body" ref={bodyRef} value={body} onChange={(e) => setBody(e.target.value)} rows={6} lang={lang} className="textarea-box leading-relaxed" placeholder={L({ hi: "ऊपर से तैयार मैसेज चुनें, या अपना लिखें।", en: "Choose a ready message above, or write your own." })} />
           <p className={clsx("tnum mt-0.5 text-right text-[12px]", body.length > 1000 ? "text-rose-600" : "text-ink-400")}>{body.length}/1000</p>
           <div className="flex flex-wrap items-center gap-1.5 text-[12px]">

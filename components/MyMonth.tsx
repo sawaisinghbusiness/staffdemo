@@ -19,7 +19,7 @@ interface Month {
 // One colour per state, shared by the calendar and the key under it (user's spec, 2026-10-14):
 // present green, absent red, leave (and half day) yellow, school holiday blue. The day number on them is
 // white, so the fills are deep enough to read it.
-const FILL: Record<Mark | "hol", string> = { P: "bg-[#16a34a]", A: "bg-[#dc2626]", L: "bg-[#A16207]", H: "bg-[#A16207]", hol: "bg-[#2563eb]" };
+const FILL: Record<Mark | "hol", string> = { P: "bg-[#15803D]", A: "bg-[#dc2626]", L: "bg-[#A16207]", H: "bg-[#A16207]", hol: "bg-[#2563eb]" };
 const NAME: Record<Mark, { hi: string; en: string }> = {
   P: { hi: "उपस्थित", en: "Present" },
   A: { hi: "अनुपस्थित", en: "Absent" },

@@ -99,30 +99,38 @@ export const resetSlideDrag = () => {
 };
 
 /**
- * The one sound in the driver app: when the trip ends ("Electro success sound", public/sounds/driver/end.mp3).
- * Resolves after the sound has had time to play, so the screen can leave afterwards. Silent if the file is missing.
+ * Trip end sound ("Fantasy game success" from Mixkit, public/sounds/driver/end.mp3) with a firm buzz.
+ * The trip screen leaves at once and only leaves a note; Home plays the sound when it opens and sees the note,
+ * so the driver is never kept waiting on the trip screen. Silent if the file is missing.
  */
-export function playTripEnd(): Promise<void> {
-  return new Promise((resolve) => {
-    try {
-      const a = new Audio("/sounds/driver/end.mp3");
-      a.volume = 1;
-      const done = () => resolve();
-      a.addEventListener("ended", done, { once: true });
-      a.addEventListener("error", done, { once: true });
-      setTimeout(done, 2500); // never hold the driver on this screen
-      void a.play().catch(done);
-    } catch {
-      resolve();
+const END_FLAG = "driver:endSound";
+export function markTripEndSound() {
+  try {
+    sessionStorage.setItem(END_FLAG, "1");
+  } catch {
+    /* private mode: no end sound */
+  }
+}
+export function playTripEndIfNew() {
+  try {
+    if (sessionStorage.getItem(END_FLAG) !== "1") return;
+    sessionStorage.removeItem(END_FLAG);
+  } catch {
+    return;
+  }
+  const a = new Audio("/sounds/driver/end.mp3");
+  const play = () => a.play().then(() => void buzz([90, 50, 180]));
+  play().catch(() => {
+    // Held back because this page has not been touched yet: play on the first touch (next 15 seconds only).
+    const t = setTimeout(() => window.removeEventListener("pointerdown", again, true), 15_000);
+    function again() {
+      clearTimeout(t);
+      void play().catch(() => {});
     }
+    window.addEventListener("pointerdown", again, { once: true, capture: true });
   });
 }
 
-/**
- * Trip start sound ("success_low", public/sounds/driver/start.mp3). It plays when the trip screen has loaded,
- * not while the thumb is still sliding on the Home screen: the slide only leaves a note, and the trip screen
- * plays the sound once when it sees the note. Silent if the file is missing.
- */
 const START_FLAG = "driver:startSound";
 export function markTripStartSound() {
   try {
@@ -139,7 +147,8 @@ export function playTripStartIfNew() {
     return;
   }
   const a = new Audio("/sounds/driver/start.mp3");
-  const play = () => a.play();
+  // A firm double buzz with the sound, so the driver feels the trip has begun.
+  const play = () => a.play().then(() => void buzz([60, 40, 120]));
   play().catch(() => {
     // The phone held the sound back because the new page has not been touched yet: play it on the first touch
     // (for the next 15 seconds only), so it is still heard.
@@ -199,18 +208,4 @@ export function startTripClicks(): () => void {
     gone = true;
     document.removeEventListener("click", onClick, true);
   };
-}
-
-/** Ask the phone for its location now (the "Allow location?" question), so it is not asked mid-trip. */
-export function askForLocation(done?: (state: "ok" | "denied") => void) {
-  try {
-    if (!("geolocation" in navigator)) return done?.("denied");
-    navigator.geolocation.getCurrentPosition(
-      () => done?.("ok"),
-      (e) => done?.(e.code === 1 ? "denied" : "ok"),
-      { enableHighAccuracy: true, timeout: 20_000, maximumAge: 30_000 }
-    );
-  } catch {
-    done?.("denied");
-  }
 }

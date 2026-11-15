@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useState } from "react";
 import clsx from "clsx";
@@ -28,6 +29,7 @@ export default function NotesPage() {
   const [sec, setSec] = useState("");
   const [student, setStudent] = useState("");
   const [text, setText] = useState("");
+  useUnsavedChanges(!!text.trim());
   const [busy, setBusy] = useState(false);
   const setMsg = useToastMsg();
 

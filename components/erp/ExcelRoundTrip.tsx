@@ -106,9 +106,9 @@ export function ExcelRoundTrip({
 
       <section className="rounded-2xl border border-ink-100 bg-white p-4">
         <h2 className="text-[15px] font-bold">{L({ hi: "2. भरकर वापस डालें", en: "2. Upload it back" })}</h2>
-        <p className="mt-0.5 text-[13.5px] text-ink-600">{L({ hi: "Excel में File → Save As → CSV। पहले जाँच होगी, सेव तभी होगा जब आप कहेंगे।", en: "In Excel, File → Save As → CSV. It is checked first; nothing is saved until you say so." })}</p>
+        <p className="mt-0.5 text-[13.5px] text-ink-600">{L({ hi: "Excel (.xlsx, .xls) या CSV फ़ाइल चुनें। जाँचे गए बदलाव देखकर ही सेव करें।", en: "Choose an Excel (.xlsx, .xls) or CSV file. Review the checked changes before saving." })}</p>
         <button type="button" onClick={() => input.current?.click()} disabled={!!busy} className="btn-line mt-3 w-full disabled:opacity-60">
-          <Upload className="h-4 w-4" aria-hidden /> {busy === "check" ? L({ hi: "जाँच हो रही है…", en: "Checking…" }) : picked || L({ hi: "CSV फ़ाइल चुनें", en: "Choose Excel or CSV file" })}
+          <Upload className="h-4 w-4" aria-hidden /> {busy === "check" ? L({ hi: "जाँच हो रही है…", en: "Checking…" }) : picked || L({ hi: "Excel या CSV फ़ाइल चुनें", en: "Choose Excel or CSV file" })}
         </button>
         <input
           ref={input}

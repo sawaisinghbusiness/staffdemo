@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { Check, Copy, MessageCircle, Search, Trash2, Undo2 } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
@@ -29,6 +29,9 @@ export default function ErpMessageDetailPage() {
   const [view, setView] = useState<View>("pending");
   const [q, setQ] = useState("");
   const [copied, setCopied] = useState(false);
+  const [opened, setOpened] = useState<string | null>(null);
+  const [marking, setMarking] = useState(false);
+  const markingRef = useRef(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   useEffect(() => {
@@ -55,17 +58,19 @@ export default function ErpMessageDetailPage() {
   const next = rows.find((r) => r.status === "pending");
 
   async function setStatus(r: Recipient, status: "sent" | "pending") {
-    setRows((prev) => (prev || []).map((x) => (x.id === r.id ? { ...x, status, sent_at: status === "sent" ? new Date().toISOString() : null } : x)));
+    if(markingRef.current)return;
+    markingRef.current=true;setMarking(true);
     try {
       await api(`/erp/messages/${message!.id}/recipients/${r.id}`, { body: { status } });
-    } catch (e) {
-      setRows((prev) => (prev || []).map((x) => (x.id === r.id ? r : x)));
-      toast(false, (e instanceof ApiError && e.message) || L({ hi: "सेव नहीं हुआ।", en: "Could not save." }));
-    }
+      setRows(prev=>(prev||[]).map(x=>x.id===r.id?{...x,status,sent_at:status==="sent"?new Date().toISOString():null}:x));
+      setOpened(null);
+    } catch(e) {
+      toast(false,(e instanceof ApiError&&e.message)||L({hi:"स्थिति सेव नहीं हुई।",en:"Could not save the status."}));
+    } finally { markingRef.current=false;setMarking(false); }
   }
   const send = (r: Recipient) => {
     window.open(whatsappUrl(r.phone, r.text), "_blank", "noopener");
-    setStatus(r, "sent");
+    setOpened(r.id);
   };
   async function copyNumbers() {
     try {
@@ -106,9 +111,9 @@ export default function ErpMessageDetailPage() {
               {counts.sent.toLocaleString("en-IN")} <span className="text-[15px] font-semibold text-ink-400">/ {total.toLocaleString("en-IN")}</span>
             </p>
           </div>
-          {!next && (
+          {!next && total > 0 && (
             <span className="flex items-center gap-1 text-[13.5px] font-semibold text-jade-700">
-              <Check className="h-4 w-4" aria-hidden /> {L({ hi: "सबको मिल गया", en: "Everyone has it" })}
+              <Check className="h-4 w-4" aria-hidden /> {L({ hi: "सभी उपलब्ध नंबर भेजे हुए दर्ज हैं", en: "All available numbers marked sent" })}
             </span>
           )}
         </div>
@@ -120,7 +125,8 @@ export default function ErpMessageDetailPage() {
             <MessageCircle className="h-4 w-4" aria-hidden /> {L({ hi: "अगला भेजें:", en: "Send next:" })} {next.student_name.split(/,| और | and /)[0]}
           </button>
         )}
-        <p className="text-[12.5px] leading-relaxed text-ink-500">{L({ hi: "WhatsApp मैसेज लिखकर खुलेगा। वहाँ भेजें दबाएँ, फिर अगले के लिए यहाँ लौटें। हर एक यहाँ टिक होता जाएगा।", en: "WhatsApp opens with the message typed in. Press send there, then come back for the next parent. Each one is ticked off here as you go." })}</p>
+        {opened && rows.some(r=>r.id===opened&&r.status==="pending") && <div className="space-y-2 border-t border-ink-100 pt-3"><p className="text-[14px] leading-relaxed">{L({hi:"WhatsApp में भेज दिया है? तभी यहाँ दर्ज करें।",en:"Sent it in WhatsApp? Confirm the manual record here."})}</p><div className="flex flex-wrap gap-2"><button type="button" disabled={marking} onClick={()=>{const r=rows.find(r=>r.id===opened);if(r)void setStatus(r,"sent")}} className="btn-primary">{marking?L({hi:"सेव हो रहा है…",en:"Saving…"}):L({hi:"हाँ, भेज दिया",en:"Yes, I sent it"})}</button><button type="button" disabled={marking} className="btn-line" onClick={()=>setOpened(null)}>{L({hi:"अभी नहीं",en:"Not yet"})}</button></div></div>}
+        <p className="text-[12.5px] leading-relaxed text-ink-500">{L({ hi: "WhatsApp में भेजें, फिर लौटकर यहाँ पुष्टि करें। WhatsApp खोलने से भेजा हुआ दर्ज नहीं होगा।", en: "Send the message in WhatsApp, then return and confirm here. Opening WhatsApp does not mark it sent." })}</p>
       </section>
 
       <details className="rounded-2xl border border-ink-100 bg-white px-3.5 py-3">
@@ -140,8 +146,8 @@ export default function ErpMessageDetailPage() {
           { key: "skipped", text: `${L({ hi: "नंबर नहीं", en: "No number" })} ${counts.skipped}` },
         ]}
       />
-      <div className="flex gap-2">
-        <label className="field-box min-h-[46px] flex-1">
+      <div className="flex flex-col gap-2 min-[440px]:flex-row">
+        <label className="field-box min-h-[46px] min-w-0 flex-1">
           <Search aria-hidden />
           <input id="msg-search" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={L({ hi: "नाम, कक्षा या मोबाइल", en: "Name, class or mobile" })} autoComplete="off" />
         </label>
@@ -168,12 +174,12 @@ export default function ErpMessageDetailPage() {
                 </p>
               </div>
               {r.status === "pending" && (
-                <button type="button" onClick={() => send(r)} className="flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg border border-ink-200 px-3 text-[13px] font-semibold">
+                <button type="button" onClick={() => send(r)} disabled={marking} className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-ink-200 px-3 text-[13px] font-semibold">
                   <MessageCircle className="h-4 w-4 text-[#1FA855]" aria-hidden /> WhatsApp
                 </button>
               )}
               {r.status === "sent" && (
-                <button type="button" onClick={() => setStatus(r, "pending")} className="flex min-h-[38px] shrink-0 items-center gap-1.5 rounded-lg border border-ink-200 px-3 text-[13px] font-semibold text-ink-600">
+                <button type="button" onClick={() => setStatus(r, "pending")} disabled={marking} className="flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-lg border border-ink-200 px-3 text-[13px] font-semibold text-ink-600">
                   <Undo2 className="h-4 w-4" aria-hidden /> {L({ hi: "वापस", en: "Undo" })}
                 </button>
               )}

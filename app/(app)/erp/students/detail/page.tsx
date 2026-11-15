@@ -11,18 +11,12 @@ import { fullDate, phoneText, rupees } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { DOCS, shrinkScan } from "@/lib/erpDocs";
 import type { ErpStudentFull } from "@/lib/erpStudents";
-import { Avatar, Empty, ErrorCard, LineTabs, ListSkeleton, Status } from "@/components/ui";
+import { Avatar, Empty, ErrorCard, ListSkeleton, ScrollTabs } from "@/components/ui";
+import { AttendanceTab, LedgerTab, PaymentsTab, ResultsTab, SiblingsTab, SrRegisterTab, TimetableTab } from "@/components/erp/StudentProfileTabs";
+import { HistoryTab, RefundsTab, RemarksTab, WalletTab } from "@/components/erp/StudentProfileOfficeTabs";
 
-type Tab = "details" | "fees" | "passes" | "docs";
-
-interface Receipt {
-  id: string;
-  receipt_no: string;
-  amount_paid: number;
-  payment_mode: string;
-  payment_date: string;
-  cancelled: boolean;
-}
+// Student profile 360 (docs/student-profile-360): more tabs come here as each feature is built.
+type Tab = "details" | "fees" | "ledger" | "payments" | "wallet" | "refunds" | "attendance" | "results" | "siblings" | "remarks" | "discipline" | "docs" | "passes" | "sr" | "timetable" | "history";
 
 /**
  * Documents: what the parent gave (ticked in the admission form) and the scans. Scans are in a private
@@ -127,7 +121,6 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
   );
 }
 
-const payMode = (m: string) => (/upi|qr/i.test(m) ? "UPI" : /cheque|dd/i.test(m) ? "Cheque" : "Cash");
 
 /** ERP login → one student: the ERP's student profile (details, fees with receipts, gate passes). */
 export default function ErpStudentDetailPage() {
@@ -139,7 +132,6 @@ export default function ErpStudentDetailPage() {
   useEffect(() => setId(new URLSearchParams(window.location.search).get("id") || ""), []);
   const enc = id ? encodeURIComponent(id) : "";
   const { data, error, reload } = useApi<{ data: ErpStudentFull }>(id ? `/erp/students/${enc}` : null);
-  const receipts = useApi<{ data: Receipt[] }>(id && tab === "fees" ? `/erp/fees/transactions?limit=50&studentId=${enc}` : null);
   const passes = useApi<{ data: GatePass[] }>(id && tab === "passes" ? `/erp/gate-passes?studentId=${enc}&limit=20` : null);
 
   if (!data) {
@@ -177,15 +169,27 @@ export default function ErpStudentDetailPage() {
         </div>
       </div>
 
-      <LineTabs
+      <ScrollTabs
         label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}
         value={tab}
         onChange={setTab}
         options={[
           { key: "details", text: L({ hi: "जानकारी", en: "Details" }) },
           { key: "fees", text: L({ hi: "फ़ीस", en: "Fees" }) },
-          { key: "passes", text: L({ hi: "गेट पास", en: "Passes" }) },
+          { key: "ledger", text: L({ hi: "खाता (लेजर)", en: "Ledger" }) },
+          { key: "payments", text: L({ hi: "रसीदें", en: "Payments" }) },
+          { key: "wallet", text: L({ hi: "वॉलेट", en: "Wallet" }) },
+          { key: "refunds", text: L({ hi: "रिफ़ंड", en: "Refunds" }) },
+          { key: "attendance", text: L({ hi: "हाज़िरी", en: "Attendance" }) },
+          { key: "results", text: L({ hi: "रिज़ल्ट", en: "Results" }) },
+          { key: "siblings", text: L({ hi: "भाई-बहन", en: "Siblings" }) },
+          { key: "remarks", text: L({ hi: "फ़ॉलो-अप", en: "Remarks" }) },
+          { key: "discipline", text: L({ hi: "अनुशासन", en: "Discipline" }) },
           { key: "docs", text: L({ hi: "कागज़", en: "Documents" }) },
+          { key: "passes", text: L({ hi: "गेट पास", en: "Gate passes" }) },
+          { key: "sr", text: L({ hi: "एस.आर. रजिस्टर", en: "SR register" }) },
+          { key: "timetable", text: L({ hi: "टाइम टेबल", en: "Timetable" }) },
+          { key: "history", text: L({ hi: "बदलाव का इतिहास", en: "Edit history" }) },
         ]}
       />
 
@@ -336,30 +340,29 @@ export default function ErpStudentDetailPage() {
             <IndianRupee className="h-4 w-4" aria-hidden /> {s.balanceFee > 0 ? L({ hi: `${rupees(s.balanceFee)} फ़ीस लें`, en: `Collect ${rupees(s.balanceFee)}` }) : L({ hi: "फ़ीस काउंटर", en: "Fee counter" })}
           </Link>
 
-          <section className="space-y-1">
-            <h2 className="mlabel">{L({ hi: "रसीदें", en: "Receipts" })}</h2>
-            {!receipts.data ? (
-              receipts.error && receipts.error.status !== 401 ? <ErrorCard offline={receipts.error.status === 0} onRetry={receipts.reload} /> : <ListSkeleton rows={3} />
-            ) : receipts.data.data.length === 0 ? (
-              <Empty>{L({ hi: "इस बच्चे की अभी कोई फ़ीस जमा नहीं हुई।", en: "No fee collected from this student yet." })}</Empty>
-            ) : (
-              <ul>
-                {receipts.data.data.map((t) => (
-                  <li key={t.id} className="flex min-h-[60px] items-center gap-3 border-b border-ink-100 py-2 last:border-0">
-                    <span className="min-w-0 flex-1">
-                      <span className={t.cancelled ? "tnum block text-[15.5px] font-semibold text-ink-400 line-through" : "tnum block text-[15.5px] font-semibold"}>{rupees(Number(t.amount_paid))}</span>
-                      <span className="block truncate text-[12.5px] text-ink-400">
-                        {fullDate(String(t.payment_date).slice(0, 10), lang)} · {payMode(t.payment_mode)} · {t.receipt_no}
-                      </span>
-                    </span>
-                    {t.cancelled && <Status tone="mute">{L({ hi: "रद्द", en: "Cancelled" })}</Status>}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
+          <div className="grid grid-cols-2 gap-2.5">
+            <button type="button" onClick={() => setTab("ledger")} className="btn-line">
+              {L({ hi: "पूरा खाता", en: "Full ledger" })}
+            </button>
+            <button type="button" onClick={() => setTab("payments")} className="btn-line">
+              {L({ hi: "सारी रसीदें", en: "All receipts" })}
+            </button>
+          </div>
         </>
       )}
+
+      {tab === "ledger" && <LedgerTab id={s.id} />}
+      {tab === "payments" && <PaymentsTab id={s.id} />}
+      {tab === "attendance" && <AttendanceTab id={s.id} />}
+      {tab === "results" && <ResultsTab id={s.id} />}
+      {tab === "siblings" && <SiblingsTab id={s.id} />}
+      {tab === "sr" && <SrRegisterTab s={s} />}
+      {tab === "timetable" && <TimetableTab id={s.id} />}
+      {tab === "wallet" && <WalletTab id={s.id} balanceDue={s.balanceFee} onPaid={reload} />}
+      {tab === "refunds" && <RefundsTab id={s.id} paid={s.paidFee} onDone={reload} />}
+      {tab === "remarks" && <RemarksTab id={s.id} kind="followup" />}
+      {tab === "discipline" && <RemarksTab key="discipline" id={s.id} kind="discipline" />}
+      {tab === "history" && <HistoryTab id={s.id} />}
 
       {tab === "passes" && (
         <section className="space-y-2">

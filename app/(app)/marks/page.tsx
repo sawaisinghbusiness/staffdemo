@@ -1,4 +1,6 @@
 "use client";
+import { readEditorDraft, writeEditorDraft } from "@/lib/editorDrafts";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useState } from "react";
 import clsx from "clsx";
@@ -100,10 +102,15 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
   const [vals, setVals] = useState<Record<string, Record<string, string>>>({});
   const [busy, setBusy] = useState(false);
   const setMsg = useToastMsg();
+  const draftKey = `teacher:${exam}|${section}|${subject}`;
+  const [saved, setSaved] = useState("");
+  const {confirmDiscard,markSaved} = useUnsavedChanges(!!data && !!saved && JSON.stringify(vals)!==saved, () => writeEditorDraft(draftKey,null));
 
   useEffect(() => {
-    if (data) setVals(Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.marks[p.key] == null ? "" : String(s.marks[p.key])]))])));
-  }, [data]);
+    if (data) { const initial = Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.marks[p.key] == null ? "" : String(s.marks[p.key])]))]));setSaved(JSON.stringify(initial)); }
+    if (data) setVals(JSON.parse(readEditorDraft(draftKey) || JSON.stringify(Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.marks[p.key] == null ? "" : String(s.marks[p.key])]))])))));
+  }, [data, draftKey]);
+  useEffect(() => { if(saved) writeEditorDraft(draftKey,JSON.stringify(vals)===saved?null:JSON.stringify(vals)); },[vals,saved,draftKey]);
 
   if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />;
 
@@ -120,6 +127,7 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
     setMsg(null);
     try {
       await api("/marks/sheet", { body: { exam, section, subject, marks: vals } });
+      setSaved(JSON.stringify(vals));markSaved();
       setMsg({ ok: true, text: L({ hi: "अंक सेव हो गए।", en: "Marks saved." }) });
     } catch (e) {
       setMsg({ ok: false, text: e instanceof ApiError && e.message ? e.message : L({ hi: "सेव नहीं हुआ।", en: "Could not save." }) });
@@ -130,7 +138,7 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
 
   return (
     <div className={clsx("animate-rise space-y-3", !locked && "pb-20")}>
-      <button onClick={onBack} className="-ml-1 flex min-h-[44px] items-center gap-1 text-[14px] font-semibold text-brand-600">
+      <button onClick={() => { if(confirmDiscard()){writeEditorDraft(draftKey,null);onBack();} }} className="-ml-1 flex min-h-[44px] items-center gap-1 text-[14px] font-semibold text-brand-600">
         <ChevronLeft className="h-4 w-4" aria-hidden /> {L({ hi: "बदलें", en: "Change" })}
       </button>
       <div className="row-card">

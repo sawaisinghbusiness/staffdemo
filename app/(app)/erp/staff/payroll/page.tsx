@@ -137,7 +137,7 @@ export default function ErpPayrollPage() {
       </div>
 
       {/* Figures */}
-      <div className="staff-summary grid grid-cols-2">
+      <div className="staff-summary grid grid-cols-2" style={{gridTemplateColumns:"repeat(auto-fit, minmax(min(100%, 9em), 1fr))"}}>
         <Figure label={L({ hi: "कुल सैलरी", en: "Net salary" })} value={rows ? inr(stats.net) : "…"} dot="bg-ink-400" />
         <Figure label={L({ hi: "दे दी", en: "Paid" })} value={rows ? inr(stats.paid) : "…"} dot="bg-jade-600" />
         <Figure label={L({ hi: "देनी बाकी", en: "To pay" })} value={rows ? inr(stats.due) : "…"} dot="bg-marigold-500" />
@@ -148,7 +148,7 @@ export default function ErpPayrollPage() {
 
       {/* Run / recalculate, and paying many at once */}
       <div className="flex gap-2">
-        <button type="button" onClick={run} disabled={running || !rows?.length || future} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#0D2A5E] px-4 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40">
+        <button type="button" onClick={run} disabled={running || !rows?.length || future} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl action-primary bg-[#0D2A5E] px-4 text-[15px] font-semibold text-white active:opacity-90 disabled:opacity-40">
           {running ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : stats.made ? <RefreshCw className="h-4 w-4" aria-hidden /> : <Play className="h-4 w-4" aria-hidden />}
           {stats.made ? L({ hi: "दोबारा हिसाब", en: "Recalculate" }) : L({ hi: "सैलरी बनाएँ", en: "Run payroll" })}
         </button>
@@ -238,7 +238,7 @@ export default function ErpPayrollPage() {
             <span className="min-w-0 flex-1 text-[14px] text-ink-600">
               <b className="text-ink-900">{picked.size}</b> {L({ hi: "चुनी", en: "selected" })} · <b className="tnum text-ink-900">{inr(pickedNet)}</b>
             </span>
-            <button type="button" onClick={() => setPayOpen(true)} className="min-h-[46px] rounded-xl bg-ink-900 px-5 text-[15px] font-semibold text-white active:opacity-90">
+            <button type="button" onClick={() => setPayOpen(true)} className="min-h-[46px] rounded-xl action-primary bg-ink-900 px-5 text-[15px] font-semibold text-white active:opacity-90">
               {L({ hi: "दी गई लिखें", en: "Mark paid" })}
             </button>
           </div>
@@ -300,7 +300,7 @@ function Figure({ label, value, dot }: { label: string; value: string; dot: stri
         <i className={clsx("h-2 w-2 rounded-full", dot)} aria-hidden />
         {label}
       </span>
-      <span className="tnum mt-1 block truncate text-[19px] font-bold text-ink-900">{value}</span>
+      <span className="tnum mt-1 block break-words text-[19px] font-bold text-ink-900">{value}</span>
     </div>
   );
 }
@@ -360,7 +360,7 @@ function PaySheet({ count, total, onClose, onPay }: { count: number; total: numb
           await onPay(paidOn, mode, ref);
           setBusy(false);
         }}
-        className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl bg-ink-900 text-[16px] font-semibold text-white disabled:opacity-50"
+        className="mt-4 flex min-h-[50px] w-full items-center justify-center gap-2 rounded-xl action-primary bg-ink-900 text-[16px] font-semibold text-white disabled:opacity-50"
       >
         {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
         {L({ hi: "दी गई लिखें", en: "Mark paid" })}
@@ -480,7 +480,7 @@ function SalarySheet({ row, onClose, onSaved }: { row: PayrollRow; onClose: () =
         <span className="min-w-0 flex-1 text-[13.5px] text-ink-600">
           {L({ hi: "हर महीने", en: "Net a month" })} <b className="tnum block text-[18px] text-ink-900">{inr(net)}</b>
         </span>
-        <button type="button" onClick={save} disabled={busy} className="flex min-h-[48px] items-center gap-2 rounded-xl bg-[#0D2A5E] px-6 text-[15px] font-semibold text-white disabled:opacity-50">
+        <button type="button" onClick={save} disabled={busy} className="flex min-h-[48px] items-center gap-2 rounded-xl action-primary bg-[#0D2A5E] px-6 text-[15px] font-semibold text-white disabled:opacity-50">
           {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
           {L({ hi: "सेव करें", en: "Save" })}
         </button>
@@ -626,7 +626,7 @@ function SlipSheet({ row, school, place, isAdmin, onClose, onEditSalary, onChang
         <div className="sticky bottom-0 -mx-4 mt-2 flex gap-2 border-t border-ink-100 bg-white px-4 pt-3">
           {draft ? (
             changed ? (
-              <button type="button" onClick={() => act(`/erp/payroll/slips/${slip.id}`, { lopDays: lop, bonus, advance }, L({ hi: "सैलरी बदल गई।", en: "Salary updated." }), false)} disabled={busy} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#0D2A5E] text-[15px] font-semibold text-white disabled:opacity-50">
+              <button type="button" onClick={() => act(`/erp/payroll/slips/${slip.id}`, { lopDays: lop, bonus, advance }, L({ hi: "सैलरी बदल गई।", en: "Salary updated." }), false)} disabled={busy} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl action-primary bg-[#0D2A5E] text-[15px] font-semibold text-white disabled:opacity-50">
                 {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden />}
                 {L({ hi: "बदलाव सेव करें", en: "Save changes" })}
               </button>
@@ -648,7 +648,7 @@ function SlipSheet({ row, school, place, isAdmin, onClose, onEditSalary, onChang
                   {L({ hi: "पेमेंट हटाएँ", en: "Undo payment" })}
                 </button>
               )}
-              <button type="button" onClick={() => setPrinting(true)} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl bg-[#0D2A5E] text-[15px] font-semibold text-white">
+              <button type="button" onClick={() => setPrinting(true)} className="flex min-h-[48px] flex-1 items-center justify-center gap-2 rounded-xl action-primary bg-[#0D2A5E] text-[15px] font-semibold text-white">
                 <Printer className="h-[18px] w-[18px]" aria-hidden />
                 {L({ hi: "स्लिप प्रिंट करें", en: "Print slip" })}
               </button>

@@ -41,3 +41,26 @@ Filled Save/Submit/Pay actions use shared evergreen #294E43; hover #203F36; pres
 ## Driver working interface
 
 Driver is scoped by .drv and .driver-shell; app/driver-interface.css owns warm canvas #F5F6F2, border #D8DED7, green #0C7158, secondary text #59665E, yellow #FFCB00 start and black task controls. Keep Inter/Noto, 16px gutters, 14px surfaces and 48-52px task controls. Personal salary/attendance/leave/notices inherit driver tokens; other roles stay unchanged. Trip owns its viewport: no general header or bottom navigation above task controls. Identity must resolve from server before role chrome; active trip state must not hydrate from persisted cache. See web docs/driver-review-2026-11-15/REPORT.md for research, implemented flow fixes, screenshots and verification limits. No assistant changes.
+
+### Driver detail refinement — Charles review
+
+Driver Home keeps its departure sheet and existing green/yellow identity. Language, notifications and profile use 44px touch areas; map controls use 48px. One destination is visually current in driver navigation. Caption/support/body/section tokens are 12/14/16/20px; route titles and journey times keep their approved emphasis. Type overrides are scoped to .drv.
+
+Use one history date-content transition rather than nested record entrances or a route entrance on every driver page. Press/disclosure/page/settling motion has named tokens; reduced motion covers driver chrome too. A stop-alert ripple runs once; automatic/manual closing stays user-controlled. Swipe invokes the action promptly, delays pending indication by 300ms and shows acceptance only after the callback succeeds. Preserve the local hold and feedback implementation. Long origin/destination names wrap in trip details; recovery instructions distinguish unavailable phone location from failed delivery to school. No assistant changes.
+
+Evidence and implementation details: web repository docs/driver-charles-audit-2026-11-15/IMPLEMENTATION.md.
+
+
+## Operating-screen review — Charles skills, 15 November 2026
+
+Preserve the approved homepage composition and assistant visuals. Continue evergreen ordinary actions, navy navigation, white work surfaces, dark text and outlined status labels with a trailing semantic dot. Fee allocation has a separate outline; it must not look like a paid receipt.
+
+Shared selectors support keyboard focus and wrap long values. Keep persistent form labels, 44px targeted actions and reachable save controls. Bottom-navigation text can wrap; do not force enlarged labels into a fixed-height row. Personal leave belongs to Profile; student leave requests belong to Home. Planned modules follow working modules.
+
+Failures must not masquerade as empty results, zero balances or offline diagnosis. Show when a saved resource could not refresh, await real retry promises and update manual message status only after the operator confirms and the API accepts it. Editors prompt before discarding changes; marks have memory-only recovery across soft navigation, cleared on sign-out. These guards are not a persistent-draft backend.
+
+Evidence: desktop repo docs/apps-charles-audit-2026-11-15/IMPLEMENTATION.md and implementation-browser/. All review API traffic is synthetic.
+
+
+## Approved Petrol + Sand
+ERP uses petrol #163F49 navigation and primary actions, sand #F2EEE7 canvas, ivory #FFFEFA work surfaces, #263735 ink and #D8D5CD dividers. Sidebar is petrol with ivory active rows. Status dots retain semantic colours. Scope excludes personal Staff, Parents, Driver, assistant and official print designs.

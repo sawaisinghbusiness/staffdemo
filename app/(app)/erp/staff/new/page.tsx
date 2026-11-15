@@ -1,4 +1,5 @@
 "use client";
+import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
 import { useEffect, useState } from "react";
 import clsx from "clsx";
@@ -80,6 +81,8 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
         }
       : EMPTY
   );
+  const [touched,setTouched]=useState(false);
+  const {markSaved}=useUnsavedChanges(touched);
   const [bad, setBad] = useState<keyof Form | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -90,7 +93,7 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
       .catch(() => null);
   }, [staff]);
 
-  const set = (k: keyof Form, v: string) => setF((x) => ({ ...x, [k]: v }));
+  const set = (k: keyof Form, v: string) => (setTouched(true),setF((x) => ({ ...x, [k]: v })));
   // Same as the ERP's setType.
   const setType = (t: StaffType) => setF((x) => ({ ...x, staffType: t, designation: DESIGNATIONS[t].includes(x.designation) || !x.designation ? "" : x.designation }));
 
@@ -112,6 +115,7 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
         ? await api<{ success: boolean; data: StaffMember }>(`/erp/staff/${staff.id}`, { method: "PATCH", body: input })
         : await api<{ success: boolean; data: StaffMember }>("/erp/staff", { method: "POST", body: input });
       toast(true, staff ? L({ hi: `${r.data.name} की जानकारी सेव हुई।`, en: `${r.data.name}'s details saved.` }) : L({ hi: `${r.data.name} स्टाफ़ में जुड़ गए (${r.data.empCode})।`, en: `${r.data.name} added to staff (${r.data.empCode}).` }));
+      markSaved();
       window.location.replace(`/erp/staff/detail/?id=${encodeURIComponent(r.data.id)}`);
     } catch (err) {
       toast(false, (err instanceof ApiError && err.message) || L({ hi: "सेव नहीं हुआ।", en: "Could not save." }));

@@ -201,7 +201,7 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
           <div className="flex items-center gap-3 border-b border-ink-100 px-4 pb-4 pt-4">
             {me?.school && <SchoolMark name={me.school.name} url={me.school.logoUrl} size={40} />}
             <p className="line-clamp-2 min-w-0 flex-1 text-[14px] font-semibold leading-tight text-ink-900">{me?.school.name}</p>
-            <button type="button" onClick={close} aria-label={L({ hi: "बंद करें", en: "Close" })} className="grid h-10 w-10 shrink-0 place-items-center rounded-full text-ink-700 active:bg-ink-100">
+            <button type="button" onClick={close} aria-label={L({ hi: "बंद करें", en: "Close" })} className="grid h-11 w-11 shrink-0 place-items-center rounded-full text-ink-700 active:bg-ink-100">
               <X className="h-5 w-5" aria-hidden />
             </button>
           </div>
@@ -246,12 +246,12 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
           <div className="flex items-center gap-2 border-t border-ink-100 px-4 py-3">
             <div className="flex rounded-lg border border-ink-200 p-0.5" role="group" aria-label={L({ hi: "भाषा", en: "Language" })}>
               {(["en", "hi"] as const).map((k) => (
-                <button key={k} type="button" onClick={() => setLang(k)} aria-pressed={lang === k} className={clsx("h-9 rounded-md px-3 text-[13px] font-semibold", lang === k ? "bg-ink-900 text-white" : "text-ink-600")}>
+                <button key={k} type="button" onClick={() => setLang(k)} aria-pressed={lang === k} className={clsx("min-h-[44px] rounded-md px-3 text-[13px] font-semibold", lang === k ? "bg-ink-900 text-white" : "text-ink-600")}>
                   {k === "en" ? "English" : "हिंदी"}
                 </button>
               ))}
             </div>
-            <button type="button" onClick={logout} disabled={leaving} className="ml-auto flex h-10 items-center gap-2 rounded-lg px-3 text-[14px] font-semibold text-rose-600 active:bg-rose-50 disabled:opacity-50">
+            <button type="button" onClick={logout} disabled={leaving} className="ml-auto flex min-h-[44px] items-center gap-2 rounded-lg px-3 text-[14px] font-semibold text-rose-600 active:bg-rose-50 disabled:opacity-50">
               <LogOut className="h-[18px] w-[18px]" aria-hidden />
               {L({ hi: "साइन आउट", en: "Sign out" })}
             </button>
