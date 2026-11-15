@@ -66,6 +66,8 @@ export default function TripPage() {
   const L = useL();
   const { data, error, reload } = useApi<RouteData>("/bus/route");
   const [route, setRoute] = useState<BusRoute | null>(null);
+  /** The road from the pretend bus to the next stop, when the route has too few saved places for a whole line. */
+  const [legPts, setLegPts] = useState<[number, number][]>([]);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [planKind, setPlanKind] = useState<TripKind>(defaultKind);
   const [pos, setPos] = useState<LatLng | null>(null);
@@ -187,7 +189,17 @@ export default function TripPage() {
     if (SIMULATE_BUS) {
       // A pretend bus that drives along the road line towards the next stop and waits there.
       const line = ptsRef.current;
-      let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || { lat: 25.75, lng: 71.4 };
+      // With no route line and no school place, start about 1.5 km before the first stop (the road service then
+      // snaps it onto a real road), never at a fixed point in another part of town.
+      const first = target.current;
+      let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || (first ? { lat: first.lat - 0.009, lng: first.lng - 0.007 } : { lat: 25.75, lng: 71.4 });
+      // When the saved places are too few for a whole road line, the bus drives each leg (here → next stop) on
+      // a road line fetched for that leg alone, and the map draws that leg.
+      let leg: [number, number][] | null = null;
+      let legFor = "";
+      let legIdx = 0;
+      let fetching = false;
+      setLegPts([]);
       let i = 0;
       // The road line can arrive or change after the trip has started (the phone fetches the road route when
       // the backend only had straight lines). Then find the bus again on the new line instead of following
@@ -201,6 +213,40 @@ export default function TripPage() {
         const to = target.current;
         if (!to) return;
         const ln = ptsRef.current;
+        const onRoute = ln.length >= 2 && metres({ lat: ln[nearestIdx(ln, to)][0], lng: ln[nearestIdx(ln, to)][1] }, to) < 80;
+        if (!onRoute) {
+          const key = `${to.lat.toFixed(5)},${to.lng.toFixed(5)}`;
+          if (legFor !== key) {
+            if (fetching) return;
+            fetching = true;
+            const from = p;
+            void roadPathFromPhone([[from.lat, from.lng], [to.lat, to.lng]]).then((road) => {
+              fetching = false;
+              leg = road?.pts?.length ? road.pts : [[from.lat, from.lng], [to.lat, to.lng]];
+              legFor = key;
+              legIdx = 0;
+              setLegPts(leg);
+            });
+            return;
+          }
+          let budget = 10;
+          for (let guard = 0; guard < 80 && budget > 0 && leg; guard++) {
+            const goal: LatLng = legIdx < leg.length ? { lat: leg[legIdx][0], lng: leg[legIdx][1] } : to;
+            const d = metres(p, goal);
+            if (d <= budget) {
+              p = goal;
+              budget -= d;
+              if (legIdx < leg.length) legIdx++;
+              else break;
+            } else {
+              p = { lat: p.lat + ((goal.lat - p.lat) * budget) / d, lng: p.lng + ((goal.lng - p.lng) * budget) / d };
+              budget = 0;
+            }
+          }
+          place(p);
+          setKmh(metres(p, to) < 8 ? 0 : 50);
+          return;
+        }
         if (ln !== cur) {
           cur = ln;
           if (ln.length && !onLine) {
@@ -531,7 +577,7 @@ export default function TripPage() {
 
   return (
     <Shell>
-      <BusMap stops={pins} path={pts} bus={pos} heading={heading} mode="nav" className="absolute inset-0" label={L({ hi: "लाइव नक्शा", en: "Live map" })} bottomInset={inset} />
+      <BusMap stops={pins} path={pts.length >= 2 ? pts : legPts} bus={pos} heading={heading} mode="nav" className="absolute inset-0" label={L({ hi: "लाइव नक्शा", en: "Live map" })} bottomInset={inset} />
 
       {/* Top left: the trip card opens from this button. */}
       <div className="pt-safe absolute inset-x-3 top-0 z-[600]">
