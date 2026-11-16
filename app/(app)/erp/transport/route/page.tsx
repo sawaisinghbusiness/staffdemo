@@ -49,6 +49,9 @@ export default function ErpTransportRoutePage() {
   const [formFor, setFormFor] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [printing, setPrinting] = useState(false);
+  // Which stop's map picker is open. Must stay up here with the other hooks: below the early returns it ran
+  // only once the data had come, React saw one hook more than before and the page crashed (2026-11-16).
+  const [picking, setPicking] = useState<number | null>(null);
 
   // Fill the form once the route is known (the ERP fills it when the drawer opens).
   useEffect(() => {
@@ -80,8 +83,7 @@ export default function ErpTransportRoutePage() {
     ridersRes.reload();
   };
 
-  const [picking, setPicking] = useState<number | null>(null);
-  const setStop = (i: number, patch: Partial<Stop>) => setF((pr) => ({ ...pr, stops: pr.stops.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
+  const setStop =(i: number, patch: Partial<Stop>) => setF((pr) => ({ ...pr, stops: pr.stops.map((s, j) => (j === i ? { ...s, ...patch } : s)) }));
   const moveStopRow = (i: number, d: number) =>
     setF((pr) => {
       const stops = [...pr.stops];

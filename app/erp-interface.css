@@ -36,7 +36,8 @@
 .erp-interface{scrollbar-color:#A8B1AA var(--erp-canvas)}
 /* Home retains its art; surface roles supply the hierarchy. */
 .erp-interface .erp-home{background:var(--erp-canvas);--home-line:var(--erp-line);--home-paper:var(--erp-canvas);--home-tint:var(--erp-canvas)}
-.erp-interface .erp-home-masthead{background:var(--erp-brand);color:#fff;border-bottom:1px solid #233F70}
+/* .bg-white in the selector too: the later `.erp-interface .bg-white` (surface colour) rule otherwise wins and the bar went pale with white text (2026-11-16). */
+.erp-interface .erp-home-masthead,.erp-interface .erp-home-masthead.bg-white{background:var(--erp-brand);color:#fff;border-bottom:1px solid #233F70}
 .erp-interface .erp-home-masthead h1,.erp-interface .erp-home-masthead .text-ink-900,.erp-interface .erp-home-masthead button,.erp-interface .erp-home-masthead>a{color:#fff}
 .erp-interface .erp-home-masthead .text-ink-500{color:#D0DCF0}
 .erp-interface .erp-home-masthead :focus-visible{outline-color:#fff}
