@@ -86,6 +86,10 @@
 [data-enter] .dv-card{animation:dv-land .62s var(--dv-settle) 90ms both,dv-show .14s linear 90ms both;animation-timing-function:var(--dv-spring),linear;transform-origin:50% 100%}
 [data-enter] .dv-in2{animation:dv-rise-s .42s var(--dv-settle) both,dv-show .12s linear both;animation-delay:calc(170ms + var(--i,0)*45ms)}
 [data-enter] .dv-mark i{animation:dv-draw .4s var(--dv-settle) .34s both;transform-origin:50% 0}
+.dv-again.dv-card{animation:dv-land .62s var(--dv-settle) both,dv-show .14s linear both;animation-timing-function:var(--dv-spring),linear;transform-origin:50% 100%}
+.dv-again .dv-in2{animation:dv-rise-s .42s var(--dv-settle) both,dv-show .12s linear both;animation-delay:calc(80ms + var(--i,0)*45ms)}
+.dv-again .dv-mark i{animation:dv-draw .4s var(--dv-settle) .24s both;transform-origin:50% 0}
+.dv-again.dispatch-stops{animation:dv-rise .46s var(--dv-settle) 120ms both,dv-show .12s linear 120ms both}
 .dispatch-stops-reveal[data-open=true] .dv-row{animation:dv-rise-s .34s var(--dv-settle) both,dv-show .12s linear both;animation-delay:calc(60ms + min(var(--i,0),8)*40ms)}
 @keyframes dv-rise{from{transform:translateY(14px)}}
 @keyframes dv-rise-s{from{transform:translateY(9px)}}
@@ -99,7 +103,7 @@
 @keyframes dv-sweep{from{background-position:-60vw 0}to{background-position:100vw 0}}
 [data-slow] .dv-value{animation:dv-sharpen .42s var(--dv-settle) both}
 @keyframes dv-sharpen{from{opacity:0;filter:blur(6px)}}
-@media(prefers-reduced-motion:reduce){.driver-dispatch .dv-in,.driver-dispatch .dv-in2,.driver-dispatch .dv-card,.driver-dispatch .dv-mark i,.driver-dispatch .dv-row,.driver-dispatch .dv-value,.dv-bar{animation:none!important}}
+@media(prefers-reduced-motion:reduce){.driver-dispatch .dv-again,.driver-dispatch .dv-again .dv-in2,.driver-dispatch .dv-in,.driver-dispatch .dv-in2,.driver-dispatch .dv-card,.driver-dispatch .dv-mark i,.driver-dispatch .dv-row,.driver-dispatch .dv-value,.dv-bar{animation:none!important}}
 /* Trip screen while the route is coming: the bottom sheet in its real place, rising in (no grey box). */
 .dv-trip-wait{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:20px 16px calc(64px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.06);animation:dv-rise .46s cubic-bezier(.2,.8,.2,1) both,dv-show .12s linear both}
 .dv-trip-wait .dv-slide-wait{margin-bottom:0}

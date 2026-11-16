@@ -33,6 +33,8 @@ export function DriverHome() {
   const [stopsOpen,setStopsOpen]=useState(false);
   const [startError,setStartError]=useState("");
   const [kind, setKind] = useState<TripKind>(defaultKind);
+  /** Set by the Morning / Afternoon switch: the fresh card and stop list then land with the Home entrance. */
+  const [switched, setSwitched] = useState(false);
   const first = me?.name.split(" ")[0] || "";
   // Opened without data (first visit, slow network): the shaped skeleton made the entrance, so when the data
   // comes the values only sharpen in place. Opened with data already kept from earlier: the page makes the entrance.
@@ -118,9 +120,11 @@ export function DriverHome() {
       {head}
       <div className="dispatch-main">
         <div className="dispatch-title dv-in" style={dvI(0)}><h1>{L({hi:"आज का सफ़र",en:"Today's route"})}</h1><span>{new Date().toLocaleDateString(lang === "hi" ? "hi-IN" : "en-IN",{day:"numeric",month:"short"})}</span></div>
-        {!running && <div className="dispatch-tabs dv-in" style={dvI(1)} role="radiogroup" aria-label={L({hi:"ट्रिप चुनें",en:"Which trip"})}>{(["morning","afternoon"] as const).map(x=><button key={x} role="radio" aria-checked={kind===x} onClick={()=>setKind(x)}>{x==="morning"?L({hi:"सुबह · स्कूल",en:"Morning · school"}):L({hi:"छुट्टी · घर",en:"Afternoon · home"})}</button>)}</div>}
+        {!running && <div className="dispatch-tabs dv-in" style={dvI(1)} role="radiogroup" aria-label={L({hi:"ट्रिप चुनें",en:"Which trip"})}>{(["morning","afternoon"] as const).map(x=><button key={x} role="radio" aria-checked={kind===x} onClick={()=>{if(x!==kind){setKind(x);setSwitched(true)}}}>{x==="morning"?L({hi:"सुबह · स्कूल",en:"Morning · school"}):L({hi:"छुट्टी · घर",en:"Afternoon · home"})}</button>)}</div>}
         {/* dispatch-glow: the soft red glow behind the card's two bottom corners only (driver-dispatch.css). */}
-        <div className="dispatch-glow dv-card"><section className="dispatch-sheet">
+        {/* key={kind}: switching Morning / Afternoon puts a fresh card in, so it lands again with the same
+            entrance as when Home opens (and the stop list below re-arrives), and the switch is felt. */}
+        <div key={kind} className={clsx("dispatch-glow dv-card", switched && "dv-again")}><section className="dispatch-sheet">
           <div className="dispatch-vehicle dv-in2" style={dvI(0)}><span><BusFront size={19} aria-hidden/><span className="dv-value">{r.vehicleNo || L({hi:"बस नंबर नहीं जुड़ा",en:"Vehicle not added"})}</span></span><span className={running?"dispatch-running":"dispatch-ready"}>{running?L({hi:"ट्रिप जारी",en:"Trip in progress"}):L({hi:"शुरू नहीं हुई",en:"Not started"})}</span></div>
           <h2 className="dv-in2" style={dvI(1)}><span className="dv-value">{r.name}</span></h2>
           <div className="dispatch-destination dv-in2" style={dvI(2)}>
@@ -133,7 +137,7 @@ export function DriverHome() {
           <div className="dv-in2" style={dvI(4)}>{running?<Link href="/trip/" className="dispatch-start">{L({hi:"ट्रिप जारी रखें",en:"Resume trip"})}<ArrowRight size={20}/></Link>:<SlideConfirm tone="yellow" sound="start" hold label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={!order.length} onConfirm={()=>{setStartError("");router.push(`/trip/?kind=${kind}`);return true}}/>}</div>
         </section></div>
         {r.absent.length>0 && <p className="dispatch-absence">{L({hi:`आज ${r.absent.length} बच्चे नहीं आएँगे। लिस्ट से हटा दिए हैं।`,en:`${r.absent.length} absent today, already excluded from the list.`})}</p>}
-        <section className="dispatch-stops dv-in" style={dvI(3)}><h2><button type="button" className="dispatch-stops-toggle" aria-expanded={stopsOpen} aria-controls="driver-todays-stops" onClick={()=>setStopsOpen(open=>!open)}><span>{L({hi:"आज के स्टॉप",en:"Today's stops"})}</span><ChevronDown size={19} aria-hidden className={stopsOpen?"is-open":""}/></button></h2><div className="dispatch-stops-reveal" data-open={stopsOpen} aria-hidden={!stopsOpen}><div id="driver-todays-stops"><ol>
+        <section key={`stops-${kind}`} className={clsx("dispatch-stops dv-in", switched && "dv-again")} style={dvI(3)}><h2><button type="button" className="dispatch-stops-toggle" aria-expanded={stopsOpen} aria-controls="driver-todays-stops" onClick={()=>setStopsOpen(open=>!open)}><span>{L({hi:"आज के स्टॉप",en:"Today's stops"})}</span><ChevronDown size={19} aria-hidden className={stopsOpen?"is-open":""}/></button></h2><div className="dispatch-stops-reveal" data-open={stopsOpen} aria-hidden={!stopsOpen}><div id="driver-todays-stops"><ol>
           {!morning && (<li className="dispatch-school"><School size={19} aria-hidden/><div><strong>{r.school.name}</strong><span>{morning?L({hi:"स्कूल पहुँचें",en:"Arrive at school"}):L({hi:"स्कूल से निकलें",en:"Depart from school"})}</span></div></li>)}
           {order.map((stop,i)=>{const passed=!!running?.done.includes(stop.name);const current=!!running&&next?.name===stop.name;return <li key={stop.name} className={clsx("dv-row",passed&&"is-done",current&&"is-next")} style={dvI(i)}><span className="dispatch-stop-number" aria-label={passed?L({hi:"पूरा",en:"Completed"}):undefined}>{passed?<Check size={15} aria-hidden/>:i+1}</span><div><strong>{stop.name}</strong><span>{stop.kids.length} {L({hi:"बच्चे",en:stop.kids.length===1?"child":"children"})}{current?` · ${L({hi:"अगला स्टॉप",en:"Next stop"})}`:""}</span></div><time>{morning&&stop.time?clock(stop.time):""}</time></li>})}
           {morning && (<li className="dispatch-school"><School size={19} aria-hidden/><div><strong>{r.school.name}</strong><span>{morning?L({hi:"स्कूल पहुँचें",en:"Arrive at school"}):L({hi:"स्कूल से निकलें",en:"Depart from school"})}</span></div></li>)}
