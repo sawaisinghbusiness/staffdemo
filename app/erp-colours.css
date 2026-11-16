@@ -1,0 +1,79 @@
+/* Approved Ink + Oxide. Shared by ERP web and ERP mode in Staff.
+   Screen-only scope preserves assistant, personal staff, driver and print identities. */
+@media screen {
+  .erp-shell,.erp-dialog,.erp-shell .erp-parity,.erp-interface {
+    --erp-canvas:#EEF1F5; --erp-paper:#FFFFFF; --erp-surface:#FFFFFF;
+    --erp-ink:#202938; --erp-muted:#536071; --erp-hint:#647582;
+    --erp-line:#D6DDE6; --erp-control:#7B8C99;
+    --erp-brand:#A43F20; --erp-brand-hover:#87341B; --erp-brand-pressed:#6D2916;
+    --erp-selection:#F2E7E2; --erp-pressed:#F2E7E2; --erp-hover:#EDF1F6;
+    --erp-rail:#242D3C; --erp-rail-hover:#354155;
+    --erp-on-rail:#F1F4F8; --erp-rail-muted:#C4CDDA; --erp-rail-line:#91A0B6;
+    --parity-ink:var(--erp-ink); --parity-muted:var(--erp-muted); --parity-line:var(--erp-line);
+    --staff-paper:var(--erp-canvas); --staff-ink:var(--erp-ink); --staff-muted:var(--erp-muted);
+    --staff-line:var(--erp-line); --staff-brand:var(--erp-brand);
+    --primary:14 67% 38.4%; --primary-dark:14 67% 31.8%; --primary-light:19 38% 92%;
+    --accent:19 38% 92%; --accent-foreground:14 67% 38.4%; --ring:14 67% 38.4%;
+    color:var(--erp-ink);
+  }
+  /* These scopes intentionally outrank the shared evergreen action default. */
+  .erp-shell[data-action-theme],.erp-shell .erp-parity,.erp-dialog,.erp-interface[data-action-theme],.erp-interface [data-action-theme] {
+    --action-primary:var(--erp-brand); --action-hover:var(--erp-brand-hover); --action-pressed:var(--erp-brand-pressed);
+    --action-disabled:#E7ECEF; --action-disabled-ink:#667681;
+  }
+  .erp-shell,.erp-interface.app-page,.erp-interface:has(.erp-home){background:var(--erp-canvas)}
+  .erp-shell :is(.erp-topbar,.card,.surface,.workspace-section,.summary-strip,.bg-white,.erp-mobile-nav),
+  .erp-dialog,.erp-dialog .bg-white,.erp-interface :is(.bg-white,.row-card,.staff-summary),.erp-interface>header,.erp-interface>nav {background-color:var(--erp-surface)}
+  .erp-shell :is(.card,.surface,.workspace-section,.summary-strip,.erp-topbar,.erp-mobile-nav),.erp-interface :is(.border-ink-100,.border-ink-200){border-color:var(--erp-line)}
+  .erp-shell :is(.text-slate-900,.text-slate-800,.text-ink-900),.erp-dialog :is(.text-slate-900,.text-slate-800),
+  .erp-interface :is(.text-ink-900,.text-ink-800,.text-ink-700,.text-ink-600),.erp-interface>header h1,.erp-interface h2,.erp-interface .erp-home h2{color:var(--erp-ink)}
+  .erp-shell :is(.text-slate-500,.text-slate-600,.text-ink-500,.text-ink-400),.erp-dialog :is(.text-slate-500,.text-slate-600),
+  .erp-interface :is(.text-ink-500,.text-ink-400,.mlabel,.meta){color:var(--erp-muted)}
+  .erp-shell :is(.text-brand-700,.text-brand-600),.erp-parity .link,.erp-interface :is(.text-brand-600,.text-brand-700,.text-brand-800){color:var(--erp-ink)}
+  .erp-shell .bg-brand-50,.erp-interface .bg-brand-50{background-color:var(--erp-selection)}
+  .erp-shell :is(.bg-brand-600,.bg-brand-700),.erp-interface :is(.bg-brand-600,.bg-brand-700){background-color:var(--erp-brand);color:#fff}
+  .erp-shell :is(.border-brand-500,.border-brand-600,.border-brand-700),.erp-interface :is(.border-brand-500,.border-brand-600,.border-brand-700){border-color:var(--erp-brand)}
+  .erp-shell main a.link:hover,.erp-shell main a.text-brand-700:hover,.erp-parity .link:hover {text-decoration:underline;text-underline-offset:3px}
+  .erp-shell :is(.field,.select,.textarea),.erp-dialog :is(.field,.select,.textarea),
+  .erp-shell .erp-parity :is(.field-box,.textarea-box),.erp-interface :is(.field,.field-box,.textarea-box){background:#fff;border-color:var(--erp-control);color:var(--erp-ink)}
+  .erp-shell input::placeholder,.erp-shell textarea::placeholder,.erp-dialog input::placeholder,.erp-interface input::placeholder,.erp-interface textarea::placeholder{color:var(--erp-hint);opacity:1}
+  .erp-shell .field:focus,.erp-dialog .field:focus,.erp-shell .erp-parity .field-box:focus-within,.erp-interface .field-box:focus-within{border-color:var(--erp-brand);box-shadow:none;outline:2px solid var(--erp-brand);outline-offset:2px}
+  .erp-shell :is(.btn-secondary,.btn-line,.btn-quiet),.erp-dialog .btn-secondary,.erp-interface .btn-line{background:#fff;border-color:var(--erp-control);color:var(--erp-ink)}
+  .erp-shell :is(.btn-secondary,.btn-line,.btn-quiet):hover,.erp-dialog .btn-secondary:hover,.erp-interface .btn-line:hover{background:var(--erp-hover)}
+  .erp-shell :is(a,button,input,select,textarea):focus-visible,.erp-dialog :is(a,button,input,select,textarea):focus-visible,
+  .erp-interface :is(a,button,input,select,textarea):focus-visible{outline:2px solid var(--erp-brand);outline-offset:3px;box-shadow:none}
+  .erp-shell :is(input,select,textarea),.erp-dialog :is(input,select,textarea),.erp-interface :is(input,select,textarea){accent-color:var(--erp-brand);caret-color:var(--erp-ink)}
+  .erp-shell ::selection,.erp-dialog ::selection,.erp-interface ::selection{background:var(--erp-selection);color:var(--erp-ink)}
+  .erp-shell .erp-search:focus-within{box-shadow:none;outline:2px solid var(--erp-brand);outline-offset:2px}
+  .erp-shell .erp-sidebar{background:var(--erp-rail);color:var(--erp-on-rail);border-color:#536178}
+  .erp-shell .erp-sidebar :is(.text-slate-900,.text-slate-800,.text-slate-700,.text-slate-600,.text-slate-500,.text-slate-400){color:var(--erp-rail-muted)}
+  .erp-shell :is(.office-nav-link,.office-nav-child){color:var(--erp-on-rail)}
+  .erp-shell :is(.office-nav-link,.office-nav-child):hover{background:var(--erp-rail-hover);color:#fff}
+  .erp-shell :is(.office-nav-link,.office-nav-child).is-active{background:#fff;color:var(--erp-ink);font-weight:600}
+  .erp-shell :is(.office-nav-link,.office-nav-child).is-active>svg{color:var(--erp-brand)}
+  .erp-shell :is(.office-nav-children,.office-sidebar-footer){border-color:var(--erp-rail-line)}
+  .erp-shell .office-school-identity>div:first-child,.erp-shell .office-sidebar-footer>span{background:#fff;color:var(--erp-ink);border-color:#fff}
+  .erp-shell .office-school-identity p:first-child,.erp-shell .office-sidebar-footer p:first-child{color:var(--erp-on-rail)}
+  .erp-shell .erp-sidebar input[class]{background:var(--erp-rail-hover);border-color:var(--erp-rail-line);color:var(--erp-on-rail);caret-color:var(--erp-on-rail)}
+  .erp-shell .erp-sidebar input::placeholder{color:var(--erp-rail-muted)}
+  .erp-shell .erp-sidebar :is(a,button,input):focus-visible{outline-color:#fff}
+  .erp-shell thead,.erp-interface thead{background:#F7F9FC;color:var(--erp-muted)}
+  .erp-shell .module-tabs,.erp-shell .erp-parity .tabs-line{background:#F7F9FC}
+  .erp-shell .module-tabs :is([aria-selected=true],[aria-pressed=true]),.erp-shell .erp-parity .tabs-line>[aria-selected=true]{color:var(--erp-brand)}
+  .erp-shell .erp-parity .tabs-line-bar,.erp-interface>nav li>span[aria-hidden]{background:var(--erp-brand)}
+  .erp-shell .erp-mobile-nav [aria-current=page],.erp-interface>nav [aria-current=page]{color:var(--erp-brand)}
+  .erp-shell .erp-mobile-nav [aria-current=page]>span:first-child{background:var(--erp-selection)}
+  .erp-interface .erp-home-masthead,.erp-interface .erp-home-masthead.bg-white{background:var(--erp-rail);border-color:var(--erp-rail-hover)}
+  .erp-interface .erp-home-masthead .text-ink-500{color:var(--erp-rail-muted)}
+  .erp-interface .erp-home .home-tile{background:#fff}
+  .erp-interface .erp-home .home-update:hover{background:var(--erp-hover)}
+  .erp-interface.erp-menu [tabindex="-1"]{background:var(--erp-rail);color:var(--erp-on-rail)}
+  .erp-interface.erp-menu [tabindex="-1"] :is(.text-ink-900,.text-ink-800,.text-ink-700,.text-ink-600,.text-ink-500,.text-ink-400){color:var(--erp-rail-muted)}
+  .erp-interface.erp-menu a[aria-current=page]{background:#fff;color:var(--erp-ink)}
+  .erp-interface.erp-menu a[aria-current=page] *{color:inherit}
+  .erp-interface.erp-menu [class*=border-ink]{border-color:var(--erp-rail-line)}
+  .erp-interface.erp-menu [tabindex="-1"] :focus-visible{outline-color:#fff}
+  .erp-interface .fee-instalment[data-allocated=true]{border-color:var(--erp-brand);outline:none}
+  .erp-interface .fee-instalment-status i{background:#15803D}
+  .erp-interface .fee-instalment[data-state=late] .fee-instalment-status i{background:#B42332}
+}

@@ -78,7 +78,7 @@ export default function ErpEnquiriesPage() {
       </label>
 
       {!data ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : shown.length === 0 ? (
         <Empty>
           {all.length

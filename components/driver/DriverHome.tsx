@@ -87,7 +87,7 @@ export function DriverHome() {
     return (
       <div className="drv driver-home">
         {head}
-        <div className="px-4 pt-4">{none ? <NoRoute /> : <ErrorCard offline={error!.status === 0} onRetry={reload} />}</div>
+        <div className="px-4 pt-4">{none ? <NoRoute /> : <ErrorCard offline={error!.status === 0} slow={error!.message === "timeout"} onRetry={reload} />}</div>
       </div>
     );
   }
@@ -134,7 +134,7 @@ export function DriverHome() {
           <div className="dispatch-manifest dv-in2" style={dvI(3)}><span><UsersRound size={16} aria-hidden/><span className="dv-value">{kids}</span> {L({hi:"बच्चे",en:kids===1?"child":"children"})}</span><span><span className="dv-value">{order.length}</span> {L({hi:"स्टॉप",en:"stops"})}</span>{km && <span><span className="dv-value">{km}</span> km <small>{L({hi:"रूट",en:"route"})}</small></span>}</div>
           {running && <p className="dispatch-recorded">{L({hi:`${done} स्टॉप पूरे · ${marked} बच्चों की एंट्री`,en:`${done} stops completed · ${marked} children marked`})}</p>}
           {startError&&<p role="alert" className="mb-3 text-[13px] text-rose-700">{startError}</p>}
-          <div className="dv-in2" style={dvI(4)}>{running?<Link href="/trip/" className="dispatch-start">{L({hi:"ट्रिप जारी रखें",en:"Resume trip"})}<ArrowRight size={20}/></Link>:<SlideConfirm tone="yellow" sound="start" hold label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={!order.length} onConfirm={()=>{setStartError("");router.push(`/trip/?kind=${kind}`);return true}}/>}</div>
+          <div className="dv-in2" style={dvI(4)}>{running?<Link href="/trip/" className="dispatch-start">{L({hi:"ट्रिप जारी रखें",en:"Resume trip"})}<ArrowRight size={20}/></Link>:<SlideConfirm glass tone="yellow" sound="start" hold label={L({hi:"ट्रिप शुरू करने को स्वाइप करें",en:"Slide to start trip"})} disabled={!order.length} onConfirm={()=>{setStartError("");router.push(`/trip/?kind=${kind}`);return true}}/>}</div>
         </section></div>
         {r.absent.length>0 && <p className="dispatch-absence">{L({hi:`आज ${r.absent.length} बच्चे नहीं आएँगे। लिस्ट से हटा दिए हैं।`,en:`${r.absent.length} absent today, already excluded from the list.`})}</p>}
         <section key={`stops-${kind}`} className={clsx("dispatch-stops dv-in", switched && "dv-again")} style={dvI(3)}><h2><button type="button" className="dispatch-stops-toggle" aria-expanded={stopsOpen} aria-controls="driver-todays-stops" onClick={()=>setStopsOpen(open=>!open)}><span>{L({hi:"आज के स्टॉप",en:"Today's stops"})}</span><ChevronDown size={19} aria-hidden className={stopsOpen?"is-open":""}/></button></h2><div className="dispatch-stops-reveal" data-open={stopsOpen} aria-hidden={!stopsOpen}><div id="driver-todays-stops"><ol>

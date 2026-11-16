@@ -1,5 +1,5 @@
 /* Driver home: one departure sheet and an ordered manifest, no decorative motion. */
-.driver-dispatch{background:#F4F3ED;min-height:100dvh}
+.driver-dispatch{background:#FFFFFF;min-height:100dvh}
 .dispatch-main{padding:22px 16px 20px}
 .dispatch-title{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:20px}
 .dispatch-title h1{font-size:26px;font-weight:650;letter-spacing:-.035em;line-height:1.2}
@@ -108,3 +108,7 @@
 .dv-trip-wait{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:20px 16px calc(64px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.06);animation:dv-rise .46s cubic-bezier(.2,.8,.2,1) both,dv-show .12s linear both}
 .dv-trip-wait .dv-slide-wait{margin-bottom:0}
 @media(prefers-reduced-motion:reduce){.dv-trip-wait{animation:none}}
+
+/* School transport watermark: white, low-contrast, non-repeating artwork below the stops. */
+.driver-dispatch .dispatch-stops::after{content:"";display:block;height:clamp(240px,76vw,380px);margin:0 -16px -20px;pointer-events:none;background:#fff url('/school-transport-footer.webp') center bottom/100% auto no-repeat;opacity:.65;-webkit-mask-image:linear-gradient(transparent,#000 22%);mask-image:linear-gradient(transparent,#000 22%)}
+@media(max-width:374px){.driver-dispatch .dispatch-stops::after{margin-inline:-14px}}

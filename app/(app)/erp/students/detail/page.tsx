@@ -71,7 +71,7 @@ function DocsTab({ id, received, onChange }: { id: string; received: Record<stri
         (files.error.status === 400 && files.error.message ? (
           <p className="rounded-xl border-[1.5px] border-marigold-300 bg-marigold-50 px-3 py-2.5 text-[13px] text-ink-700">{files.error.message}</p>
         ) : (
-          <ErrorCard offline={files.error.status === 0} onRetry={files.reload} />
+          <ErrorCard offline={files.error.status === 0} slow={files.error.message === "timeout"} onRetry={files.reload} />
         ))}
       <ul className="row-card !py-1">
         {DOCS.map((d) => {
@@ -136,7 +136,7 @@ export default function ErpStudentDetailPage() {
 
   if (!data) {
     if (error?.status === 404) return <Empty>{L({ hi: "यह बच्चा नहीं मिला।", en: "This student was not found." })}</Empty>;
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={4} />;
   }
   const s = data.data;
@@ -370,7 +370,7 @@ export default function ErpStudentDetailPage() {
             <Ticket className="h-4 w-4" aria-hidden /> {L({ hi: "नया गेट पास", en: "New gate pass" })}
           </button>
           {!passes.data ? (
-            passes.error && passes.error.status !== 401 ? <ErrorCard offline={passes.error.status === 0} onRetry={passes.reload} /> : <ListSkeleton rows={2} />
+            passes.error && passes.error.status !== 401 ? <ErrorCard offline={passes.error.status === 0} slow={passes.error.message === "timeout"} onRetry={passes.reload} /> : <ListSkeleton rows={2} />
           ) : passes.data.data.length === 0 ? (
             <Empty>{L({ hi: "इस बच्चे का कोई गेट पास नहीं बना।", en: "No gate pass issued to this student." })}</Empty>
           ) : (

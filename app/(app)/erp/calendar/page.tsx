@@ -67,7 +67,7 @@ export default function ErpCalendarPage() {
   };
 
   if(sessionState.error)return <ErrorCard onRetry={sessionState.reload}/>;
-  if (!shown && error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+  if (!shown && error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
 
   return (
     <div className="calendar-workspace animate-rise space-y-3.5 pb-4">

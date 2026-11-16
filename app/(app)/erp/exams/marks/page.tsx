@@ -48,7 +48,7 @@ export default function ErpMarksEntryPage() {
 
   if (exams.data?.setupNeeded) return <Empty>{L({ hi: "परीक्षा के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261001_exams.sql)।", en: "Exams need a one-time database setup (20261001_exams.sql)." })}</Empty>;
   if (exams.data && exams.data.data.length === 0) return <Empty>{L({ hi: "अभी कोई परीक्षा नहीं बनी। पहले परीक्षा सेटअप में इस सत्र की परीक्षाएँ जोड़ें।", en: "No exam has been set up yet. Add this session's exams in Exam setup first." })}</Empty>;
-  if (!exams.data) return exams.error && exams.error.status !== 401 ? <ErrorCard offline={exams.error.status === 0} onRetry={exams.reload} /> : <ListSkeleton rows={5} />;
+  if (!exams.data) return exams.error && exams.error.status !== 401 ? <ErrorCard offline={exams.error.status === 0} slow={exams.error.message === "timeout"} onRetry={exams.reload} /> : <ListSkeleton rows={5} />;
 
   return (
     <div className="animate-rise space-y-3 pb-4">
@@ -84,7 +84,7 @@ export default function ErpMarksEntryPage() {
       </label>
 
       {!sections ? (
-        prog.error && prog.error.status !== 401 ? <ErrorCard offline={prog.error.status === 0} onRetry={prog.reload} /> : <ListSkeleton rows={6} />
+        prog.error && prog.error.status !== 401 ? <ErrorCard offline={prog.error.status === 0} slow={prog.error.message === "timeout"} onRetry={prog.reload} /> : <ListSkeleton rows={6} />
       ) : shown.length === 0 ? (
         <Empty>{q ? L({ hi: "कुछ नहीं मिला।", en: "Nothing matches." }) : L({ hi: "इस परीक्षा में कोई सेक्शन नहीं।", en: "No sections sit this exam." })}</Empty>
       ) : (

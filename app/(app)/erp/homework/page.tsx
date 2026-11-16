@@ -81,7 +81,7 @@ export default function ErpHomeworkPage() {
   }, [list.data]);
 
   if (opts.data?.setupNeeded) return <Empty>{L({ hi: "होमवर्क के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261003_homework.sql)।", en: "Homework needs a one-time database setup (20261003_homework.sql)." })}</Empty>;
-  if (!opts.data) return opts.error && opts.error.status !== 401 ? <ErrorCard offline={opts.error.status === 0} onRetry={opts.reload} /> : <ListSkeleton rows={5} />;
+  if (!opts.data) return opts.error && opts.error.status !== 401 ? <ErrorCard offline={opts.error.status === 0} slow={opts.error.message === "timeout"} onRetry={opts.reload} /> : <ListSkeleton rows={5} />;
   if (!classes.length) return <Empty>{L({ hi: "अभी कोई कक्षा नहीं। सेटिंग → कक्षा में जोड़ें।", en: "No classes yet. Add them under Settings → Classes." })}</Empty>;
 
   const canPost = options.length > 0;
@@ -148,7 +148,7 @@ export default function ErpHomeworkPage() {
       {who.data?.user.role === "teacher" && !canPost && <Empty>{L({ hi: "आपकी कक्षाएँ अभी नहीं जुड़ीं। एडमिन से स्टाफ़ में अपने विषय डलवाएँ, फिर यहाँ होमवर्क दे सकेंगे।", en: "Your classes are not set up yet. Ask the admin to give you your subjects under Staff, then you can post homework here." })}</Empty>}
 
       {!list.data ? (
-        list.error && list.error.status !== 401 ? <ErrorCard offline={list.error.status === 0} onRetry={list.reload} /> : <ListSkeleton rows={4} />
+        list.error && list.error.status !== 401 ? <ErrorCard offline={list.error.status === 0} slow={list.error.message === "timeout"} onRetry={list.reload} /> : <ListSkeleton rows={4} />
       ) : groups.length === 0 ? (
         <Empty>
           {L({ hi: `${cls?.name || ""} - ${section?.name || ""}${subject ? ` (${subject})` : ""} में अभी कोई होमवर्क नहीं।`, en: `No homework for ${cls?.name || ""} - ${section?.name || ""}${subject ? ` in ${subject}` : ""} yet.` })}

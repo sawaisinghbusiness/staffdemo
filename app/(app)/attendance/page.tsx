@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays, Check, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useToastMsg } from "@/lib/toast";
 import { useStaff } from "@/lib/staff";
 import { useL } from "@/lib/i18n";
-import { ErrorCard, LineTabs, ListSkeleton, SelectBox } from "@/components/ui";
+import { Empty, ErrorCard, LineTabs, ListSkeleton, SelectBox } from "@/components/ui";
 import { MyMonth } from "@/components/MyMonth";
 
 type Mark = "P" | "A" | "L" | "H";
@@ -70,9 +70,11 @@ function Students() {
   }, [data, id]);
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={4} />;
   }
+  // No class assigned (or an ERP login): say so instead of an empty picker.
+  if (!data.sections.length) return <Empty>{L({ hi: "आपको अभी कोई क्लास नहीं दी गई है।", en: "No classes are assigned to you yet." })}</Empty>;
 
   return (
     <div className="space-y-3">
@@ -99,17 +101,27 @@ function Students() {
 function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => void }) {
   const L = useL();
   const { me } = useStaff();
-  const { data, error, reload } = useApi<Sheet>(`/attendance/section?id=${id}&date=${date}`);
+  const { data, error, reload } = useApi<Sheet>(`/attendance/section?id=${encodeURIComponent(id)}&date=${encodeURIComponent(date)}`);
   const [marks, setMarks] = useState<Record<string, Mark>>({});
   const [notes, setNotes] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState(false);
   const setMsg = useToastMsg();
   const editable = !!me?.sections.find((s) => s.id === id)?.classTeacher;
 
+  // Once the teacher has tapped, a fresh answer from the server (the saved copy shows first) must not
+  // wipe those taps: only students not yet on the sheet are added.
+  const touched = useRef(false);
   useEffect(() => {
     if (!data) return;
-    setMarks(Object.fromEntries(data.students.map((s) => [s.id, s.status || "P"])));
-    setNotes(Object.fromEntries(data.students.filter((s) => s.remark).map((s) => [s.id, s.remark!])));
+    const server = Object.fromEntries(data.students.map((s) => [s.id, s.status || "P"])) as Record<string, Mark>;
+    const serverNotes = Object.fromEntries(data.students.filter((s) => s.remark).map((s) => [s.id, s.remark!]));
+    if (!touched.current) {
+      setMarks(server);
+      setNotes(serverNotes);
+    } else {
+      setMarks((m) => ({ ...server, ...m }));
+      setNotes((n) => ({ ...serverNotes, ...n }));
+    }
   }, [data]);
 
   const count = useMemo(() => {
@@ -119,15 +131,23 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
   }, [marks]);
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={5} />;
   }
   if (data.sunday || data.holiday) return <p className="row-card text-[15px] text-ink-500">{data.holiday ? `${L({ hi: "छुट्टी", en: "Holiday" })} · ${data.holiday}` : L({ hi: "रविवार को हाज़िरी नहीं लगती।", en: "No attendance on Sunday." })}</p>;
 
   // Tapping the name flips present ↔ absent (leave or half day goes back to present);
   // the P / A / L circles set that mark directly.
-  const toggle = (sid: string) => editable && setMarks((m) => ({ ...m, [sid]: m[sid] === "P" ? "A" : "P" }));
-  const set = (sid: string, v: Mark) => editable && setMarks((m) => ({ ...m, [sid]: v }));
+  const toggle = (sid: string) => {
+    if (!editable) return;
+    touched.current = true;
+    setMarks((m) => ({ ...m, [sid]: m[sid] === "P" ? "A" : "P" }));
+  };
+  const set = (sid: string, v: Mark) => {
+    if (!editable) return;
+    touched.current = true;
+    setMarks((m) => ({ ...m, [sid]: v }));
+  };
 
   async function save() {
     setBusy(true);
@@ -137,6 +157,7 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
       const remarks = Object.fromEntries(Object.entries(notes).filter(([sid, why]) => marks[sid] === "L" && why.trim()));
       await api("/attendance/section", { body: { id, date, marks, remarks } });
       setMsg({ ok: true, text: L({ hi: "हाज़िरी सेव हो गई।", en: "Attendance saved." }) });
+      touched.current = false;
       onSaved();
       reload();
     } catch (e) {
@@ -196,7 +217,7 @@ function Roll({ id, date, onSaved }: { id: string; date: string; onSaved: () => 
                 <div className="overflow-hidden">
                   <input
                     value={notes[s.id] || ""}
-                    onChange={(e) => setNotes((n) => ({ ...n, [s.id]: e.target.value }))}
+                    onChange={(e) => { touched.current = true; setNotes((n) => ({ ...n, [s.id]: e.target.value })); }}
                     disabled={!editable || m !== "L"}
                     tabIndex={m === "L" ? 0 : -1}
                     maxLength={200}

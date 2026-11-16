@@ -67,7 +67,7 @@ export default function ErpStaffAttendancePage() {
     window.history.replaceState(null, "", u.pathname + u.search);
   };
 
-  if (!who.data) return who.error && who.error.status !== 401 ? <ErrorCard offline={who.error.status === 0} onRetry={who.reload} /> : <ListSkeleton rows={5} />;
+  if (!who.data) return who.error && who.error.status !== 401 ? <ErrorCard offline={who.error.status === 0} slow={who.error.message === "timeout"} onRetry={who.reload} /> : <ListSkeleton rows={5} />;
   if (!canView)
     return (
       <p className="animate-rise flex items-center gap-2 rounded-xl bg-white px-3.5 py-3 text-[14px] text-ink-700">
@@ -246,7 +246,7 @@ function DayTab({ canWrite }: { canWrite: boolean }) {
       )}
 
       {!day ? (
-        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} onRetry={res.reload} /> : <ListSkeleton rows={6} />
+        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} slow={res.error.message === "timeout"} onRetry={res.reload} /> : <ListSkeleton rows={6} />
       ) : total === 0 ? (
         <Empty>
           {L({ hi: `${shortDate(date)} को स्टाफ़ लिस्ट में कोई नहीं।`, en: `Nobody is on the staff rolls for ${shortDate(date)}.` })}{" "}
@@ -432,7 +432,7 @@ function RegisterTab() {
       </div>
 
       {!reg ? (
-        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} onRetry={res.reload} /> : <ListSkeleton rows={6} />
+        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} slow={res.error.message === "timeout"} onRetry={res.reload} /> : <ListSkeleton rows={6} />
       ) : reg.staff.length === 0 ? (
         <Empty>{L({ hi: `${monthLabel(month)} में स्टाफ़ लिस्ट में कोई नहीं था।`, en: `Nobody was on the staff rolls in ${monthLabel(month)}.` })}</Empty>
       ) : (
@@ -589,7 +589,7 @@ function LeaveTab({ canWrite, res }: { canWrite: boolean; res: ReturnType<typeof
       )}
 
       {!list ? (
-        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} onRetry={res.reload} /> : <ListSkeleton rows={4} />
+        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} slow={res.error.message === "timeout"} onRetry={res.reload} /> : <ListSkeleton rows={4} />
       ) : shown.length === 0 ? (
         <Empty>
           {filter === "all" ? L({ hi: "अभी कोई स्टाफ़ छुट्टी नहीं लिखी।", en: "No staff leave recorded yet." }) : L({ hi: `कोई ${L(LEAVE_TEXT[filter])} छुट्टी नहीं।`, en: `No ${filter.toLowerCase()} leave.` })}

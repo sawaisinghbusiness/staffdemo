@@ -25,7 +25,7 @@ export default function SalaryPage() {
   const [open, setOpen] = useState<string | null>(null);
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={3} />;
   }
   if (!data.slips.length) return <Empty>{L({ hi: "अभी कोई सैलरी स्लिप नहीं है।", en: "No salary slips yet." })}</Empty>;

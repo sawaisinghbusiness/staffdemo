@@ -74,7 +74,7 @@ export default function ErpChequesPage() {
       {q.data?.setupNeeded ? (
         <Empty>{L({ hi: "यह हिस्सा डेटाबेस अपडेट (student profile 360 SQL) के बाद चालू होगा।", en: "This starts working after the one-time database update (student profile 360 SQL)." })}</Empty>
       ) : !q.data ? (
-        q.error && q.error.status !== 401 ? <ErrorCard offline={q.error.status === 0} onRetry={q.reload} /> : <ListSkeleton rows={4} />
+        q.error && q.error.status !== 401 ? <ErrorCard offline={q.error.status === 0} slow={q.error.message === "timeout"} onRetry={q.reload} /> : <ListSkeleton rows={4} />
       ) : items.length === 0 ? (
         <Empty>{view === "pending" ? L({ hi: "कोई चेक क्लियर होने बाकी नहीं।", en: "No cheques waiting to clear." }) : L({ hi: "अभी कोई चेक नहीं आया।", en: "No cheques yet." })}</Empty>
       ) : (

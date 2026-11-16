@@ -206,12 +206,13 @@ export function OfflineNote({ show }: { show: boolean }) {
   );
 }
 
-export function ErrorCard({ offline, onRetry }: { offline?: boolean; onRetry: () => unknown }) {
+/** `slow`: the request ran out of time (server slow or waking up), which is not the same as no internet. */
+export function ErrorCard({ offline, slow, onRetry }: { offline?: boolean; slow?: boolean; onRetry: () => unknown }) {
   const L = useL();
   return (
     <div className="row-card flex flex-col items-start gap-3 p-4" role="alert">
       <p className="text-ink-700">
-        {offline ? L({ hi: "इंटरनेट नहीं है। कनेक्शन आने पर दोबारा कोशिश करें।", en: "No internet. Try again when you are connected." }) : L({ hi: "कुछ गड़बड़ हुई। दोबारा कोशिश करें।", en: "Something went wrong. Please try again." })}
+        {slow ? L({ hi: "सर्वर जवाब देने में देर कर रहा है। थोड़ी देर में दोबारा कोशिश करें।", en: "The server is taking too long to answer. Please try again in a moment." }) : offline ? L({ hi: "इंटरनेट नहीं है। कनेक्शन आने पर दोबारा कोशिश करें।", en: "No internet. Try again when you are connected." }) : L({ hi: "कुछ गड़बड़ हुई। दोबारा कोशिश करें।", en: "Something went wrong. Please try again." })}
       </p>
       <RetryButton onRetry={onRetry} />
     </div>
@@ -296,6 +297,18 @@ export function CallOffice({ phone, className }: { phone?: string; className?: s
 export function StickyBar({ children }: { children: React.ReactNode }) {
   const actionPalette = useActionPalette();
   const erpAppearance = useErpAppearance();
+  // Count open bars on <body>, so main gets room for the bar (staff-workspace.css) and loses it when the last one goes.
+  useEffect(() => {
+    const body = document.body;
+    const n = Number(body.dataset.saveBars || 0) + 1;
+    body.dataset.saveBars = String(n);
+    body.classList.add("has-save-bar");
+    return () => {
+      const left = Number(body.dataset.saveBars || 1) - 1;
+      body.dataset.saveBars = String(left);
+      if (left <= 0) body.classList.remove("has-save-bar");
+    };
+  }, []);
   const bar = <div data-action-theme={actionPalette ? "evergreen" : undefined} className={clsx(erpAppearance && "erp-interface", "staff-workspace staff-save-bar fixed inset-x-0 bottom-[calc(64px+env(safe-area-inset-bottom))] z-20 mx-auto max-w-[560px] border-t border-ink-100 bg-white px-4 py-2.5")}>{children}</div>;
   return typeof document === "undefined" ? bar : createPortal(bar, document.body);
 }

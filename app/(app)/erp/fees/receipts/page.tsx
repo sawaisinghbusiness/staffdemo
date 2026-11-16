@@ -115,7 +115,7 @@ export default function ErpReceiptsPage() {
       ) : (
         <p className="text-[13px] text-ink-500">{from === to ? day(from) : `${day(from)} – ${day(to)}`}</p>
       )}
-      {error && !list && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}
+      {error && !list && error.status !== 401 && <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />}
 
       {/* Totals */}
       <section className="today-card pb-4">

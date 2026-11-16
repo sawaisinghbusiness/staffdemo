@@ -162,14 +162,14 @@ export default function ErpFeeReportsPage() {
 
       {tab === "classes" ? (
         !cls.data ? (
-          cls.error && cls.error.status !== 401 ? <ErrorCard offline={cls.error.status === 0} onRetry={cls.reload} /> : <ListSkeleton rows={5} />
+          cls.error && cls.error.status !== 401 ? <ErrorCard offline={cls.error.status === 0} slow={cls.error.message === "timeout"} onRetry={cls.reload} /> : <ListSkeleton rows={5} />
         ) : cls.data.classes.length === 0 ? (
           <Empty>{L({ hi: "इस सत्र में अभी किसी बच्चे का फ़ीस खाता नहीं।", en: "No active students have a fee ledger for this session yet." })}</Empty>
         ) : (
           <ClassList report={cls.data} open={open} onToggle={(c) => setOpen((p) => (p.has(c) ? new Set(Array.from(p).filter((x) => x !== c)) : new Set(p).add(c)))} />
         )
       ) : !report ? (
-        rep.error && rep.error.status !== 401 ? <ErrorCard offline={rep.error.status === 0} onRetry={rep.reload} /> : <ListSkeleton rows={5} />
+        rep.error && rep.error.status !== 401 ? <ErrorCard offline={rep.error.status === 0} slow={rep.error.message === "timeout"} onRetry={rep.reload} /> : <ListSkeleton rows={5} />
       ) : report.totals.receipts === 0 ? (
         <Empty>{range.from === range.to ? L({ hi: `${long(range.from)} को कोई फ़ीस जमा नहीं हुई।`, en: `No fee was collected on ${long(range.from)}.` }) : L({ hi: `${short(range.from)} से ${long(range.to)} तक कोई फ़ीस जमा नहीं हुई।`, en: `No fee was collected between ${short(range.from)} and ${long(range.to)}.` })}</Empty>
       ) : tab === "daybook" ? (

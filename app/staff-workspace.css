@@ -44,7 +44,10 @@
 .staff-workspace .enter,.staff-workspace .reveal,.staff-workspace .page-next,.staff-workspace .page-back{animation:none}
 .staff-workspace .drop-in{border:1px solid #C8D2DE;border-radius:10px}
 .staff-workspace .kv dd{overflow-wrap:anywhere}
-.staff-workspace .staff-save-bar{padding-bottom:max(10px,env(safe-area-inset-bottom))}
+/* The bar already sits above the tab bar, which carries the safe area; adding it again left a gap on iPhones. */
+.staff-workspace .staff-save-bar{padding-bottom:10px}
+/* While a save bar is open (StickyBar sets the body class), the page scrolls far enough that its last row clears it. */
+body.has-save-bar main,body.has-save-bar main.staff-task-main{padding-bottom:calc(64px + 84px + env(safe-area-inset-bottom))}
 @media(prefers-reduced-motion:reduce){.staff-workspace *, .staff-workspace *::before,.staff-workspace *::after{animation:none!important;transition:none!important}}
 
 .staff-workspace .teacher-register .roll-row{border:0;border-bottom:1px solid var(--staff-line);border-radius:0;box-shadow:none}

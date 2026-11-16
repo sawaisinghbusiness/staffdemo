@@ -2,7 +2,7 @@
 
 /**
  * ERP-login Home in the Staff Home design (user, 2026-11-15: the old orange icon tiles go).
- * The top stays as before (banner + search); then the eight most-used ERP modules as picture tiles (the rest are in the side menu) in StaffHome's style; "Today at school" from
+ * The top uses the original banner followed by search; then the eight most-used ERP modules as picture tiles (the rest are in the side menu) in StaffHome's style; "Today at school" from
  * GET /erp/dashboard (the ERP's own dashboard figures).
  *
  * Each tile's picture is /img/tiles/erp/<art>.webp (transparent WebP, 128px tall, same glossy style as
@@ -76,7 +76,7 @@ export function ErpHome() {
 
   return (
     <div className="staff-home erp-home pb-6" style={{ color: INK }}>
-      {/* Kept as it was (user, 2026-11-15): menu, greeting, notices, profile; the "your school, in your control" banner; search. */}
+      {/* Menu, greeting, notices and profile retain their existing behaviour. */}
       <div ref={headRef} className="erp-home-masthead pt-safe sticky top-0 z-20 bg-white px-4 pb-2 transition-shadow duration-300">
         <div className="flex items-center gap-1.5 pt-3">
           <button type="button" onClick={openMenu} aria-label={L({ hi: "मेन्यू", en: "Menu" })} aria-haspopup="dialog" className="-ml-2 grid h-11 w-10 shrink-0 place-items-center rounded-full text-ink-900 active:bg-ink-100">

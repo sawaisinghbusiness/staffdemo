@@ -19,7 +19,7 @@ export default function MessagesPage() {
   const replied = data ? pick(data.replied) : [];
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return (
       <div className="space-y-3">
         <Skeleton className="h-[76px] w-full rounded-[20px]" />

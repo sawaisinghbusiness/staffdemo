@@ -72,7 +72,7 @@ export default function ErpTransportRoutePage() {
   }, [riders, query]);
 
   if (id === null || (!list.data && !isNew)) {
-    if (list.error && list.error.status !== 401) return <ErrorCard offline={list.error.status === 0} onRetry={list.reload} />;
+    if (list.error && list.error.status !== 401) return <ErrorCard offline={list.error.status === 0} slow={list.error.message === "timeout"} onRetry={list.reload} />;
     return <ListSkeleton rows={5} />;
   }
   if (!isNew && !isUnassigned && !r) return <Empty>{L({ hi: "यह रूट नहीं मिला।", en: "This route was not found." })}</Empty>;
@@ -189,7 +189,7 @@ export default function ErpTransportRoutePage() {
           )}
 
           {riders === null ? (
-            ridersRes.error && ridersRes.error.status !== 401 ? <ErrorCard offline={ridersRes.error.status === 0} onRetry={ridersRes.reload} /> : <ListSkeleton rows={6} />
+            ridersRes.error && ridersRes.error.status !== 401 ? <ErrorCard offline={ridersRes.error.status === 0} slow={ridersRes.error.message === "timeout"} onRetry={ridersRes.reload} /> : <ListSkeleton rows={6} />
           ) : !shown.length ? (
             <Empty>
               {riders.length

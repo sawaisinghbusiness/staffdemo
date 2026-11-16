@@ -98,7 +98,7 @@ export default function ErpDuesPage() {
           ? `${L({ hi: "आज तक", en: "As on" })} ${day(report.asOf)} · ${dueNames.length ? `${dueNames.join(", ")} ${L({ hi: "की फ़ीस देनी थी", en: dueNames.length > 1 ? "are due" : "is due" })}` : L({ hi: "अभी कोई किस्त देय नहीं", en: "no instalment is due yet" })}`
           : L({ hi: error ? "बाकी फ़ीस की जानकारी उपलब्ध नहीं है।" : "हर बच्चे की बाकी फ़ीस निकाली जा रही है…", en: error ? "Fee dues are unavailable." : "Working out every student's dues…" })}
       </p>
-      {error && !report && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}
+      {error && !report && error.status !== 401 && <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />}
 
       <div className="staff-summary grid grid-cols-2">
         <Figure label={L({ hi: "अभी देर वाली", en: "Overdue now" })} value={s ? lakh(s.dueNow) : "…"} note={s ? `${s.withDues.toLocaleString("en-IN")} ${L({ hi: "बच्चे", en: "students" })}` : ""} dot="bg-rose-500" />

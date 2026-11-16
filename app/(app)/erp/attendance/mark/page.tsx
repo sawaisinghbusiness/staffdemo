@@ -100,7 +100,7 @@ export default function ErpMarkAttendancePage() {
       )}
 
       {!day ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={8} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={8} />
       ) : cls && sec && sections.includes(sec) ? (
         <ErpRollCall key={`${date}|${cls}|${sec}`} date={date} cls={cls} sec={sec} onSaved={reload} />
       ) : null}

@@ -91,7 +91,7 @@ export default function ErpLeaveRequestsPage() {
         ]}
       />
       {!res ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={4} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={4} />
       ) : list.length === 0 ? (
         <Empty>{filter === "pending" ? L({ hi: "कोई अर्ज़ी जवाब के लिए नहीं। माता-पिता पेरेंट ऐप से छुट्टी माँगते हैं।", en: "No leave requests waiting. Parents apply for leave from the parent app." }) : L({ hi: "अभी किसी अर्ज़ी का जवाब नहीं दिया।", en: "No answered leave requests yet." })}</Empty>
       ) : (

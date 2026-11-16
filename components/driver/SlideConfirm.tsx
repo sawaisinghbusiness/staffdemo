@@ -4,12 +4,15 @@ import { ArrowRight, Check, LoaderCircle } from "lucide-react";
 import { slideGrab, slideDrag, resetSlideDrag, preloadSlideSound } from "@/lib/slideFeedback";
 import { vibrate, DONE_BUZZ } from "@/lib/haptics";
 import { useL } from "@/lib/i18n";
+import dynamic from "next/dynamic";
 import { SlideNet } from "./SlideNet";
 import "./slide-confirm.css";
 
+const HomeSlideGlass = dynamic(() => import("./HomeSlideGlass"), { ssr: false });
+
 /** Pointer release confirms only after a deliberate right swipe. No action on tap. */
 /** `hold`: after a successful slide the handle stays at the right end (the next screen is opening) instead of sliding back. */
-export function SlideConfirm({label,onConfirm,disabled=false,tone="dark",sound="latch",hold=false}:{label:string;onConfirm:()=>void|boolean|Promise<void|boolean>;disabled?:boolean;tone?:"dark"|"yellow";sound?:"latch"|"start"|"end";hold?:boolean}){
+export function SlideConfirm({label,onConfirm,disabled=false,tone="dark",sound="latch",hold=false,glass=true}:{label:string;onConfirm:()=>void|boolean|Promise<void|boolean>;disabled?:boolean;tone?:"dark"|"yellow";sound?:"latch"|"start"|"end";hold?:boolean;glass?:boolean}){
  const helpId=useId();const L=useL();const track=useRef<HTMLDivElement>(null);const drag=useRef<{id:number;start:number;max:number}|null>(null);const progress=useRef(0);const locked=useRef(false);const mounted=useRef(true);
  const [pending,setPending]=useState(false);const [showPending,setShowPending]=useState(false);const [complete,setComplete]=useState(false);const [alternate,setAlternate]=useState(false);
  useEffect(()=>{mounted.current=true;preloadSlideSound();return()=>{mounted.current=false;drag.current=null}},[]);
@@ -35,7 +38,8 @@ export function SlideConfirm({label,onConfirm,disabled=false,tone="dark",sound="
  }
 
  // data-idle: nothing is happening, so the handle now and then nudges right to say "slide me".
- return <div className="slide-confirm" data-tone={tone} data-swipe="true"><div ref={track} className="slide-confirm-track" data-dragging={!!drag.current} aria-busy={pending} data-complete={complete} data-idle={!disabled&&!pending&&!complete}>
+ return <div className={glass?"slide-confirm slide-confirm--glass":"slide-confirm"} data-tone={tone} data-swipe="true"><div ref={track} className="slide-confirm-track" data-dragging={!!drag.current} aria-busy={pending} data-complete={complete} data-idle={!disabled&&!pending&&!complete}>
+   {glass&&<span className="home-slide-glass-layer" aria-hidden="true"><HomeSlideGlass /></span>}
    <SlideNet tone={tone}/>
    <span className="slide-confirm-label" aria-hidden>{complete?L({hi:"हो गया",en:"Confirmed"}):label}</span><span className="slide-confirm-end" aria-hidden><ArrowRight size={18}/></span>
    <button type="button" className="slide-confirm-thumb" disabled={disabled||pending} aria-label={label} aria-describedby={helpId} onClick={e=>{if(e.detail===0)void confirm()}} onPointerDown={e=>{if(disabled||locked.current||e.button!==0||!e.isPrimary)return;resetSlideDrag();slideGrab();e.preventDefault();e.stopPropagation();const max=(track.current?.clientWidth||300)-64;drag.current={id:e.pointerId,start:e.clientX,max};e.currentTarget.setPointerCapture(e.pointerId);track.current?.setAttribute("data-dragging","true")}} onPointerMove={e=>{if(!drag.current||drag.current.id!==e.pointerId)return;e.stopPropagation();const pull=Math.max(0,Math.min(1,(e.clientX-drag.current.start)/drag.current.max));const next=pull*1.3-.3*pull*pull;/* rubber: easy at first, the handle lags more the further it is stretched */paint(next);slideDrag(next)}} onPointerUp={e=>{if(!drag.current||drag.current.id!==e.pointerId)return;e.stopPropagation();drag.current=null;track.current?.setAttribute("data-dragging","false");if(progress.current>=.88)void confirm();else paint(0)}} onPointerCancel={()=>{drag.current=null;track.current?.setAttribute("data-dragging","false");paint(0)}} onLostPointerCapture={()=>{if(drag.current){drag.current=null;paint(0)}}}>{showPending?<LoaderCircle size={22} className="animate-spin"/>:complete?<Check size={23}/>:<ArrowRight size={24}/>}</button>

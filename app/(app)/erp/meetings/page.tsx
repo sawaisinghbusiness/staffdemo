@@ -79,7 +79,7 @@ export default function ErpMeetingsPage() {
   return (
     <div className="animate-rise space-y-3 pb-4">
       {!rows ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={3} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={3} />
       ) : rows.length === 0 ? (
         <Empty>{L({ hi: "अभी कोई मीटिंग नहीं। ऊपर + से PTM या मीटिंग बनाएँ; माता-पिता को ऐप में दिखेगी।", en: "No meetings yet. Make a PTM or a meeting with + above; parents see it in their app." })}</Empty>
       ) : (

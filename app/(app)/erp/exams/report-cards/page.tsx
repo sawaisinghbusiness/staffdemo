@@ -84,7 +84,7 @@ export default function ErpReportCardsPage() {
 
   if (exams.data?.setupNeeded) return <Empty>{L({ hi: "परीक्षा के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261001_exams.sql)।", en: "Exams need a one-time database setup (20261001_exams.sql)." })}</Empty>;
   if (exams.data && exams.data.data.length === 0) return <Empty>{L({ hi: "अभी कोई परीक्षा नहीं बनी। रिपोर्ट कार्ड परीक्षा के भरे अंकों से बनते हैं; पहले परीक्षा सेटअप करें।", en: "No exam set up yet. Report cards come from the marks entered for an exam; set one up first." })}</Empty>;
-  if (!exams.data) return exams.error && exams.error.status !== 401 ? <ErrorCard offline={exams.error.status === 0} onRetry={exams.reload} /> : <ListSkeleton rows={5} />;
+  if (!exams.data) return exams.error && exams.error.status !== 401 ? <ErrorCard offline={exams.error.status === 0} slow={exams.error.message === "timeout"} onRetry={exams.reload} /> : <ListSkeleton rows={5} />;
 
   return (
     <div className={clsx("animate-rise space-y-3", cards?.length ? "pb-20" : "pb-4")}>
@@ -106,7 +106,7 @@ export default function ErpReportCardsPage() {
       </SelectBox>
 
       {!sections ? (
-        prog.error && prog.error.status !== 401 ? <ErrorCard offline={prog.error.status === 0} onRetry={prog.reload} /> : <ListSkeleton rows={6} />
+        prog.error && prog.error.status !== 401 ? <ErrorCard offline={prog.error.status === 0} slow={prog.error.message === "timeout"} onRetry={prog.reload} /> : <ListSkeleton rows={6} />
       ) : sections.length === 0 ? (
         <Empty>{L({ hi: "इस परीक्षा में कोई कक्षा नहीं। परीक्षा सेटअप में कक्षाएँ जोड़ें।", en: "No section sits this exam. Add classes in Exam setup." })}</Empty>
       ) : !section ? (
@@ -123,7 +123,7 @@ export default function ErpReportCardsPage() {
           ))}
         </ul>
       ) : !cards ? (
-        rep.error && rep.error.status !== 401 ? <ErrorCard offline={rep.error.status === 0} onRetry={rep.reload} /> : <ListSkeleton rows={8} />
+        rep.error && rep.error.status !== 401 ? <ErrorCard offline={rep.error.status === 0} slow={rep.error.message === "timeout"} onRetry={rep.reload} /> : <ListSkeleton rows={8} />
       ) : cards.length === 0 ? (
         <Empty>{L({ hi: `${section} में कोई बच्चा नहीं।`, en: `No students in ${section}.` })}</Empty>
       ) : (

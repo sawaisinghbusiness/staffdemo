@@ -9,7 +9,8 @@ import { toast } from "@/lib/toast";
 import { maxOf, PART_PRESETS, partsProblem, type ExamPart } from "@/lib/erpGrading";
 import type { Exam, ExamInput, ExamScope } from "@/lib/erpExams";
 import { cleanClasses, EXAM_NAMES, type ClassItem } from "@/lib/erpExamSetup";
-import { ListSkeleton, StickyBar } from "@/components/ui";
+import Link from "next/link";
+import { Empty, ErrorCard, ListSkeleton, StickyBar } from "@/components/ui";
 
 /*
  * ERP login → Exam setup → add (no ?id) or change (?id=) an exam: the ERP's ExamDrawer down a phone screen. Name,
@@ -31,8 +32,21 @@ export default function ErpExamEditPage() {
   useEffect(() => setId(new URLSearchParams(window.location.search).get("id") || ""), []);
   const exams = useApi<{ data: Exam[] }>("/erp/exams");
   const cls = useApi<{ data: ClassItem[] }>("/erp/classes");
-  if (id === null || !exams.data || !cls.data) return <ListSkeleton rows={6} />;
+  const L = useL();
+  if (id === null || !exams.data || !cls.data) {
+    const err = exams.error || cls.error;
+    if (err && err.status !== 401) return <ErrorCard offline={err.status === 0} slow={err.message === "timeout"} onRetry={() => Promise.all([exams.reload(), cls.reload()])} />;
+    return <ListSkeleton rows={6} />;
+  }
   const exam = id ? exams.data.data.find((e) => e.id === id) || null : null;
+  // A link to an exam that no longer exists must not open a blank form (saving it would add a new exam).
+  if (id && !exam)
+    return (
+      <div className="space-y-3">
+        <Empty>{L({ hi: "यह परीक्षा नहीं मिली। शायद हटा दी गई है।", en: "This exam was not found. It may have been deleted." })}</Empty>
+        <Link href="/erp/exams/setup/" className="btn-line w-full">{L({ hi: "सारी परीक्षाएँ", en: "All exams" })}</Link>
+      </div>
+    );
   return <ExamForm key={id} exam={exam} nextOrder={exams.data.data.length} classes={cleanClasses(cls.data.data).filter((c) => c.sections.length)} />;
 }
 

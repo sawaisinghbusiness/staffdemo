@@ -62,5 +62,7 @@ Failures must not masquerade as empty results, zero balances or offline diagnosi
 Evidence: desktop repo docs/apps-charles-audit-2026-11-15/IMPLEMENTATION.md and implementation-browser/. All review API traffic is synthetic.
 
 
-## Approved Petrol + Sand
-ERP uses petrol #163F49 navigation and primary actions, sand #F2EEE7 canvas, ivory #FFFEFA work surfaces, #263735 ink and #D8D5CD dividers. Sidebar is petrol with ivory active rows. Status dots retain semantic colours. Scope excludes personal Staff, Parents, Driver, assistant and official print designs.
+
+## Current approved ERP colour authority — Ink + Oxide (16 November 2026)
+This section supersedes earlier neutral/evergreen/Petrol colour instructions. app/erp-colours.css is the shared ERP-only role authority. Canvas #EEF1F5, paper #FFFFFF, ink #202938, support #536071, divider #D6DDE6, field boundary #7B8C99. Navigation #242D3C with #F1F4F8 text; selected white row, dark label, oxide icon. Primary #A43F20, hover #87341B, pressed #6D2916; ordinary headings and links stay dark. Collected #15803D and due #B42332 retain financial meaning. Status badges remain white, dark labels, outlined, trailing semantic dot. Keep existing typography and workflow compositions. Excludes assistant, personal staff, parents, driver and official print surfaces.
+ERP-app fee instalments show a horizontally sliding deck with the next card visibly peeking at the right, native horizontal snap/swipe, arrow/keyboard navigation and position. Initial card is first outstanding instalment; browsing never changes payment allocation. Honour reduced motion and mark the carousel data-swipe to exclude sidebar gestures.

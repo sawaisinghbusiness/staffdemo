@@ -50,7 +50,7 @@ export default function ErpMessageDetailPage() {
 
   const message = data?.message;
   if (!message || !rows) {
-    if (error && error.status !== 401) return error.status === 404 ? <Empty>{L({ hi: "यह मैसेज नहीं मिला।", en: "This message was not found." })}</Empty> : <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return error.status === 404 ? <Empty>{L({ hi: "यह मैसेज नहीं मिला।", en: "This message was not found." })}</Empty> : <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={6} />;
   }
   const total = counts.pending + counts.sent;

@@ -85,7 +85,7 @@ function MarkSheet({ exam: examId, section, subject }: Q) {
 
   useUnsavedChanges(dirty && !locked, () => writeEditorDraft(draftKey,null));
 
-  if (!sheet) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={8} />;
+  if (!sheet) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={8} />;
 
   const setValue = (i: number, key: string, raw: string) => {
     // Typing "a" (or "ab") marks the child absent.

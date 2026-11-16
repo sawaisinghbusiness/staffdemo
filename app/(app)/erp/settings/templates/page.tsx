@@ -34,7 +34,7 @@ export default function ErpMessageTemplatesPage() {
   const [edit, setEdit] = useState<Tpl | "new" | null>(null);
   const schoolName = school?.school_name || "School";
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />;
   if (data.setupNeeded) return <SetupNeeded file="20261019_syllabus_copycheck.sql" what={{ hi: "मैसेज टेम्पलेट", en: "Message templates" }} />;
 
   return (

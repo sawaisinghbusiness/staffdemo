@@ -65,7 +65,7 @@ export default function ErpParentChatsPage() {
         ]}
       />
       {!rows ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : shown.length === 0 ? (
         <Empty>{rows.length ? L({ hi: "इस खोज से कोई चैट नहीं मिली।", en: "No chat matches this search." }) : L({ hi: "अभी किसी माता-पिता ने टीचर को नहीं लिखा।", en: "No parent has written to a teacher yet." })}</Empty>
       ) : (

@@ -6,6 +6,7 @@ import { Check, MessageCircle, X } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
 import { useL } from "@/lib/i18n";
 import { toast } from "@/lib/toast";
+import { useStaff } from "@/lib/staff";
 import { absenceWhatsApp, type AttStatus, type RosterStudent, type SectionRoster } from "@/lib/erpAttendance";
 import { Empty, ErrorCard, ListSkeleton } from "@/components/ui";
 
@@ -23,6 +24,7 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
   const qs = new URLSearchParams({ date, class: cls, section: sec }).toString();
   const { data: roster, error, reload } = useApi<SectionRoster>(`/erp/attendance/section?${qs}`);
   const { data: p } = useApi<Record<string, string>>("/erp/school");
+  const { me } = useStaff();
   const who = useApi<{ user: { role: string } }>("/erp/auth/me");
   const canMark = ["admin", "teacher"].includes(who.data?.user.role || "");
   const [marks, setMarks] = useState<Record<string, AttStatus>>({});
@@ -45,7 +47,7 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
     return c;
   }, [marks]);
 
-  if (!roster) return error && error.status !== 401 ? error.status === 404 ? <Empty>{L({ hi: "यह सेक्शन नहीं मिला।", en: "This section was not found." })}</Empty> : <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={8} />;
+  if (!roster) return error && error.status !== 401 ? error.status === 404 ? <Empty>{L({ hi: "यह सेक्शन नहीं मिला।", en: "This section was not found." })}</Empty> : <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={8} />;
   if (!roster.students.length) return <Empty>{L({ hi: "इस सेक्शन में कोई बच्चा नहीं।", en: "No students in this section." })}</Empty>;
 
   const set = (id: string, v: AttStatus) => setMarks((m) => ({ ...m, [id]: v }));
@@ -79,18 +81,19 @@ export function ErpRollCall({ date, cls, sec, onSaved }: { date: string; cls: st
   const saveText = busy
     ? "…"
     : `${L({ hi: "सेव करें", en: "Save" })} · ${count.Present + count.HalfDay} ${L({ hi: "उपस्थित", en: "present" })}, ${count.Absent} ${L({ hi: "अनुपस्थित", en: "absent" })}${count.Leave ? `, ${count.Leave} ${L({ hi: "छुट्टी", en: "leave" })}` : ""}`;
-  const school = `${p?.school_name || "School"}, ${p?.city || "Barmer"}`;
+  // The real name and city only; no made-up "School, Barmer" in a message to parents.
+  const school = [p?.school_name || me?.school.name, p?.city].filter(Boolean).join(", ");
 
   return (
     <div className="space-y-2">
-      {canMark&&<div className="space-y-2 rounded-xl border border-ink-200 bg-white p-3"><button type="button" className="btn-line" disabled={busy} onClick={()=>setMarks(Object.fromEntries(roster.students.map(s=>[s.id,"Present" as AttStatus])))}>All present</button><label className="block text-xs text-ink-500" htmlFor="absent-rolls">Mark absent by roll numbers</label><div className="flex gap-2"><input id="absent-rolls" value={rolls} onChange={e=>setRolls(e.target.value)} className="field min-w-0 flex-1" placeholder="e.g. 3, 8, 12"/><button type="button" className="btn-line" disabled={busy||!rolls.trim()} onClick={()=>{const wanted=new Set(rolls.split(/[\s,]+/).map(v=>v.replace(/^0+/,"")).filter(Boolean));const hit=roster.students.filter(s=>wanted.has(String(s.rollNo).replace(/^0+/,"")));if(!hit.length)return toast(false,"No student has those roll numbers.");setMarks(current=>({...current,...Object.fromEntries(hit.map(s=>[s.id,"Absent" as AttStatus]))}));setRolls("");toast(true,hit.length+" students marked absent. Review, then Save.");}}>Apply</button></div></div>}
+      {canMark&&<div className="space-y-2 rounded-xl border border-ink-200 bg-white p-3"><button type="button" className="btn-line" disabled={busy} onClick={()=>setMarks(Object.fromEntries(roster.students.map(s=>[s.id,"Present" as AttStatus])))}>{L({hi:"सब उपस्थित",en:"All present"})}</button><label className="block text-xs text-ink-500" htmlFor="absent-rolls">{L({hi:"रोल नंबर से अनुपस्थित लगाएँ",en:"Mark absent by roll numbers"})}</label><div className="flex gap-2"><input id="absent-rolls" value={rolls} onChange={e=>setRolls(e.target.value)} className="field min-w-0 flex-1" placeholder={L({hi:"जैसे 3, 8, 12",en:"e.g. 3, 8, 12"})}/><button type="button" className="btn-line" disabled={busy||!rolls.trim()} onClick={()=>{const wanted=new Set(rolls.split(/[\s,]+/).map(v=>v.replace(/^0+/,"")).filter(Boolean));const hit=roster.students.filter(s=>wanted.has(String(s.rollNo).replace(/^0+/,"")));if(!hit.length)return toast(false,L({hi:"इन रोल नंबर का कोई बच्चा नहीं है।",en:"No student has those roll numbers."}));setMarks(current=>({...current,...Object.fromEntries(hit.map(s=>[s.id,"Absent" as AttStatus]))}));setRolls("");toast(true,L({hi:`${hit.length} बच्चे अनुपस्थित लगाए। देखकर सेव करें।`,en:`${hit.length} students marked absent. Review, then Save.`}));}}>{L({hi:"लगाएँ",en:"Apply"})}</button></div></div>}
       <div className="grid grid-cols-[28px_minmax(0,1fr)_44px_44px_44px_44px] items-center px-1 pb-0.5 text-[12px] font-semibold text-ink-400">
         <span>{L({ hi: "रोल", en: "No." })}</span>
         <span>{L({ hi: "नाम", en: "Name" })}</span>
         <span className="text-center">P</span>
         <span className="text-center">A</span>
         <span className="text-center">L</span>
-        <span className="text-center" title="Half day">H</span>
+        <span className="text-center" title={L({hi:"आधा दिन",en:"Half day"})}>H</span>
       </div>
       <ul>
         {roster.students.map((s) => {

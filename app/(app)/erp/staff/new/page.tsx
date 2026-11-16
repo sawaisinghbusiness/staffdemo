@@ -41,7 +41,7 @@ export default function ErpStaffFormPage() {
   const who = useApi<{ user: { role: string } }>("/erp/auth/me");
   const list = useApi<StaffList>(id ? "/erp/staff" : null);
 
-  if (id === null || !who.data) return who.error && who.error.status !== 401 ? <ErrorCard offline={who.error.status === 0} onRetry={who.reload} /> : <ListSkeleton rows={5} />;
+  if (id === null || !who.data) return who.error && who.error.status !== 401 ? <ErrorCard offline={who.error.status === 0} slow={who.error.message === "timeout"} onRetry={who.reload} /> : <ListSkeleton rows={5} />;
   if (who.data.user.role !== "admin")
     return (
       <p className="animate-rise flex items-center gap-2 rounded-xl bg-white px-3.5 py-3 text-[14px] text-ink-700">
@@ -53,7 +53,7 @@ export default function ErpStaffFormPage() {
   const staff = list.data?.data.find((s) => s.id === id);
   if (!staff) {
     if (list.data) return <Empty>{L({ hi: "यह स्टाफ़ नहीं मिला।", en: "This staff member was not found." })}</Empty>;
-    return list.error && list.error.status !== 401 ? <ErrorCard offline={list.error.status === 0} onRetry={list.reload} /> : <ListSkeleton rows={5} />;
+    return list.error && list.error.status !== 401 ? <ErrorCard offline={list.error.status === 0} slow={list.error.message === "timeout"} onRetry={list.reload} /> : <ListSkeleton rows={5} />;
   }
   return <StaffForm key={staff.id} staff={staff} />;
 }

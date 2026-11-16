@@ -74,15 +74,17 @@
 .erp-interface .field-box>input{min-width:0}
 .erp-interface .scroll-tabs button,.erp-interface .btn-sm{min-height:44px}
 
-/* Approved Petrol + Sand; scoped to ERP, including ERP portals. */
-.erp-interface{--erp-canvas:#F2EEE7;--erp-surface:#FFFEFA;--erp-ink:#263735;--erp-muted:#59635F;--erp-line:#D8D5CD;--erp-brand:#163F49;--erp-pressed:#E6EEEC;--action-primary:#163F49;--action-hover:#10323B;--action-pressed:#0C2830;--action-disabled:#D7DFDC;--action-disabled-ink:#43564C;}
-.erp-interface[data-action-theme],.erp-interface [data-action-theme]{--action-primary:#163F49;--action-hover:#10323B;--action-pressed:#0C2830;--action-disabled:#D7DFDC;--action-disabled-ink:#43564C;}
-.erp-interface .bg-white,.erp-interface>nav{background-color:var(--erp-surface)}
-.erp-interface>nav [aria-current=page]{color:#163F49}
-.erp-interface>nav li>span[aria-hidden]{background:#163F49}
-.erp-interface.erp-menu [tabindex="-1"]{background:#163F49;color:#FFFEFA}
-.erp-interface.erp-menu [tabindex="-1"] :is(.text-ink-900,.text-ink-800,.text-ink-700,.text-ink-600,.text-ink-500,.text-ink-400){color:#DCE8E7}
-.erp-interface.erp-menu a[aria-current=page]{background:#FFFEFA;color:#163F49}
-.erp-interface.erp-menu a[aria-current=page] *{color:inherit}
-.erp-interface.erp-menu [class*=border-ink]{border-color:#496A72}
-.erp-interface thead{background:#E6EEEC;color:#163F49}
+/* Sliding instalment deck: next card peeks at the right; native scroll moves the actual cards. */
+.erp-interface .fee-carousel-track{position:relative;display:flex;gap:12px;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;scrollbar-width:none;border-radius:12px}
+.erp-interface .fee-carousel-track::-webkit-scrollbar{display:none}
+.erp-interface .fee-carousel-track::after{content:"";flex:0 0 20px}
+.erp-interface .fee-carousel-slide{flex:0 0 calc(100% - 32px);min-width:0;scroll-snap-align:start;scroll-snap-stop:always;padding:1px}
+.erp-interface .fee-carousel-slide>.fee-instalment{height:100%;min-height:136px;padding:16px}
+.erp-interface .fee-carousel-slide .fee-instalment>div:first-child>span:first-child{font-size:16px}
+.erp-interface .fee-carousel-slide .fee-instalment>p{font-size:16px;line-height:1.5}
+.erp-interface .fee-carousel-slide .fee-instalment-allocation{font-size:12px;font-weight:400}
+.erp-interface .fee-carousel-arrow{display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--erp-control,#7B8C99);border-radius:8px;background:white;color:var(--erp-ink)}
+.erp-interface .fee-carousel-arrow:disabled{opacity:.4;cursor:default}
+.erp-interface .fee-carousel-position{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.erp-interface .fee-carousel-position>span{width:6px;height:6px;border-radius:50%;background:#A0ACBC}
+.erp-interface .fee-carousel-position>span[data-active=true]{width:18px;border-radius:4px;background:var(--erp-brand)}

@@ -13,7 +13,7 @@ import { CERT_TEXT, useSchoolInfo, type Certificate, type CertificateType } from
 import type { ErpStudent } from "@/lib/erpStudents";
 import { CertificateDocument } from "@/components/erp/certs/CertificateDocument";
 import { PrintSheet, SheetPreview } from "@/components/erp/certs/SheetPreview";
-import { Avatar, SelectBox } from "@/components/ui";
+import { Avatar, RetryButton, SelectBox } from "@/components/ui";
 
 /*
  * ERP login → Issue a certificate: the ERP's IssueCertificateDrawer (same types, fields, defaults,
@@ -131,7 +131,7 @@ export default function ErpIssueCertificatePage() {
   }, [q, students]);
 
   async function issue() {
-    if (!session) return toast(false, sessionError || "Academic session is unavailable.");
+    if (!session) return toast(false, sessionError || L({ hi: "शैक्षणिक सत्र नहीं मिला।", en: "Academic session is unavailable." }));
     if (!student) return toast(false, L({ hi: "पहले बच्चा चुनें।", en: "Choose the student first." }));
     setBusy(true);
     try {
@@ -225,7 +225,16 @@ export default function ErpIssueCertificatePage() {
               ))}
             </ul>
           )}
-          {q.trim().length >= 2 && results.length === 0 && <p className="text-[13px] text-ink-500">{L({ hi: "कोई बच्चा नहीं मिला।", en: "No student matches." })}</p>}
+          {list.error && !list.data ? (
+            <div className="flex items-center justify-between gap-3 text-[13px] text-rose-700" role="alert">
+              <span>{list.error.status === 0 ? L({ hi: "बच्चों की सूची नहीं आई। इंटरनेट देखें।", en: "The student list did not load. Check the internet." }) : L({ hi: "बच्चों की सूची नहीं आई।", en: "The student list did not load." })}</span>
+              <RetryButton onRetry={list.reload} />
+            </div>
+          ) : q.trim().length >= 2 && !list.data ? (
+            <p className="text-[13px] text-ink-500">{L({ hi: "बच्चों की सूची आ रही है…", en: "Loading the student list…" })}</p>
+          ) : (
+            q.trim().length >= 2 && results.length === 0 && <p className="text-[13px] text-ink-500">{L({ hi: "कोई बच्चा नहीं मिला।", en: "No student matches." })}</p>
+          )}
         </>
       )}
 

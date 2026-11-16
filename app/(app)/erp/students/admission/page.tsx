@@ -318,7 +318,7 @@ export default function ErpAdmissionPage() {
   }, [feeSetup.data, form, editing]);
 
   const err = list.error || one.error;
-  if (!form) return err && err.status !== 401 ? <ErrorCard offline={err.status === 0} onRetry={() => Promise.all([list.reload(), one.reload()])} /> : <ListSkeleton rows={5} />;
+  if (!form) return err && err.status !== 401 ? <ErrorCard offline={err.status === 0} slow={err.message === "timeout"} onRetry={() => Promise.all([list.reload(), one.reload()])} /> : <ListSkeleton rows={5} />;
 
   const set = <K extends Key>(key: K, value: Form[K]) =>
     (setTouched(true), setForm((prev) => {

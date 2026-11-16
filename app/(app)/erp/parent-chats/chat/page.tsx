@@ -44,7 +44,7 @@ export default function ErpParentChatPage() {
   const { data: t, error, reload } = useApi<Thread>(id ? `/erp/teacher-chats/${encodeURIComponent(id)}` : null);
 
   if (!t) {
-    if (error && error.status !== 401) return error.status === 404 ? <Empty>{L({ hi: "यह चैट नहीं मिली।", en: "This chat was not found." })}</Empty> : <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return error.status === 404 ? <Empty>{L({ hi: "यह चैट नहीं मिली।", en: "This chat was not found." })}</Empty> : <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={5} />;
   }
   const status = { waiting: L({ hi: "माता-पिता के जवाब का इंतज़ार", en: "Waiting for the parent" }), yes: L({ hi: "माता-पिता ने ठीक कहा", en: "Parent said Okay" }), other: L({ hi: "माता-पिता ने दूसरा समय माँगा", en: "Parent asked for another time" }) } as const;

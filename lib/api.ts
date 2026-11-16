@@ -21,7 +21,7 @@ export async function api<T>(path: string, init?: { method?: string; body?: unkn
   // ERP login: the teacher app's screens, empty (see lib/erpMode.ts). Sign-in itself still goes to staff-app.
   if (isErpMode() && path !== "/otp" && path !== "/verify") {
     try {
-      return (await erpApi(path, method, init?.body)) as T;
+      return (await erpApi(path, method, init?.body, init?.timeoutMs)) as T;
     } catch (e: any) {
       throw new ApiError(e?.status ?? 500, e?.message || "");
     }
@@ -168,7 +168,14 @@ export function useApi<T>(path: string | null) {
   }, [path]);
 
   useEffect(() => {
-    if (!path) return;
+    if (!path) {
+      // No path (yet, or any more): show nothing, not the previous screen's answer.
+      setData(undefined);
+      setError(null);
+      setStale(false);
+      setLoading(false);
+      return;
+    }
     setData(recall<T>(path));
     setError(null);
     setStale(false);

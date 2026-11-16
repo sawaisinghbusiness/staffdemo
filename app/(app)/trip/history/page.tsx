@@ -69,7 +69,7 @@ export default function TripHistoryPage() {
       </div>
 
       {failed ? (
-        <ErrorCard offline={error!.status === 0} onRetry={reload} />
+        <ErrorCard offline={error!.status === 0} slow={error!.message === "timeout"} onRetry={reload} />
       ) : !data ? (
         <HistoryWait />
       ) : (

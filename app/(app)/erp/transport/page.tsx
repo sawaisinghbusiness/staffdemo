@@ -55,7 +55,7 @@ export default function ErpTransportPage() {
       </section>
 
       {!routes ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : routes.length === 0 ? (
         <>
           <Empty>{L({ hi: "अभी कोई बस रूट नहीं।", en: "No bus route yet." })}</Empty>

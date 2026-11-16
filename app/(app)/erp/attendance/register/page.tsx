@@ -118,7 +118,7 @@ export default function ErpRegisterPage() {
         </button>
       </div>
       <button type="button" onClick={exportRegister} disabled={tab === 'low' ? !low?.students.length : !reg?.students.length} className="btn-line w-full"><Download className="h-4 w-4" aria-hidden />{L({hi:"रजिस्टर Excel डाउनलोड करें",en:"Download register Excel"})}</button>
-      {sections.error && !sections.data && sections.error.status !== 401 && <ErrorCard offline={sections.error.status === 0} onRetry={sections.reload} />}
+      {sections.error && !sections.data && sections.error.status !== 401 && <ErrorCard offline={sections.error.status === 0} slow={sections.error.message === "timeout"} onRetry={sections.reload} />}
 
       {/* One summary card (user, 2026-10-26: the four boxes were hard to read). */}
       <section className="rounded-2xl border border-ink-100 bg-white px-4 py-3.5" aria-label={L({ hi: "इस महीने की हाज़िरी", en: "Attendance this month" })}>
@@ -165,7 +165,7 @@ export default function ErpRegisterPage() {
 
       {tab === "register" ? (
         !reg ? (
-          regApi.error && regApi.error.status !== 401 ? <ErrorCard offline={regApi.error.status === 0} onRetry={regApi.reload} /> : <ListSkeleton rows={6} />
+          regApi.error && regApi.error.status !== 401 ? <ErrorCard offline={regApi.error.status === 0} slow={regApi.error.message === "timeout"} onRetry={regApi.reload} /> : <ListSkeleton rows={6} />
         ) : wd === 0 ? (
           <Empty>
             {L({ hi: `${monthLabel(month)} में ${reg.classSec} की हाज़िरी अभी नहीं लगी।`, en: `No attendance marked for ${reg.classSec} in ${monthLabel(month)} yet.` })}{" "}
@@ -203,7 +203,7 @@ export default function ErpRegisterPage() {
           </>
         )
       ) : !low ? (
-        lowApi.error && lowApi.error.status !== 401 ? <ErrorCard offline={lowApi.error.status === 0} onRetry={lowApi.reload} /> : <ListSkeleton rows={5} />
+        lowApi.error && lowApi.error.status !== 401 ? <ErrorCard offline={lowApi.error.status === 0} slow={lowApi.error.message === "timeout"} onRetry={lowApi.reload} /> : <ListSkeleton rows={5} />
       ) : low.students.length === 0 ? (
         <Empty>{L({ hi: `${monthLabel(month)} में कोई भी ${BELOW}% से कम नहीं।`, en: `Nobody marked in ${monthLabel(month)} is below ${BELOW}%.` })}</Empty>
       ) : (

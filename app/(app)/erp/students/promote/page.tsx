@@ -62,7 +62,7 @@ export default function ErpPromotePage() {
         ]}
       />
       {!data ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : tab === "promote" ? (
         <PromoteTab students={students} structure={structure} onDone={reload} />
       ) : (

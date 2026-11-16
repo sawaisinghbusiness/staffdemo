@@ -13,6 +13,7 @@ import { headLabel, headRows } from "@/lib/erpFeeHeads";
 import { numberToWordsIndian, type DaySummary, type FeePosition, type FeeTransaction } from "@/lib/erpFees";
 import type { ErpStudent } from "@/lib/erpStudents";
 import { useSchoolInfo } from "@/lib/erpCerts";
+import { FeeInstalmentCarousel } from "@/components/erp/FeeInstalmentCarousel";
 import { FeeReceiptModal } from "@/components/erp/FeeReceiptModal";
 import { Avatar, Empty, ErrorCard, ListSkeleton, Skeleton } from "@/components/ui";
 
@@ -243,13 +244,9 @@ export default function ErpCollectFeePage() {
                 <ErrorCard onRetry={() => loadPosition(student.id, true)} />
               </div>
             ) : !calc ? (
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                {[0, 1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-[70px] rounded-xl" />
-                ))}
-              </div>
+              <div className="mt-4"><Skeleton className="h-[148px] rounded-xl" /></div>
             ) : (
-              <div className="mt-4 grid grid-cols-2 gap-2">
+              <FeeInstalmentCarousel key={student.id} labels={calc.dues.instalments.map(ins => ins.name)} initialIndex={Math.max(0, calc.dues.instalments.findIndex(ins => ins.outstanding > 0))}>
                 {calc.dues.instalments.map((ins, i) => {
                   const now = calc.split.perInstalment[i] || 0;
                   const cleared = calc.split.cleared.includes(i);
@@ -271,11 +268,11 @@ export default function ErpCollectFeePage() {
                           <span className="ml-1 text-[11.5px] font-medium">{tone === "late" ? `· ${ins.daysLate}${L({ hi: " दिन देर", en: "d late" })}` : ins.paid > 0 ? L({ hi: "बाकी", en: "left" }) : ""}</span>
                         </p>
                       )}
-                      {now > 0 && <p className="mt-0.5 text-[11.5px] font-semibold text-brand-700">{cleared ? L({ hi: "इस पेमेंट से पूरी होगी", en: "Will be cleared by this payment" }) : `${rupees(now)} ${L({ hi: "इस पेमेंट से", en: "from this payment" })}`}</p>}
+                      {now > 0 && <p className="fee-instalment-allocation mt-0.5 text-[11.5px] font-semibold text-brand-700">{cleared ? L({ hi: "इस पेमेंट से पूरी होगी", en: "Will be cleared by this payment" }) : `${rupees(now)} ${L({ hi: "इस पेमेंट से", en: "from this payment" })}`}</p>}
                     </div>
                   );
                 })}
-              </div>
+              </FeeInstalmentCarousel>
             )}
           </section>
 
@@ -390,7 +387,7 @@ export default function ErpCollectFeePage() {
             <h2 className="text-[16px] font-bold text-brand-800">{L({ hi: "सबसे ज़्यादा बाकी", en: "Highest balances" })}</h2>
             <p className="text-[13px] text-ink-500">{L({ hi: "जिनकी सबसे ज़्यादा फ़ीस बाकी है। फ़ीस लेने के लिए छुएँ।", en: "Students with the most fee pending. Tap one to collect." })}</p>
             {!topDues.data ? (
-              topDues.error && topDues.error.status !== 401 ? <ErrorCard offline={topDues.error.status === 0} onRetry={topDues.reload} /> : <ListSkeleton rows={4} />
+              topDues.error && topDues.error.status !== 401 ? <ErrorCard offline={topDues.error.status === 0} slow={topDues.error.message === "timeout"} onRetry={topDues.reload} /> : <ListSkeleton rows={4} />
             ) : topDues.data.data.length === 0 ? (
               <Empty>{L({ hi: "इस सत्र में कोई फ़ीस बाकी नहीं।", en: "No fees pending this session." })}</Empty>
             ) : (

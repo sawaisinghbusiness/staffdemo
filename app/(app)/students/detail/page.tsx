@@ -45,8 +45,8 @@ export default function StudentDetailPage() {
   const { data, error, reload } = useApi<Detail>(id ? `/students/detail?id=${encodeURIComponent(id)}` : null);
 
   if (!data) {
-    if (error?.status === 404) return <Empty>{L({ hi: "यह बच्चा नहीं मिला।", en: "This student was not found." })}</Empty>;
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (id === "" || error?.status === 404) return <Empty>{L({ hi: "यह बच्चा नहीं मिला।", en: "This student was not found." })}</Empty>;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={4} />;
   }
 

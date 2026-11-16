@@ -97,7 +97,7 @@ export default function ErpOnlinePaymentsPage() {
       />
 
       {!rows ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={4} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={4} />
       ) : rows.length === 0 ? (
         <Empty>{status === "pending" ? L({ hi: "जाँचने को कुछ नहीं। माता-पिता के नए पेमेंट यहाँ आएँगे।", en: "Nothing to check. New payments from parents will show here." }) : L({ hi: "अभी कोई नहीं।", en: "None yet." })}</Empty>
       ) : (

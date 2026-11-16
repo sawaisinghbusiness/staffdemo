@@ -108,7 +108,7 @@ export default function ErpPhotosPage() {
     setRemoving(null);
   }
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={4} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={4} />;
 
   return (
     <div className="animate-rise space-y-3">

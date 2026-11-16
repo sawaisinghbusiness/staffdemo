@@ -443,7 +443,7 @@ export default function TripPage() {
               </Link>
             </>
           ) : error && error.status !== 401 ? (
-            <ErrorCard offline={error.status === 0} onRetry={reload} />
+            <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />
           ) : (
             <TripWait />
           )}

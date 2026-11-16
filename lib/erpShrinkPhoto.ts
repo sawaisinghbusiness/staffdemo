@@ -1,3 +1,5 @@
+import { say } from "@/lib/i18n";
+
 /* Copied from the ERP (lib/shrinkPhoto.ts). Keep in step. */
 /**
  * Turns a photo from a phone or camera (often 4–10 MB) into a small portrait JPEG, 360×480,
@@ -8,13 +10,13 @@ const W = 360;
 const H = 480;
 
 export async function shrinkPhoto(file: File): Promise<string> {
-  if (!file.type.startsWith("image/")) throw new Error("This is not a photo.");
-  if (file.size > 25 * 1024 * 1024) throw new Error("This photo is too big (over 25 MB).");
+  if (!file.type.startsWith("image/")) throw new Error(say({ hi: "यह फ़ोटो नहीं है।", en: "This is not a photo." }));
+  if (file.size > 25 * 1024 * 1024) throw new Error(say({ hi: "यह फ़ोटो बहुत बड़ी है (25 MB से ज़्यादा)।", en: "This photo is too big (over 25 MB)." }));
   let bmp: ImageBitmap;
   try {
     bmp = await createImageBitmap(file); // honours the phone's rotation
   } catch {
-    throw new Error("This photo format can't be used. Save it as JPG or PNG.");
+    throw new Error(say({ hi: "इस तरह की फ़ोटो नहीं चलेगी। JPG या PNG में सेव करें।", en: "This photo format can't be used. Save it as JPG or PNG." }));
   }
   const want = W / H;
   let sw = bmp.width;
@@ -32,7 +34,7 @@ export async function shrinkPhoto(file: File): Promise<string> {
   canvas.width = W;
   canvas.height = H;
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Could not process the photo on this device.");
+  if (!ctx) throw new Error(say({ hi: "इस फ़ोन पर फ़ोटो तैयार नहीं हो सकी।", en: "Could not process the photo on this device." }));
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, W, H);
   ctx.drawImage(bmp, sx, sy, sw, sh, 0, 0, W, H);

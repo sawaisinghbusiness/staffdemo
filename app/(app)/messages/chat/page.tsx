@@ -16,7 +16,8 @@ const POLL_MS = 3000;
 export default function MessageChatPage() {
   const L = useL();
   const { lang } = useLang();
-  const [chatId, setChatId] = useState("");
+  // null until the link is read; "" means the link has no chat id.
+  const [chatId, setChatId] = useState<string | null>(null);
   const [data, setData] = useState<Thread>();
   const [error, setError] = useState<ApiError | null>(null);
   const [text, setText] = useState("");
@@ -65,7 +66,7 @@ export default function MessageChatPage() {
     setBusy(true);
     setFail("");
     try {
-      setData(await api<Thread>(`/chats/${encodeURIComponent(chatId)}${path}`, { body }));
+      setData(await api<Thread>(`/chats/${encodeURIComponent(chatId ?? "")}${path}`, { body }));
       return true;
     } catch (e: any) {
       setFail(e?.status === 0 ? L({ hi: "इंटरनेट नहीं है। फिर भेजें।", en: "No internet. Try again." }) : e?.message || L({ hi: "नहीं भेज पाए।", en: "Could not send. Try again." }));
@@ -82,6 +83,8 @@ export default function MessageChatPage() {
     const tmp: ChatMessage = { id: `tmp-${Date.now()}`, from: "teacher", text: msg, at: new Date().toISOString(), pending: true, meeting: null };
     setData((d) => d && { ...d, messages: [...d.messages, tmp] });
     setText("");
+    const box = document.getElementById("reply");
+    if (box) box.style.height = "";
     sending.current = true;
     gen.current++;
     const ok = await post("/send", { text: msg });
@@ -94,6 +97,8 @@ export default function MessageChatPage() {
   }
 
   const s = data?.student;
+  // No id in the link, or the chat is gone: say so, not a skeleton that never ends.
+  const missing = chatId === "" || (!data && error?.status === 404);
   const sub = s ? [`${L({ hi: "अभिभावक", en: "Parent" })} · ${s.classSec}`, s.rollNo && `${L({ hi: "रोल", en: "Roll" })} ${s.rollNo}`].filter(Boolean).join(" · ") : "";
 
   return (
@@ -111,16 +116,26 @@ export default function MessageChatPage() {
                 <p className="truncate text-[12.5px] text-ink-500">{sub}</p>
               </div>
             </>
-          ) : (
+          ) : missing || error ? null : (
             <Skeleton className="h-9 w-40 rounded-lg" />
           )}
         </div>
       </header>
 
       <div className="flex-1 px-4 pb-28 pt-3" aria-live="polite">
+        {data && error && error.status !== 401 && (
+          <p className="mb-2 rounded-lg bg-amber-50 px-3 py-2 text-[13px] text-amber-800" role="status">
+            {error.status === 0 ? L({ hi: "इंटरनेट नहीं है। नए संदेश नहीं आ रहे।", en: "No internet. New messages are not coming in." }) : L({ hi: "नए संदेश नहीं आ रहे। थोड़ी देर में फिर कोशिश होगी।", en: "New messages are not loading. Trying again shortly." })}
+          </p>
+        )}
         {!data ? (
-          error ? (
-            <ErrorCard offline={error.status === 0} onRetry={load} />
+          missing ? (
+            <div className="row-card space-y-3 py-4">
+              <p className="text-[15px] text-ink-700">{L({ hi: "यह बातचीत नहीं मिली।", en: "This conversation was not found." })}</p>
+              <Link href="/messages/" className="btn-line w-full">{L({ hi: "सारे संदेश", en: "All messages" })}</Link>
+            </div>
+          ) : error ? (
+            <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={load} />
           ) : (
             <div className="space-y-3">
               <Skeleton className="h-16 w-3/4 rounded-2xl" />
@@ -167,7 +182,12 @@ export default function MessageChatPage() {
             rows={1}
             value={text}
             maxLength={1000}
-            onChange={(e) => setText(e.target.value)}
+            onChange={(e) => {
+              setText(e.target.value);
+              // Grow with the text up to max-h-32, then scroll inside.
+              e.target.style.height = "auto";
+              e.target.style.height = `${e.target.scrollHeight}px`;
+            }}
             placeholder={L({ hi: "जवाब लिखें", en: "Write a reply" })}
             className="max-h-32 min-h-[46px] flex-1 resize-none rounded-xl border border-ink-200 bg-white px-3.5 py-[11px] text-[16px] leading-snug text-ink-900 outline-none placeholder:text-ink-400 focus:border-brand-600 focus:ring-2 focus:ring-brand-100"
           />

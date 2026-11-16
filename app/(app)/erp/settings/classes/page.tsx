@@ -138,7 +138,7 @@ export default function ErpClassesPage() {
   const openGroup = openClass ? groups.find((g) => g.classes.some((x) => x.id === openClass.id)) : null;
   const openIdx = openClass && openGroup ? openGroup.classes.findIndex((x) => x.id === openClass.id) : -1;
 
-  if (!classes) return res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} onRetry={res.reload} /> : <ListSkeleton rows={6} />;
+  if (!classes) return res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} slow={res.error.message === "timeout"} onRetry={res.reload} /> : <ListSkeleton rows={6} />;
 
   return (
     <div className="animate-rise space-y-3 pb-4">

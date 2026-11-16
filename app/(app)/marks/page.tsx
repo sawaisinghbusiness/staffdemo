@@ -24,8 +24,12 @@ interface Sheet {
   exam: { id: string; title: string; locked: boolean; parts: Part[] };
   classSec: string;
   subject: string;
-  students: { id: string; name: string; rollNo: string; marks: Record<string, number | null> }[];
+  students: { id: string; name: string; rollNo: string; marks: Record<string, number | null>; absent?: boolean }[];
 }
+
+/** Typed in a marks box ("a", "ab"): the child was absent for the exam, as on the ERP marks sheet. */
+const ABSENT = "AB";
+const isAbsent = (v?: string) => v === ABSENT;
 
 /** Pick exam, class and subject (only the teacher's own), then type marks for each child. */
 export default function MarksPage() {
@@ -45,7 +49,7 @@ export default function MarksPage() {
     }
   }, [data, exam]);
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={3} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={3} />;
   if (!data.exams.length || !data.sections.length) return <Empty>{L({hi:"\u0905\u092d\u0940 \u092a\u0930\u0940\u0915\u094d\u0937\u093e \u092f\u093e \u0915\u0915\u094d\u0937\u093e \u0924\u092f \u0928\u0939\u0940\u0902 \u0939\u0948\u0964",en:"No exams or classes are assigned yet. Contact the school office to complete setup."})}</Empty>;
   if (open) return <Entry exam={exam} section={sectionId} subject={subject} onBack={() => setOpen(false)} />;
 
@@ -98,7 +102,7 @@ export default function MarksPage() {
 
 function Entry({ exam, section, subject, onBack }: { exam: string; section: string; subject: string; onBack: () => void }) {
   const L = useL();
-  const { data, error, reload } = useApi<Sheet>(`/marks/sheet?exam=${exam}&section=${section}&subject=${encodeURIComponent(subject)}`);
+  const { data, error, reload } = useApi<Sheet>(`/marks/sheet?exam=${encodeURIComponent(exam)}&section=${encodeURIComponent(section)}&subject=${encodeURIComponent(subject)}`);
   const [vals, setVals] = useState<Record<string, Record<string, string>>>({});
   const [busy, setBusy] = useState(false);
   const setMsg = useToastMsg();
@@ -106,19 +110,35 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
   const [saved, setSaved] = useState("");
   const {confirmDiscard,markSaved} = useUnsavedChanges(!!data && !!saved && JSON.stringify(vals)!==saved, () => writeEditorDraft(draftKey,null));
 
+  // A draft is kept with the server marks it started from. If the office changed the marks since then,
+  // the old draft is dropped (with a note) instead of quietly putting old numbers back on screen.
   useEffect(() => {
-    if (data) { const initial = Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.marks[p.key] == null ? "" : String(s.marks[p.key])]))]));setSaved(JSON.stringify(initial)); }
-    if (data) setVals(JSON.parse(readEditorDraft(draftKey) || JSON.stringify(Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.marks[p.key] == null ? "" : String(s.marks[p.key])]))])))));
+    if (!data) return;
+    const initial = Object.fromEntries(data.students.map((s) => [s.id, Object.fromEntries(data.exam.parts.map((p) => [p.key, s.absent ? ABSENT : s.marks[p.key] == null ? "" : String(s.marks[p.key])]))]));
+    const base = JSON.stringify(initial);
+    setSaved(base);
+    let draft: { base?: string; vals?: Record<string, Record<string, string>> } | null = null;
+    try { draft = JSON.parse(readEditorDraft(draftKey) || "null"); } catch { draft = null; }
+    if (draft?.vals && draft.base === base) setVals(draft.vals);
+    else {
+      if (draft) {
+        writeEditorDraft(draftKey, null);
+        setMsg({ ok: false, text: L({ hi: "ऑफ़िस ने इस बीच अंक बदले हैं, इसलिए आपका पुराना ड्राफ़्ट हटा दिया। नए अंक दिख रहे हैं।", en: "The office changed these marks meanwhile, so your old draft was dropped. The latest marks are shown." }) });
+      }
+      setVals(initial);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, draftKey]);
-  useEffect(() => { if(saved) writeEditorDraft(draftKey,JSON.stringify(vals)===saved?null:JSON.stringify(vals)); },[vals,saved,draftKey]);
+  useEffect(() => { if(saved) writeEditorDraft(draftKey,JSON.stringify(vals)===saved?null:JSON.stringify({ base: saved, vals })); },[vals,saved,draftKey]);
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />;
 
   const locked = data.exam.locked;
   const multi = data.exam.parts.length > 1;
   const total = (id: string) => data.exam.parts.reduce((a, p) => a + (Number(vals[id]?.[p.key]) || 0), 0);
   const max = data.exam.parts.reduce((a, p) => a + p.max, 0);
-  const invalid = data.students.some(s => data.exam.parts.some(p => { const v=vals[s.id]?.[p.key]; return v !== undefined && v !== "" && (!Number.isFinite(Number(v)) || Number(v) < 0 || Number(v) > p.max); }));
+  const absentRow = (id: string) => data.exam.parts.some((p) => isAbsent(vals[id]?.[p.key]));
+  const invalid = data.students.some(s => !absentRow(s.id) && data.exam.parts.some(p => { const v=vals[s.id]?.[p.key]; return v !== undefined && v !== "" && (!Number.isFinite(Number(v)) || Number(v) < 0 || Number(v) > p.max); }));
   const filled = data.students.filter((s) => data.exam.parts.every((p) => vals[s.id]?.[p.key] !== "" && vals[s.id]?.[p.key] !== undefined)).length;
 
   async function save() {
@@ -126,7 +146,9 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
     setBusy(true);
     setMsg(null);
     try {
-      await api("/marks/sheet", { body: { exam, section, subject, marks: vals } });
+      // An absent child goes as { absent: true } (the backend and the ERP sheet already understand it).
+      const marks = Object.fromEntries(Object.entries(vals).map(([id, m]) => [id, Object.values(m).some(isAbsent) ? { absent: true } : m]));
+      await api("/marks/sheet", { body: { exam, section, subject, marks } });
       setSaved(JSON.stringify(vals));markSaved();
       setMsg({ ok: true, text: L({ hi: "अंक सेव हो गए।", en: "Marks saved." }) });
     } catch (e) {
@@ -159,18 +181,23 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
               <span className="block break-words text-[15px] leading-snug">{s.name}</span>
               <span className="block text-[12px] text-ink-400">
                 {L({ hi: "रोल", en: "Roll" })} {s.rollNo}
-                {multi && ` · ${L({ hi: "कुल", en: "total" })} ${total(s.id)}`}
+                {multi && !absentRow(s.id) && ` · ${L({ hi: "कुल", en: "total" })} ${total(s.id)}`}
+                {absentRow(s.id) && ` · ${L({ hi: "अनुपस्थित", en: "Absent" })}`}
               </span>
             </span>
             <div className="flex w-full flex-wrap justify-end gap-2 pl-11 sm:w-auto sm:pl-0">{data.exam.parts.map((p) => {
-              const raw=vals[s.id]?.[p.key];
-              const bad = raw !== undefined && raw !== "" && (!Number.isFinite(Number(raw)) || Number(raw) < 0 || Number(raw) > p.max);
+              const raw = vals[s.id]?.[p.key];
+              const bad = !isAbsent(raw) && raw !== undefined && raw !== "" && (!Number.isFinite(Number(raw)) || Number(raw) < 0 || Number(raw) > p.max);
               return (
                 <label key={p.key} className="flex min-w-[84px] max-w-[144px] flex-1 flex-col items-stretch">
                   {multi && <span className="break-words text-center text-[12.5px] leading-snug text-ink-500">{p.name}</span>}
                   <input
                     value={vals[s.id]?.[p.key] ?? ""}
-                    onChange={(e) => setVals((v) => ({ ...v, [s.id]: { ...v[s.id], [p.key]: e.target.value.replace(/[^\d.]/g, "").slice(0, 5) } }))}
+                    onChange={(e) => {
+                      // Typing a number over "AB" brings the child back (the other parts start empty).
+                      const n = e.target.value.replace(/[^\d.]/g, "").slice(0, 5);
+                      setVals((v) => ({ ...v, [s.id]: { ...(absentRow(s.id) ? Object.fromEntries(data.exam.parts.map((q) => [q.key, ""])) : v[s.id]), [p.key]: n } }));
+                    }}
                     inputMode="decimal"
                     disabled={locked}
                     aria-label={`${s.name} ${p.name}`}
@@ -179,7 +206,19 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
                   />
                 </label>
               );
-            })}</div>
+            })}
+              {/* Absent for the exam: "AB" in every part, the same as the ERP marks sheet. Tap again to undo. */}
+              <button
+                type="button"
+                disabled={locked}
+                aria-pressed={absentRow(s.id)}
+                onClick={() => setVals((v) => ({ ...v, [s.id]: Object.fromEntries(data.exam.parts.map((q) => [q.key, absentRow(s.id) ? "" : ABSENT])) }))}
+                aria-label={L({ hi: `${s.name} अनुपस्थित`, en: `${s.name} absent` })}
+                className={clsx("mt-auto h-11 shrink-0 rounded-xl border px-3 text-[13px] font-semibold disabled:opacity-50", absentRow(s.id) ? "border-rose-600 bg-rose-50 text-rose-700" : "border-ink-200 bg-white text-ink-500")}
+              >
+                AB
+              </button>
+            </div>
           </li>
         ))}
       </ul>

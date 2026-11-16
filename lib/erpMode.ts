@@ -6,6 +6,8 @@
  * screen by screen. Their session is the backend's /api/auth one; /api/staff-app is never called.
  */
 
+import { say } from "@/lib/i18n";
+
 const MODE = "sa:erp";
 
 export function isErpMode() {
@@ -35,20 +37,20 @@ const today = () => {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 };
 
-async function getJson(url:string,init?:RequestInit){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),30000);try{const res=await fetch(url,{credentials:'include',cache:'no-store',...init,signal:controller.signal});const data=await res.json().catch(e=>{if(controller.signal.aborted)throw e;if(res.ok)throw new ErpError(502,'The ERP server returned invalid data.');return {};});if(res.status===403&&FAMILY_403.test(data?.error||''))notErp();if(!res.ok)throw new ErpError(res.status,data?.error||'The request could not be completed.');return data as any;}catch(e){if(e instanceof ErpError)throw e;throw new ErpError(0,controller.signal.aborted?'The ERP server did not respond in time.':'offline');}finally{clearTimeout(timer);}}
+async function getJson(url:string,init?:RequestInit,ms=30000){const controller=new AbortController();const timer=setTimeout(()=>controller.abort(),ms);try{const res=await fetch(url,{credentials:'include',cache:'no-store',...init,signal:controller.signal});const data=await res.json().catch(e=>{if(controller.signal.aborted)throw e;if(res.ok)throw new ErpError(502,say({hi:'ERP सर्वर से गलत जवाब आया।',en:'The ERP server returned invalid data.'}));return {};});if(res.status===403&&FAMILY_403.test(data?.error||''))notErp();if(!res.ok)throw new ErpError(res.status,data?.error||say({hi:'काम पूरा नहीं हो सका।',en:'The request could not be completed.'}));return data as any;}catch(e){if(e instanceof ErpError)throw e;throw new ErpError(0,controller.signal.aborted?'timeout':'offline');}finally{clearTimeout(timer);}}
 
 const FAMILY_403 = /^This area is for school staff/;
 const ERP_ROLES = ["admin", "teacher", "accountant", "exam_cell"];
 function notErp(): never {
   setErpMode(false);
-  throw new ErpError(401, "Please sign in again.");
+  throw new ErpError(401, say({ hi: "कृपया फिर से लॉगिन करें।", en: "Please sign in again." }));
 }
 
 /**
  * "/erp/…" goes to the ERP's own backend API ("/erp/students" → /api/students), so the ERP's role
  * rules apply unchanged. Every other path is a staff-app path, answered with the right shape and nothing in it.
  */
-export async function erpApi(path: string, method: string, body?: unknown): Promise<unknown> {
+export async function erpApi(path: string, method: string, body?: unknown, timeoutMs?: number): Promise<unknown> {
   if (path.startsWith("/erp/"))
     return getJson("/api" + path.slice(4), method === "GET" ? undefined : { method, headers: { "Content-Type": "application/json" }, body: body === undefined ? undefined : JSON.stringify(body) });
 
@@ -79,10 +81,10 @@ export async function erpApi(path: string, method: string, body?: unknown): Prom
   }
 
   // School Sahayak: the office version answers from the school's own figures.
-  if (p === "/assistant" || p === "/assistant/warm") return getJson(`/api/dashboard${p}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}) });
+  if (p === "/assistant" || p === "/assistant/warm") return getJson(`/api/dashboard${p}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body ?? {}) }, timeoutMs);
 
   // Nothing can be saved from an ERP login yet.
-  if (method !== "GET") throw new ErpError(403, "ERP लॉगिन में यह अभी चालू नहीं है।");
+  if (method !== "GET") throw new ErpError(403, say({ hi: "ERP लॉगिन में यह अभी चालू नहीं है।", en: "This is not available with the ERP login yet." }));
 
   const month = /^\d{4}-\d{2}$/.test(u.searchParams.get("month") || "") ? u.searchParams.get("month")! : t.slice(0, 7);
   switch (p) {
@@ -121,5 +123,5 @@ export async function erpApi(path: string, method: string, body?: unknown): Prom
     case "/leave-requests":
       return { requests: [] };
   }
-  throw new ErpError(404, "ERP लॉगिन में यह अभी खाली है।");
+  throw new ErpError(404, say({ hi: "ERP लॉगिन में यह अभी खाली है।", en: "This is empty with the ERP login for now." }));
 }

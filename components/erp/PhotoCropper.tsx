@@ -4,6 +4,8 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { Minus, Move, Plus, X } from "lucide-react";
+// Rendered in its own React root (outside LangProvider), so text uses say(), which reads the chosen language.
+import { say } from "@/lib/i18n";
 
 /**
  * Crop a photo before it is saved: drag it inside the 3:4 frame (the ID card shape), zoom with the
@@ -21,8 +23,8 @@ const FRAME_H = 360;
 const ROUND_Y = 0.22;
 
 export function cropPhoto(file: File): Promise<string | null> {
-  if (!file.type.startsWith("image/")) return Promise.reject(new Error("This is not a photo."));
-  if (file.size > 25 * 1024 * 1024) return Promise.reject(new Error("This photo is too big (over 25 MB)."));
+  if (!file.type.startsWith("image/")) return Promise.reject(new Error(say({ hi: "यह फ़ोटो नहीं है।", en: "This is not a photo." })));
+  if (file.size > 25 * 1024 * 1024) return Promise.reject(new Error(say({ hi: "यह फ़ोटो बहुत बड़ी है (25 MB से ज़्यादा)।", en: "This photo is too big (over 25 MB)." })));
   return new Promise((resolve, reject) => {
     const host = document.createElement("div");
     document.body.appendChild(host);
@@ -56,7 +58,7 @@ function Cropper({ file, onDone, onError }: { file: File; onDone: (v: string | n
         setSrc(url);
         setBmp(b);
       })
-      .catch(() => onError(new Error("This photo format can't be used. Save it as JPG or PNG.")));
+      .catch(() => onError(new Error(say({ hi: "इस तरह की फ़ोटो नहीं चलेगी। JPG या PNG में सेव करें।", en: "This photo format can't be used. Save it as JPG or PNG." }))));
     return () => {
       live = false;
       if (url) URL.revokeObjectURL(url);
@@ -102,7 +104,7 @@ function Cropper({ file, onDone, onError }: { file: File; onDone: (v: string | n
     canvas.width = OUT_W;
     canvas.height = OUT_H;
     const ctx = canvas.getContext("2d");
-    if (!ctx) return onError(new Error("Could not process the photo on this device."));
+    if (!ctx) return onError(new Error(say({ hi: "इस फ़ोन पर फ़ोटो तैयार नहीं हो सकी।", en: "Could not process the photo on this device." })));
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, OUT_W, OUT_H);
     ctx.drawImage(bmp, -pos.x / scale, -pos.y / scale, FRAME_W / scale, FRAME_H / scale, 0, 0, OUT_W, OUT_H);
@@ -127,14 +129,14 @@ function Cropper({ file, onDone, onError }: { file: File; onDone: (v: string | n
     ) : null;
 
   return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label="Adjust photo">
+    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={say({ hi: "फ़ोटो ठीक करें", en: "Adjust photo" })}>
       <div className="w-full max-w-[560px] overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
         <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
           <div>
-            <p className="text-[15px] font-bold text-slate-900">Adjust photo</p>
-            <p className="text-[12.5px] text-slate-500">Drag to place the face in the frame, zoom if needed.</p>
+            <p className="text-[15px] font-bold text-slate-900">{say({ hi: "फ़ोटो ठीक करें", en: "Adjust photo" })}</p>
+            <p className="text-[12.5px] text-slate-500">{say({ hi: "चेहरा फ्रेम में लाने के लिए खिसकाएँ, ज़रूरत हो तो ज़ूम करें।", en: "Drag to place the face in the frame, zoom if needed." })}</p>
           </div>
-          <button type="button" onClick={() => onDone(null)} aria-label="Cancel" className="grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100">
+          <button type="button" onClick={() => onDone(null)} aria-label={say({ hi: "रद्द करें", en: "Cancel" })} className="grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100">
             <X className="h-5 w-5" />
           </button>
         </div>
@@ -160,7 +162,7 @@ function Cropper({ file, onDone, onError }: { file: File; onDone: (v: string | n
             {/* Thirds, and the circle the apps show */}
             <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,transparent_33.2%,rgba(255,255,255,.45)_33.3%,transparent_33.5%,transparent_66.5%,rgba(255,255,255,.45)_66.6%,transparent_66.8%),linear-gradient(to_bottom,transparent_33.2%,rgba(255,255,255,.45)_33.3%,transparent_33.5%,transparent_66.5%,rgba(255,255,255,.45)_66.6%,transparent_66.8%)]" />
             <span aria-hidden className="pointer-events-none absolute left-0 rounded-full ring-2 ring-white/90" style={{ width: FRAME_W, height: FRAME_W, top: (FRAME_H - FRAME_W) * ROUND_Y }} />
-            {!bmp && <span className="absolute inset-0 grid place-items-center text-sm text-slate-500">Loading…</span>}
+            {!bmp && <span className="absolute inset-0 grid place-items-center text-sm text-slate-500">{say({ hi: "लोड हो रहा है…", en: "Loading…" })}</span>}
           </div>
 
           {/* How it will look */}
@@ -169,36 +171,36 @@ function Cropper({ file, onDone, onError }: { file: File; onDone: (v: string | n
               <div className="relative overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200" style={{ width: R, height: R }}>
                 {img(dw * k, dh * k, pos.x * k, pos.y * k - roundTop)}
               </div>
-              <figcaption className="mt-1.5 text-[12px] text-slate-500">In the apps</figcaption>
+              <figcaption className="mt-1.5 text-[12px] text-slate-500">{say({ hi: "ऐप में", en: "In the apps" })}</figcaption>
             </figure>
             <figure className="text-center">
               <div className="relative overflow-hidden rounded-md bg-slate-100 ring-1 ring-slate-200" style={{ width: 63, height: 84 }}>
                 {img(dw * (63 / FRAME_W), dh * (63 / FRAME_W), pos.x * (63 / FRAME_W), pos.y * (63 / FRAME_W))}
               </div>
-              <figcaption className="mt-1.5 text-[12px] text-slate-500">ID card</figcaption>
+              <figcaption className="mt-1.5 text-[12px] text-slate-500">{say({ hi: "आईडी कार्ड", en: "ID card" })}</figcaption>
             </figure>
           </div>
         </div>
 
         <div className="flex items-center gap-3 px-5 pb-2">
-          <button type="button" onClick={() => setZoomKeep(zoom - 0.2)} aria-label="Zoom out" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
+          <button type="button" onClick={() => setZoomKeep(zoom - 0.2)} aria-label={say({ hi: "छोटा करें", en: "Zoom out" })} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
             <Minus className="h-4 w-4" />
           </button>
-          <input type="range" min={1} max={4} step={0.01} value={zoom} onChange={(e) => setZoomKeep(Number(e.target.value))} aria-label="Zoom" className="h-2 flex-1 accent-emerald-700" />
-          <button type="button" onClick={() => setZoomKeep(zoom + 0.2)} aria-label="Zoom in" className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
+          <input type="range" min={1} max={4} step={0.01} value={zoom} onChange={(e) => setZoomKeep(Number(e.target.value))} aria-label={say({ hi: "ज़ूम", en: "Zoom" })} className="h-2 flex-1 accent-emerald-700" />
+          <button type="button" onClick={() => setZoomKeep(zoom + 0.2)} aria-label={say({ hi: "बड़ा करें", en: "Zoom in" })} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
             <Plus className="h-4 w-4" />
           </button>
         </div>
         <p className="flex items-center justify-center gap-1.5 pb-3 text-[12px] text-slate-400">
-          <Move className="h-3.5 w-3.5" /> Drag the photo · scroll or slide to zoom
+          <Move className="h-3.5 w-3.5" /> {say({ hi: "फ़ोटो खिसकाएँ · ज़ूम के लिए स्क्रॉल या स्लाइड करें", en: "Drag the photo · scroll or slide to zoom" })}
         </p>
 
         <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3.5">
           <button type="button" onClick={() => onDone(null)} className="btn-line">
-            Cancel
+            {say({ hi: "रद्द करें", en: "Cancel" })}
           </button>
           <button type="button" onClick={save} disabled={!bmp || busy} className="btn-primary">
-            Use photo
+            {say({ hi: "यह फ़ोटो लें", en: "Use photo" })}
           </button>
         </div>
       </div>

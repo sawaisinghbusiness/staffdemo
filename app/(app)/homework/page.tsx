@@ -1,7 +1,7 @@
 "use client";
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import clsx from "clsx";
 import { CalendarDays, Check, Clock3, Trash2 } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
@@ -84,18 +84,22 @@ function Create() {
   useEffect(() => {
     if (sections.length && !sectionId) {
       setSectionId(sections[0].id);
-      setSubject(sections[0].subjects[0]);
+      setSubject(sections[0].subjects[0] || "");
     }
   }, [sections, sectionId]);
 
   if (!opts.data || !list.data) {
     const err = opts.error || list.error;
-    if (err && err.status !== 401) return <ErrorCard offline={err.status === 0} onRetry={() => Promise.all([opts.reload(), list.reload()])} />;
+    if (err && err.status !== 401) return <ErrorCard offline={err.status === 0} slow={err.message === "timeout"} onRetry={() => Promise.all([opts.reload(), list.reload()])} />;
     return <ListSkeleton rows={3} />;
   }
+  // No class assigned (or an ERP login): nothing to give homework to.
+  if (!sections.length) return <Empty>{L({ hi: "आपको अभी कोई क्लास नहीं दी गई है, इसलिए होमवर्क नहीं दे सकते।", en: "No classes are assigned to you yet, so there is nowhere to send homework." })}</Empty>;
 
   async function post(e: React.FormEvent) {
     e.preventDefault();
+    if (!sectionId) return;
+    if (!subject) return setMsg({ ok: false, text: L({ hi: "इस क्लास में आपका कोई विषय नहीं है।", en: "You have no subject in this class." }) });
     if (!title.trim()) return setMsg({ ok: false, text: L({ hi: "पहले लिखें कि क्या करना है।", en: "Write the homework first." }) });
     setBusy(true);
     setMsg(null);
@@ -223,7 +227,7 @@ function CheckTab() {
   }, [items, hwId]);
 
   if (!list.data) {
-    if (list.error && list.error.status !== 401) return <ErrorCard offline={list.error.status === 0} onRetry={list.reload} />;
+    if (list.error && list.error.status !== 401) return <ErrorCard offline={list.error.status === 0} slow={list.error.message === "timeout"} onRetry={list.reload} />;
     return <ListSkeleton rows={3} />;
   }
   if (!items.length) return <Empty>{L({ hi: "जाँचने के लिए कोई होमवर्क नहीं।", en: "No homework to check yet." })}</Empty>;
@@ -252,13 +256,17 @@ function Ticks({ id }: { id: string }) {
   const setMsg = useToastMsg();
 
   // First check: everyone ticked, so the teacher only un-ticks the few who did not bring it.
+  // After the first tap a fresh server answer must not undo the teacher's ticks.
+  const touched = useRef(false);
   useEffect(() => {
-    if (data) setDone(Object.fromEntries(data.students.map((s) => [s.id, s.submitted ?? true])));
+    if (!data) return;
+    const server = Object.fromEntries(data.students.map((s) => [s.id, s.submitted ?? true]));
+    setDone((d) => (touched.current ? { ...server, ...d } : server));
   }, [data]);
   const count = useMemo(() => Object.values(done).filter(Boolean).length, [done]);
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={4} />;
   }
 
@@ -268,6 +276,7 @@ function Ticks({ id }: { id: string }) {
     try {
       await api("/homework/submissions", { body: { id, submitted: done } });
       setMsg({ ok: true, text: L({ hi: "सेव हो गया। माता-पिता को दिखेगा।", en: "Saved. Parents will see it." }) });
+      touched.current = false;
       reload();
     } catch (e) {
       setMsg({ ok: false, text: e instanceof ApiError && e.message ? e.message : L({ hi: "सेव नहीं हुआ।", en: "Could not save." }) });
@@ -289,11 +298,11 @@ function Ticks({ id }: { id: string }) {
         <p className="mt-1.5 text-[15px] font-semibold text-ink-900">{h.title}</p>
       </div>
       {!!data.sentCount && <p className="text-[13px] font-medium text-ink-700">{L({ hi: `${data.sentCount} बच्चों ने घर से काम भेजा है। नीचे देखें।`, en: `${data.sentCount} sent their work from home. See below.` })}</p>}
-      <p className="text-[13px] text-ink-500">{data.checked ? L({ hi: "पहले जाँचा जा चुका है, बदल सकते हैं।", en: "Already checked; you can change it." }) : L({ hi: "जिसने जमा नहीं किया, उसका टिक हटाएँ।", en: "Mark who completed the work. Open received files before saving your review." })}</p>
+      <p className="text-[13px] text-ink-500">{data.checked ? L({ hi: "पहले जाँचा जा चुका है, बदल सकते हैं।", en: "Already checked; you can change it." }) : L({ hi: "जिसने काम पूरा किया उस पर टिक रखें, जिसने नहीं किया उसका टिक हटाएँ। सेव से पहले घर से भेजी फ़ाइलें खोलकर देखें।", en: "Keep a tick on who completed the work and remove it for who did not. Open received files before saving." })}</p>
       <ul className="glass-line overflow-hidden px-3.5">
         {data.students.map((s) => (
           <li key={s.id} className="border-b border-ink-900/10 last:border-b-0">
-            <button onClick={() => setDone((d) => ({ ...d, [s.id]: !d[s.id] }))} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 text-left">
+            <button onClick={() => { touched.current = true; setDone((d) => ({ ...d, [s.id]: !d[s.id] })); }} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 text-left">
               <Avatar name={s.name} url={s.photoUrl} size={36} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[15px] font-medium text-ink-900">{s.name}</span>

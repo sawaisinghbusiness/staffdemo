@@ -70,7 +70,7 @@ export default function ErpTimetablePage() {
   const teacherName = (id: string | null) => d?.teachers.find((t) => t.id === id)?.name || "";
 
   if (d?.setupNeeded) return <Empty>{L({ hi: "टाइम टेबल के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261003_timetable.sql)।", en: "Timetable needs a one-time database setup (20261003_timetable.sql)." })}</Empty>;
-  if (!d) return ov.error && ov.error.status !== 401 ? <ErrorCard offline={ov.error.status === 0} onRetry={ov.reload} /> : <ListSkeleton rows={6} />;
+  if (!d) return ov.error && ov.error.status !== 401 ? <ErrorCard offline={ov.error.status === 0} slow={ov.error.message === "timeout"} onRetry={ov.reload} /> : <ListSkeleton rows={6} />;
 
   const todayN = new Date().getDay(); // 0 = Sunday
   const shown = day ?? (todayN >= 1 && todayN <= 6 ? todayN : 1);
@@ -147,7 +147,7 @@ export default function ErpTimetablePage() {
           </div>
 
           {!loaded ? (
-            loadError && loadError.status !== 401 ? <ErrorCard offline={loadError.status === 0} onRetry={tab === "class" ? sec.reload : tch.reload} /> : <ListSkeleton rows={6} />
+            loadError && loadError.status !== 401 ? <ErrorCard offline={loadError.status === 0} slow={loadError.message === "timeout"} onRetry={tab === "class" ? sec.reload : tch.reload} /> : <ListSkeleton rows={6} />
           ) : d.periods.length === 0 ? (
             <Empty>{isAdmin ? L({ hi: "अभी कोई पीरियड नहीं बना। नीचे \"पीरियड\" से समय डालें।", en: "No periods yet. Set the times with \"Periods\" below." }) : L({ hi: "अभी कोई पीरियड नहीं बना।", en: "No periods set yet." })}</Empty>
           ) : (

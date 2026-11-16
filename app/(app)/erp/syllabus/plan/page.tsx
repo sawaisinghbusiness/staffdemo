@@ -53,7 +53,7 @@ function PlanView({ cls, subject }: Q) {
     if (!sec && data?.sections.length) setSec(data.sections[0]);
   }, [data, sec]);
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={6} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={6} />;
   if (data.setupNeeded) return <SetupNeeded file="20261019_syllabus_copycheck.sql" what={{ hi: "सिलेबस", en: "Syllabus" }} />;
 
   const chapters = data.data;

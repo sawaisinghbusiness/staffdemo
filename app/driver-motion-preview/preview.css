@@ -1,0 +1,37 @@
+/* PREVIEW ONLY: proposed motion for the driver app (see page.tsx). */
+.mp-page{min-height:100dvh;background:#E9E8E1;padding:12px 0 24px}
+.mp-controls{max-width:400px;margin:0 auto 10px;padding:0 16px}
+.mp-hint{font-size:12px;color:#596158;margin-bottom:8px}
+.mp-buttons{display:flex;gap:6px}
+.mp-buttons button{flex:1;min-height:40px;border-radius:10px;border:1px solid #CDD1C8;background:#fff;font-size:13px;font-weight:600;color:#17251E}
+.mp-buttons button[data-on=true]{background:#17251E;color:#fff;border-color:#17251E}
+.mp-phone{max-width:400px;margin:0 auto;min-height:760px;border-radius:22px;overflow:hidden;border:1px solid #D7DAD1}
+.mp-foot{display:flex;align-items:center;justify-content:center;gap:6px;font-size:12px;color:#596158;margin-top:10px}
+
+/* A spring that lands with a small settle (about 4% past, then back), like a card dropped on a table. */
+.mp-phone{--settle:cubic-bezier(.2,.8,.2,1);--spring:linear(0,.22 6%,.55 13%,.82 21%,.97 29%,1.035 37%,1.045 43%,1.03 52%,1.008 64%,.998 76%,1)}
+
+/* 1. Opening: layers arrive in order and settle. Opacity is only the first 120 ms; the feel is the movement. */
+[data-motion=new] .mp-in{animation:mp-rise .46s var(--settle) both,mp-show .12s linear both;animation-delay:calc(var(--i,0)*55ms)}
+[data-motion=new] .mp-card{animation:mp-land .62s var(--settle) both,mp-show .14s linear both;animation-timing-function:var(--spring),linear;animation-delay:90ms;transform-origin:50% 100%}
+[data-motion=new] .mp-in2{animation:mp-rise-s .42s var(--settle) both,mp-show .12s linear both;animation-delay:calc(170ms + var(--i,0)*45ms)}
+[data-motion=new] .mp-mark i{animation:mp-draw .4s var(--settle) .34s both;transform-origin:50% 0}
+@keyframes mp-rise{from{transform:translateY(14px)}}
+@keyframes mp-rise-s{from{transform:translateY(9px)}}
+@keyframes mp-land{from{transform:translateY(38px) scale(.955)}}
+@keyframes mp-show{from{opacity:0}}
+@keyframes mp-draw{from{transform:scaleY(0)}}
+
+/* 2. Skeleton: only the values are bars, sized like the value, and one light sweep runs over all of them together. */
+.mp-bar{display:inline-block;vertical-align:middle;height:.86em;border-radius:6px;background:#E6E8E1 linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%) no-repeat;background-size:60vw 100%;background-attachment:fixed;animation:mp-sweep 1.3s linear infinite}
+.mp-bar-2{display:block;margin-top:.3em}
+h2>.mp-bar:first-child{display:block}
+@keyframes mp-sweep{from{background-position:-60vw 0}to{background-position:100vw 0}}
+/* Data arrived: each bar turns into its text in the same place (sharpening out of a blur), nothing moves. */
+[data-slow] .mp-value{display:inline;animation:mp-sharpen .42s var(--settle) both}
+@keyframes mp-sharpen{from{opacity:0;filter:blur(6px)}}
+
+/* Opening "Today's stops": rows drop in one after another. */
+[data-motion=new] .dispatch-stops-reveal[data-open=true] .mp-row{animation:mp-rise-s .34s var(--settle) both,mp-show .12s linear both;animation-delay:calc(60ms + var(--i,0)*40ms)}
+
+@media(prefers-reduced-motion:reduce){.mp-phone *{animation:none!important}}

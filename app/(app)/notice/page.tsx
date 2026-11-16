@@ -35,7 +35,7 @@ export default function NoticePage() {
 
   if (!data) {
     if (error?.status === 404) return <Empty>{L({ hi: "अभी कोई सूचना नहीं।", en: "No notices yet." })}</Empty>;
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={4} />;
   }
   if (!data.notices.length) return <Empty>{L({ hi: "अभी कोई सूचना नहीं।", en: "No notices yet." })}</Empty>;

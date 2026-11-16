@@ -1,4 +1,4 @@
-import type { Bi } from "./i18n";
+import { say, type Bi } from "./i18n";
 
 /** The admission form's document list; keys match backend documentService.DOC_KEYS and the ERP website. */
 export const DOCS: { key: string; text: Bi; note?: Bi }[] = [
@@ -18,20 +18,20 @@ export const DOCS: { key: string; text: Bi; note?: Bi }[] = [
  * 1600 px, JPEG, under about 1 MB (the backend takes up to 1.5 MB).
  */
 export async function shrinkScan(file: File): Promise<string> {
-  if (!file.type.startsWith("image/")) throw new Error("This is not a photo.");
-  if (file.size > 25 * 1024 * 1024) throw new Error("This photo is too big (over 25 MB).");
+  if (!file.type.startsWith("image/")) throw new Error(say({ hi: "यह फ़ोटो नहीं है।", en: "This is not a photo." }));
+  if (file.size > 25 * 1024 * 1024) throw new Error(say({ hi: "यह फ़ोटो बहुत बड़ी है (25 MB से ज़्यादा)।", en: "This photo is too big (over 25 MB)." }));
   let bmp: ImageBitmap;
   try {
     bmp = await createImageBitmap(file); // honours the phone's rotation
   } catch {
-    throw new Error("This photo format can't be used. Save it as JPG or PNG.");
+    throw new Error(say({ hi: "इस तरह की फ़ोटो नहीं चलेगी। JPG या PNG में सेव करें।", en: "This photo format can't be used. Save it as JPG or PNG." }));
   }
   const scale = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
   const canvas = document.createElement("canvas");
   canvas.width = Math.round(bmp.width * scale);
   canvas.height = Math.round(bmp.height * scale);
   const ctx = canvas.getContext("2d");
-  if (!ctx) throw new Error("Could not process the photo on this device.");
+  if (!ctx) throw new Error(say({ hi: "इस फ़ोन पर फ़ोटो तैयार नहीं हो सकी।", en: "Could not process the photo on this device." }));
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.drawImage(bmp, 0, 0, canvas.width, canvas.height);

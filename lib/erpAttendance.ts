@@ -53,6 +53,6 @@ export interface SectionRoster {
 export function absenceWhatsApp(mobile: string, name: string, classSec: string, dateLabel: string, school: string): string | null {
   const d = (mobile || "").replace(/\D/g, "").slice(-10);
   if (!/^[6-9]\d{9}$/.test(d) || /^(\d)\1{9}$/.test(d)) return null; // 9999999999 etc. are placeholders, not parents
-  const text = `प्रिय अभिभावक, आज (${dateLabel}) ${name} (कक्षा ${classSec.replace(/\s*-\s*/, "-")}) स्कूल में अनुपस्थित है। कृपया कारण बताएं। – ${school}`;
+  const text = `प्रिय अभिभावक, आज (${dateLabel}) ${name} (कक्षा ${classSec.replace(/\s*-\s*/, "-")}) स्कूल में अनुपस्थित है। कृपया कारण बताएं।${school ? ` – ${school}` : ""}`;
   return `https://wa.me/91${d}?text=${encodeURIComponent(text)}`;
 }

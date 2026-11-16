@@ -19,11 +19,11 @@ const payMode = (m: string) => (/upi|qr/i.test(m) ? "UPI" : /cheque|dd/i.test(m)
 const enc = encodeURIComponent;
 
 /** Loading, error and "office only" states shared by every tab. */
-function Loading<T>({ q, children }: { q: { data?: T; error: { status: number } | null; reload: () => unknown }; children: (d: T) => React.ReactNode }) {
+function Loading<T>({ q, children }: { q: { data?: T; error: { status: number; message?: string } | null; reload: () => unknown }; children: (d: T) => React.ReactNode }) {
   const L = useL();
   if (q.data) return <>{children(q.data)}</>;
   if (q.error?.status === 403) return <Empty>{L({ hi: "यह हिस्सा सिर्फ़ ऑफ़िस (एडमिन, अकाउंटेंट) देख सकता है।", en: "Only the office (admin, accountant) can see this." })}</Empty>;
-  if (q.error && q.error.status !== 401) return <ErrorCard offline={q.error.status === 0} onRetry={q.reload} />;
+  if (q.error && q.error.status !== 401) return <ErrorCard offline={q.error.status === 0} slow={q.error.message === "timeout"} onRetry={q.reload} />;
   return <ListSkeleton rows={3} />;
 }
 

@@ -44,7 +44,7 @@ export default function ErpBirthdaysPage() {
     return Array.from(m.entries());
   }, [all, range, who]);
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={6} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={6} />;
   const schoolName = school?.school_name || "School";
 
   return (

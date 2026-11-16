@@ -123,7 +123,7 @@ export default function ErpStaffPage() {
       </label>
 
       {!data ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={6} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={6} />
       ) : shown.length === 0 ? (
         <>
           <Empty>

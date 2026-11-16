@@ -106,7 +106,7 @@ export default function ErpSyllabusExcelPage() {
     }
   }
 
-  if (!summary.data) return summary.error && summary.error.status !== 401 ? <ErrorCard offline={summary.error.status === 0} onRetry={summary.reload} /> : <ListSkeleton rows={4} />;
+  if (!summary.data) return summary.error && summary.error.status !== 401 ? <ErrorCard offline={summary.error.status === 0} slow={summary.error.message === "timeout"} onRetry={summary.reload} /> : <ListSkeleton rows={4} />;
 
   return (
     <div className="animate-rise space-y-4 pb-6">

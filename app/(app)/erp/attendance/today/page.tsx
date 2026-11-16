@@ -75,7 +75,7 @@ export default function ErpAttendanceTodayPage() {
   const schoolName = school?.school_name || "School";
   const dateLabel = new Date(date + "T00:00:00").toLocaleDateString("en-IN", { day: "numeric", month: "short" });
 
-  if (!day) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={6} />;
+  if (!day) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={6} />;
 
   return (
     <div className="animate-rise space-y-3 pb-4">
@@ -196,7 +196,7 @@ export default function ErpAttendanceTodayPage() {
 
       {tab === "absent" &&
         (!abs.data ? (
-          abs.error ? <ErrorCard offline={abs.error.status === 0} onRetry={abs.reload} /> : <ListSkeleton rows={5} />
+          abs.error ? <ErrorCard offline={abs.error.status === 0} slow={abs.error.message === "timeout"} onRetry={abs.reload} /> : <ListSkeleton rows={5} />
         ) : !absent.length ? (
           <Empty>{L({ hi: "आज कोई अनुपस्थित नहीं है।", en: "Nobody is absent today." })}</Empty>
         ) : (

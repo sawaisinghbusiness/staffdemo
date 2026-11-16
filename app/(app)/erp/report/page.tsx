@@ -43,7 +43,7 @@ export default function ErpReportPage() {
         <h1 className="text-[18px] font-bold leading-tight">{me?.name ? me.name.split(" ")[0] : ""}</h1>
       </div>
 
-      {error && !data && error.status !== 401 && <ErrorCard offline={error.status === 0} onRetry={reload} />}
+      {error && !data && error.status !== 401 && <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />}
 
       {/* Fees and students at a glance: the month figure, then three rows that open their lists. */}
       <section className="row-card !p-0" aria-label={L({ hi: "फ़ीस और बच्चे एक नज़र में", en: "Fees and students at a glance" })}>

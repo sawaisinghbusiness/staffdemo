@@ -100,7 +100,7 @@ export default function ErpPayrollPage() {
         <p className="mt-3 font-semibold text-ink-900">{L({ hi: "सैलरी सिर्फ़ एडमिन और अकाउंटेंट देख सकते हैं", en: "Only the admin and the accountant can see salaries" })}</p>
       </div>
     );
-  if (error && !data) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+  if (error && !data) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
   if (data?.setupNeeded)
     return (
       <Empty>

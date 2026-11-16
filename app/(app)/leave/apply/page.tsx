@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarDays } from "lucide-react";
 import { api, ApiError, useApi } from "@/lib/api";
@@ -26,12 +26,15 @@ export default function ApplyLeavePage() {
   const [busy, setBusy] = useState(false);
   const setProblem = useToastMsg();
 
+  // Start on today once; clearing "From" afterwards leaves it empty instead of snapping back.
+  const started = useRef(false);
   useEffect(() => {
-    if (data && !from) {
+    if (data && !started.current) {
+      started.current = true;
       setFrom(data.rules.today);
       setTo(data.rules.today);
     }
-  }, [data, from]);
+  }, [data]);
   const oneDay = !!from && (!to || to === from);
   useEffect(() => {
     if (!oneDay) setHalf(false);
@@ -54,7 +57,7 @@ export default function ApplyLeavePage() {
   }
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton />;
   }
 
@@ -84,7 +87,8 @@ export default function ApplyLeavePage() {
         </label>
         <label className="field-box">
           <small>{L({ hi: "किस दिन तक", en: "To" })}</small>
-          <input type="date" value={to} min={from} max={data.rules.maxFrom} onChange={(e) => setTo(e.target.value)} />
+          {/* maxFrom limits the first day only; the leave may run on past it (the server checks the length). */}
+          <input type="date" value={to} min={from || data.rules.minFrom} onChange={(e) => setTo(e.target.value)} />
           <CalendarDays aria-hidden />
         </label>
       </div>

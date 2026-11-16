@@ -43,7 +43,7 @@ export default function ErpExamSetupPage() {
   const open = list?.find((e) => e.id === openId) || null;
 
   if (exams.data?.setupNeeded) return <Empty>{L({ hi: "परीक्षा के लिए डेटाबेस में एक बार का बदलाव चाहिए (20261001_exams.sql)।", en: "Exams need a one-time database setup (20261001_exams.sql)." })}</Empty>;
-  if (!list) return exams.error && exams.error.status !== 401 ? <ErrorCard offline={exams.error.status === 0} onRetry={exams.reload} /> : <ListSkeleton rows={5} />;
+  if (!list) return exams.error && exams.error.status !== 401 ? <ErrorCard offline={exams.error.status === 0} slow={exams.error.message === "timeout"} onRetry={exams.reload} /> : <ListSkeleton rows={5} />;
 
   return (
     <div className="animate-rise space-y-3 pb-4">
@@ -104,7 +104,7 @@ export default function ErpExamSetupPage() {
           )}
         </>
       ) : !cls.data ? (
-        cls.error && cls.error.status !== 401 ? <ErrorCard offline={cls.error.status === 0} onRetry={cls.reload} /> : <ListSkeleton rows={6} />
+        cls.error && cls.error.status !== 401 ? <ErrorCard offline={cls.error.status === 0} slow={cls.error.message === "timeout"} onRetry={cls.reload} /> : <ListSkeleton rows={6} />
       ) : (
         <>
           <p className="text-[13px] text-ink-500">{L({ hi: "इन्हीं विषयों के अंक भरे और छापे जाते हैं।", en: "Marks are entered and printed for these subjects." })}</p>

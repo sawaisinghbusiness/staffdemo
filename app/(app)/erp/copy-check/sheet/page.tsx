@@ -52,7 +52,7 @@ function Existing({ id }: { id: string }) {
   const { data, error, reload } = useApi<One>(`/erp/copy-checks/${id}`);
   const blank = useApi<Blank>(data ? `/erp/copy-checks/blank?section=${encodeURIComponent(data.classSec)}` : null);
   if (error && /not set up/i.test(error.message)) return <SetupNeeded file="20261019_syllabus_copycheck.sql" what={{ hi: "कॉपी जाँच", en: "Copy check" }} />;
-  if (!data || !blank.data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={8} />;
+  if (!data || !blank.data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={8} />;
   return <Form id={data.id} section={data.classSec} subjects={blank.data.subjects} students={data.students} init={{ subject: data.subject, date: data.date, topic: data.topic }} by={data.checkedBy} L={L} />;
 }
 
@@ -76,7 +76,7 @@ function NewCheck({ section }: { section: string }) {
         ))}
       </SelectBox>
       {!blank.data || !sec ? (
-        blank.error && blank.error.status !== 401 ? <ErrorCard offline={blank.error.status === 0} onRetry={blank.reload} /> : <ListSkeleton rows={8} />
+        blank.error && blank.error.status !== 401 ? <ErrorCard offline={blank.error.status === 0} slow={blank.error.message === "timeout"} onRetry={blank.reload} /> : <ListSkeleton rows={8} />
       ) : !blank.data.subjects.length ? (
         <Empty>{L({ hi: "इस सेक्शन के विषय नहीं डाले गए। सेटिंग → कक्षा और विषय में डालें।", en: "This section has no subjects. Add them in Settings → Classes & subjects." })}</Empty>
       ) : (

@@ -17,7 +17,7 @@ const KEYS = ["empCode", "name", "staffType", "designation", "department", "mobi
 
 export default function ErpStaffExcelPage() {
   const { data, error, reload } = useApi<StaffList>("/erp/staff");
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={4} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={4} />;
   const active = data.data.filter((m) => m.status !== "Relieved");
   return (
     <ExcelRoundTrip

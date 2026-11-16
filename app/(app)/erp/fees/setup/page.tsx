@@ -135,7 +135,7 @@ export default function ErpFeeSetupPage() {
     }
   }
 
-  if (loadError && !cfg) return loadError.status === 401 ? null : <ErrorCard offline={loadError.status === 0} onRetry={load} />;
+  if (loadError && !cfg) return loadError.status === 401 ? null : <ErrorCard offline={loadError.status === 0} slow={loadError.message === "timeout"} onRetry={load} />;
   if (!cfg || !savedCfg || !meta) return <ListSkeleton rows={5} />;
 
   const setIns = (i: number, patch: Partial<FeeConfig["instalments"][number]>) => setCfg({ ...cfg, instalments: cfg.instalments.map((x, j) => (j === i ? { ...x, ...patch } : x)) });

@@ -1,0 +1,1 @@
+﻿Source: https://github.com/rdev/liquid-glass-react (master, retrieved 16 November 2026). MIT license preserved in LICENSE. Source used to avoid npm React 19 peer requirement on this React 18 app. Browser-only, homepage slider visual layer only; pointer handling stays on the original button. Safari/Firefox displacement limited upstream.

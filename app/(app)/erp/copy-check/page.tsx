@@ -64,7 +64,7 @@ export default function ErpCopyCheckPage() {
 
       {tab === "checks" &&
         (!list.data ? (
-          list.error && list.error.status !== 401 ? <ErrorCard offline={list.error.status === 0} onRetry={list.reload} /> : <ListSkeleton rows={5} />
+          list.error && list.error.status !== 401 ? <ErrorCard offline={list.error.status === 0} slow={list.error.message === "timeout"} onRetry={list.reload} /> : <ListSkeleton rows={5} />
         ) : !list.data.data.length ? (
           <Empty>{L({ hi: "अभी कोई कॉपी जाँच नहीं हुई। 'नई जाँच' से शुरू करें।", en: "No copy checks yet. Start with 'New check'." })}</Empty>
         ) : (
@@ -104,7 +104,7 @@ export default function ErpCopyCheckPage() {
 
       {tab === "report" &&
         (!rep.data ? (
-          rep.error && rep.error.status !== 401 ? <ErrorCard offline={rep.error.status === 0} onRetry={rep.reload} /> : <ListSkeleton rows={5} />
+          rep.error && rep.error.status !== 401 ? <ErrorCard offline={rep.error.status === 0} slow={rep.error.message === "timeout"} onRetry={rep.reload} /> : <ListSkeleton rows={5} />
         ) : (
           <>
             {sec && (

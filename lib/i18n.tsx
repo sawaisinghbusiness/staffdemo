@@ -43,6 +43,15 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
 
 export const useLang = () => useContext(Ctx);
 
+/** For code outside React (lib helpers that throw messages shown in toasts): the language chosen in Profile. */
+export function say(b: Bi): string {
+  try {
+    return localStorage.getItem("sa:lang") === "hi" ? b.hi : b.en;
+  } catch {
+    return b.en;
+  }
+}
+
 /** Text sits next to the screen that uses it: `const L = useL(); L({ hi: "…", en: "…" })`. English by default, Hindi from Profile. */
 export function useL() {
   const { lang } = useContext(Ctx);

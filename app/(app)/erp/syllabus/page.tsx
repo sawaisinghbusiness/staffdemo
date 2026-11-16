@@ -40,7 +40,7 @@ export default function ErpSyllabusPage() {
     } catch {}
   };
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={6} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={6} />;
   if (data.setupNeeded) return <SetupNeeded file="20261019_syllabus_copycheck.sql" what={{ hi: "सिलेबस", en: "Syllabus" }} />;
   if (!classes.length) return <Empty>{L({ hi: "अभी किसी कक्षा के विषय नहीं हैं। पहले सेटिंग → कक्षा और विषय में विषय डालें।", en: "No class has subjects yet. Add them in Settings → Classes & subjects first." })}</Empty>;
 

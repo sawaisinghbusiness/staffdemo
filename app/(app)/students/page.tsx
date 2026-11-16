@@ -53,7 +53,7 @@ export default function StudentsPage() {
       </label>
 
       {!data ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : list.length === 0 ? (
         <Empty>{L({ hi: "कोई बच्चा नहीं मिला।", en: "No student found." })}</Empty>
       ) : (

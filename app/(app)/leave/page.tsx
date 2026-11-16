@@ -120,7 +120,7 @@ function MyLeave() {
   }
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton />;
   }
 
@@ -183,7 +183,7 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
   const setMsg = useToastMsg();
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton />;
   }
   const pending = data.requests.filter((r) => r.status === "pending");
@@ -194,6 +194,7 @@ function Requests({ data, error, reload }: { data?: { requests: Req[] }; error: 
     setMsg("");
     try {
       await api("/leave-requests", { body: { id, status } });
+      setMsg({ ok: true, text: status === "approved" ? L({ hi: "छुट्टी मंज़ूर कर दी। माता-पिता को दिखेगा।", en: "Leave approved. Parents will see it." }) : L({ hi: "छुट्टी मंज़ूर नहीं की। माता-पिता को दिखेगा।", en: "Leave not approved. Parents will see it." }) });
       reload();
     } catch (e) {
       setMsg(e instanceof ApiError && e.message ? e.message : L({ hi: "सेव नहीं हुआ।", en: "Could not save." }));

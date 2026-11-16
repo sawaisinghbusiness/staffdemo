@@ -19,12 +19,12 @@ const today = () => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata" 
 const when = (iso: string, lang: string) => new Date(iso).toLocaleString(lang === "hi" ? "hi-IN" : "en-IN", { day: "numeric", month: "short", year: "numeric", hour: "numeric", minute: "2-digit", hour12: true });
 const errText = (e: unknown, fallback: string) => (e instanceof ApiError && e.message) || (e as Error)?.message || fallback;
 
-function Gate<T extends { setupNeeded?: boolean }>({ q, children }: { q: { data?: T; error: { status: number } | null; reload: () => unknown }; children: (d: T) => React.ReactNode }) {
+function Gate<T extends { setupNeeded?: boolean }>({ q, children }: { q: { data?: T; error: { status: number; message?: string } | null; reload: () => unknown }; children: (d: T) => React.ReactNode }) {
   const L = useL();
   if (q.data?.setupNeeded) return <Empty>{L({ hi: "यह हिस्सा डेटाबेस अपडेट (student profile 360 SQL) के बाद चालू होगा।", en: "This starts working after the one-time database update (student profile 360 SQL)." })}</Empty>;
   if (q.data) return <>{children(q.data)}</>;
   if (q.error?.status === 403) return <Empty>{L({ hi: "यह हिस्सा सिर्फ़ ऑफ़िस (एडमिन, अकाउंटेंट) देख सकता है।", en: "Only the office (admin, accountant) can see this." })}</Empty>;
-  if (q.error && q.error.status !== 401) return <ErrorCard offline={q.error.status === 0} onRetry={q.reload} />;
+  if (q.error && q.error.status !== 401) return <ErrorCard offline={q.error.status === 0} slow={q.error.message === "timeout"} onRetry={q.reload} />;
   return <ListSkeleton rows={3} />;
 }
 

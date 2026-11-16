@@ -60,7 +60,7 @@ export default function ErpCertificatesPage() {
       </label>
 
       {!data ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : shown.length === 0 ? (
         <Empty>{certs.length ? L({ hi: "कुछ नहीं मिला। दूसरा नाम या सीरियल नं. देखें।", en: "Nothing matches. Try another name or serial number." }) : L({ hi: "अभी कोई सर्टिफ़िकेट नहीं दिया। ऊपर + से दें; हर TC, बोनाफ़ाइड और चरित्र सर्टिफ़िकेट यहाँ सीरियल नं. के साथ दिखेगा।", en: "No certificate issued yet. Issue one with + above; each is listed here with its serial number." })}</Empty>
       ) : (

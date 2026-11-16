@@ -89,7 +89,7 @@ export default function NotesPage() {
       <section className="space-y-2">
         <h2 className="teacher-section-heading">{L({ hi: "पहले के नोट", en: "Earlier notes" })}</h2>
         {!notes.data ? (
-          notes.error && notes.error.status !== 401 ? <ErrorCard offline={notes.error.status === 0} onRetry={notes.reload} /> : <ListSkeleton rows={2} />
+          notes.error && notes.error.status !== 401 ? <ErrorCard offline={notes.error.status === 0} slow={notes.error.message === "timeout"} onRetry={notes.reload} /> : <ListSkeleton rows={2} />
         ) : notes.data.notes.length === 0 ? (
           <Empty>{L({ hi: "अभी कोई नोट नहीं।", en: "No notes yet." })}</Empty>
         ) : (

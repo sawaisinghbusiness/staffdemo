@@ -96,7 +96,7 @@ export default function ErpIdCardsPage() {
     });
   const sections = classes.find((c) => c.name === cls)?.sections || [];
 
-  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />;
+  if (!data) return error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />;
   if (!students.length) return <Empty>{L({ hi: "अभी कोई बच्चा नहीं। पहले बच्चे जोड़ें; उनके कार्ड यहाँ कक्षा के हिसाब से दिखेंगे।", en: "No students yet. Add students first; their cards appear here class by class." })}</Empty>;
 
   return (

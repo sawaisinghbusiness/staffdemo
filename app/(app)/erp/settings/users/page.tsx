@@ -131,7 +131,7 @@ export default function ErpUsersPage() {
       </label>
 
       {!users ? (
-        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} onRetry={res.reload} /> : <ListSkeleton rows={5} />
+        res.error && res.error.status !== 401 ? <ErrorCard offline={res.error.status === 0} slow={res.error.message === "timeout"} onRetry={res.reload} /> : <ListSkeleton rows={5} />
       ) : shown.length === 0 ? (
         <Empty>
           {query

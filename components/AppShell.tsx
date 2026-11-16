@@ -40,6 +40,16 @@ interface PageInfo {
   bare?: boolean;
 }
 
+/** Staff-app screens the ERP login has no data for (lib/erpMode answers 404), and the ERP screen that does the same job. */
+const ERP_MOVED: Record<string, string> = {
+  "/students/": "/erp/students/",
+  "/students/detail/": "/erp/students/",
+  "/messages/": "/erp/parent-chats/",
+  "/messages/chat/": "/erp/parent-chats/",
+  "/trip/": "/erp/transport/",
+  "/trip/history/": "/erp/transport/",
+};
+
 const PAGES: Record<string, PageInfo> = {
   "/erp/reports/":{title:{en:"All reports",hi:"\u0938\u093e\u0930\u0940 \u0930\u093f\u092a\u094b\u0930\u094d\u091f"},tab:"/erp/report/"},
   "/erp/settings/data/":{title:{en:"Data",hi:"\u0921\u0947\u091f\u093e"},back:"/erp/settings/",tab:"/profile/"},
@@ -63,6 +73,13 @@ const PAGES: Record<string, PageInfo> = {
   "/messages/": { title: { hi: "अभिभावकों की पूछताछ", en: "Parent Enquiries" }, tab: "/", teacher: true },
   "/messages/chat/": { title: { hi: "संदेश", en: "Message" }, back: "/messages/", teacher: true, own: true, bare: true },
   "/assistant/": { title: { hi: "एआई असिस्टेंट", en: "AI Assistant" }, back: "/", own: true, bare: true },
+  // Old /me/* links only redirect to Profile; no header or menu flashes on the way.
+  "/me/": { title: { hi: "प्रोफ़ाइल", en: "Profile" }, own: true, bare: true },
+  "/me/attendance/": { title: { hi: "प्रोफ़ाइल", en: "Profile" }, own: true, bare: true },
+  "/me/leave/": { title: { hi: "प्रोफ़ाइल", en: "Profile" }, own: true, bare: true },
+  "/me/requests/": { title: { hi: "प्रोफ़ाइल", en: "Profile" }, own: true, bare: true },
+  "/me/salary/": { title: { hi: "प्रोफ़ाइल", en: "Profile" }, own: true, bare: true },
+  "/me/timetable/": { title: { hi: "प्रोफ़ाइल", en: "Profile" }, own: true, bare: true },
   // ERP login's own screens (the ERP website's modules, one by one).
   "/erp/students/": { title: { hi: "सभी बच्चे", en: "All Students" }, tab: "/erp/students/", action: { href: "/erp/students/admission/", text: { hi: "नया प्रवेश", en: "New admission" }, badge: { hi: "बच्चा जोड़ें", en: "Add student" } } },
   "/erp/students/excel/": { title: { hi: "Excel से भरें", en: "Students in Excel" }, back: "/erp/students/", tab: "/erp/students/" },
@@ -137,10 +154,10 @@ const ERP_TABS = TEACHER_TABS.map((t) => (t.href === "/students/" ? { ...t, href
 const ERP_REPORT = { href: "/erp/report/", text: { hi: "रिपोर्ट", en: "Report" } as Bi };
 const TEACHER_REPORT = { href: "/marks/", text: { hi: "रिपोर्ट", en: "Report" } as Bi };
 
-/** Drivers get their own bar: a black pill with Record, Home (raised, yellow) and Profile. */
+/** Driver tabs form a full-width bottom bar; the safe area shares its opaque background. */
 function DriverNav({ path }: { path: string }) {
   const L = useL();
-  const item = (href: string, text: Bi, Icon: LucideIcon, mid?: boolean) => {
+  const item = (href: string, text: Bi, Icon: LucideIcon) => {
     const on = path === href || (href !== "/" && path.startsWith(href));
     return (
       <Link
@@ -148,8 +165,8 @@ function DriverNav({ path }: { path: string }) {
         aria-label={L(text)}
         aria-current={on ? "page" : undefined}
         className={clsx(
-          "flex min-w-[72px] flex-col items-center justify-center gap-1.5 rounded-xl px-2",
-          mid && on ? "min-h-[56px] bg-drv-yellow text-black" : clsx("min-h-[56px]", on ? "text-drv-yellow" : "text-[#9A9A9A]")
+          "flex min-h-[64px] min-w-0 flex-1 flex-col items-center justify-center gap-1.5 px-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-4px] focus-visible:outline-white",
+          on ? "text-drv-yellow" : "text-[#B8B8B8]"
         )}
       >
         <Icon className="h-5 w-5" strokeWidth={on ? 2.2 : 1.9} aria-hidden />
@@ -158,10 +175,10 @@ function DriverNav({ path }: { path: string }) {
     );
   };
   return (
-    <nav className="pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto flex max-w-[560px] justify-center" aria-label="Main">
-      <div className="mb-3 flex min-h-[68px] w-[280px] max-w-[calc(100%-32px)] items-center justify-between gap-1 rounded-[18px] bg-drv-black p-1.5 shadow-[0_8px_20px_rgba(0,0,0,.18)]">
+    <nav className="driver-bottom-nav pb-safe fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-[#242424] bg-drv-black" aria-label="Main">
+      <div className="flex min-h-[64px] w-full items-stretch">
         {item("/trip/history/", { hi: "ट्रिप रिकॉर्ड", en: "Trip record" }, History)}
-        {item("/", { hi: "होम", en: "Home" }, Home, true)}
+        {item("/", { hi: "होम", en: "Home" }, Home)}
         {item("/profile/", { hi: "प्रोफ़ाइल", en: "Profile" }, UserRound)}
       </div>
     </nav>
@@ -182,7 +199,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const [menu, setMenu] = useState(false);
   const page = PAGES[path];
   const isHome = path === "/";
-  const driverTrip = me?.role === "driver" && path.replace(/\/$/, "") === "/trip";
+  // The trip screen draws its own full-screen shell for every role (a teacher opening it saw it cover the tab bar).
+  const driverTrip = !!me && path.replace(/\/$/, "") === "/trip";
   const own = !!page?.own || driverTrip;
   const teacher = !me || me.role === "teacher";
   const driver = me?.role === "driver";
@@ -206,9 +224,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const midOn = !!mid && (path === mid.href || lit === mid.href);
   // Open = slide in from the right, Back = from the left, between bottom tabs = fade.
   const motion = motionClass(usePageMotion(path, (p) => tabs.some((t) => t.href === p) || mid?.href === p));
+  // An ERP login opening an old staff-app link whose data the ERP login can't load goes to the ERP's own screen.
+  const erpMoved = erp && !driver ? ERP_MOVED[path] : undefined;
   useEffect(() => {
-    if (blocked) window.location.replace("/");
-  }, [blocked]);
+    if (erpMoved) window.location.replace(erpMoved);
+    else if (blocked) window.location.replace("/");
+  }, [blocked, erpMoved]);
 
   // Swipe right anywhere on the screen to open the side menu (not on a chat, whose screen is all typing,
   // not for drivers, and not when the swipe starts on something that scrolls sideways, like the lectures strip).
@@ -248,7 +269,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Home guards alone do not prevent a previous mode's tabs/header from flashing.
   if (!me) return (
     <div className="staff-workspace mx-auto min-h-[100dvh] max-w-[560px] bg-white px-4 py-8">
-      {error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : (
+      {error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : (
         <div role="status" aria-busy="true" aria-label={L({ hi: "\u0916\u093e\u0924\u093e \u0932\u094b\u0921 \u0939\u094b \u0930\u0939\u093e \u0939\u0948", en: "Loading your account" })}>
           <div className="h-4 w-32 animate-pulse rounded bg-ink-100 motion-reduce:animate-none" aria-hidden="true" />
         </div>
@@ -296,11 +317,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", !page?.bare && !driverTrip && "pb-28", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
+      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", !page?.bare && !driverTrip && (driver && isHome ? "pb-[calc(65px+env(safe-area-inset-bottom))]" : "pb-28"), !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
         {!isHome && !own && <ResourceStatus />}
-        {blocked ? null : error && error.status !== 401 ? (
+        {blocked || erpMoved ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
-            <ErrorCard offline={error.status === 0} onRetry={reload} />
+            <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />
           </div>
         ) : own ? (
           children

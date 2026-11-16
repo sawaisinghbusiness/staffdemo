@@ -50,7 +50,7 @@ export function MyMonth({ counts = true }: { counts?: boolean }) {
   const { data, error, reload } = useApi<Month>(`/my/attendance${month ? `?month=${month}` : ""}`);
   const shown = data && (!month || data.month === month) ? data : undefined;
 
-  if (!shown && error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+  if (!shown && error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
   const current = shown?.month || month;
   const lead = shown ? (new Date(shown.days[0].date + "T00:00:00").getDay() + 6) % 7 : 0;
   const t = shown?.totals;

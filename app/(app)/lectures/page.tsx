@@ -21,7 +21,7 @@ export default function LecturesPage() {
   }, []);
 
   if (!data) {
-    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} onRetry={reload} />;
+    if (error && error.status !== 401) return <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} />;
     return <ListSkeleton rows={5} />;
   }
   const day = data.todayDay;

@@ -47,7 +47,7 @@ export default function ErpMessagesPage() {
     <div className="animate-rise space-y-3 pb-4">
       {who.data && !canWrite && <p className="text-[13px] text-ink-500">{L({ hi: "नया मैसेज सिर्फ़ एडमिन और अकाउंटेंट लिख सकते हैं।", en: "Only the admin and the accountant can write a new message." })}</p>}
       {!list ? (
-        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} onRetry={reload} /> : <ListSkeleton rows={5} />
+        error && error.status !== 401 ? <ErrorCard offline={error.status === 0} slow={error.message === "timeout"} onRetry={reload} /> : <ListSkeleton rows={5} />
       ) : list.length === 0 ? (
         <Empty>{L({ hi: "अभी कोई मैसेज नहीं भेजा। छुट्टी, मीटिंग, परीक्षा या फ़ीस की याद: एक बार लिखें, हर माता-पिता को बच्चे के नाम के साथ जाएगा।", en: "No message sent yet. Holiday notices, meeting dates, exam and fee reminders: written once, sent to every parent with their child's name." })}</Empty>
       ) : (
