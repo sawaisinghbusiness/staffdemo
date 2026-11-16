@@ -25,6 +25,7 @@ import "./driver-dispatch.css";
 import "./erp-colours.css";
 import "./status-badges.css";
 import { LangProvider } from "@/lib/i18n";
+import { DiscardDialogProvider } from "@/components/DiscardDialog";
 import { Toaster } from "@/lib/toast";
 
 export const metadata: Metadata = {
@@ -52,7 +53,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en">
       <body>
         <LangProvider>
-          {children}
+          <DiscardDialogProvider>{children}</DiscardDialogProvider>
           <Toaster />
         </LangProvider>
       </body>

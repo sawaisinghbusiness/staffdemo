@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import clsx from "clsx";
+import "./toast.css";
 import { CircleAlert, CircleCheck, X } from "lucide-react";
 
 /**
@@ -57,17 +58,18 @@ export function Toaster() {
     <div className="pt-safe pointer-events-none fixed inset-x-0 top-0 z-[60] mx-auto flex max-w-[560px] justify-center px-3">
       <div
         key={note.id}
+        data-tone={note.ok ? "success" : "error"}
         role={note.ok ? "status" : "alert"}
         className={clsx(
-          "toast-card pointer-events-auto mt-3 flex w-full items-start gap-3 rounded-2xl border-[1.5px] border-ink-900 bg-white px-3.5 py-3 shadow-[0_10px_30px_rgba(16,24,40,0.16)]",
+          "toast-card operational-toast pointer-events-auto mt-3 flex w-full items-start gap-2.5 bg-white",
           leaving && "toast-out"
         )}
       >
-        <span className={clsx("mt-px grid h-7 w-7 shrink-0 place-items-center rounded-full text-white", note.ok ? "bg-[#16a34a]" : "bg-[#dc2626]")}>
-          <Icon className="h-[18px] w-[18px]" strokeWidth={2.4} aria-hidden />
+        <span className="operational-toast-icon">
+          <Icon className="h-[18px] w-[18px]" strokeWidth={2} aria-hidden />
         </span>
-        <p className="min-w-0 flex-1 pt-0.5 text-[14.5px] font-medium leading-snug text-ink-900">{note.text}</p>
-        <button type="button" onClick={close} aria-label="Close" className="-mr-1.5 -mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-full text-ink-500 active:bg-ink-100">
+        <p className="operational-toast-message">{note.text}</p>
+        <button type="button" onClick={close} aria-label="Close" className="operational-toast-dismiss">
           <X className="h-4 w-4" aria-hidden />
         </button>
       </div>

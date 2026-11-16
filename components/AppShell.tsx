@@ -222,6 +222,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Four-tab bars get the raised Report button in the middle (Dhan's centre button, 2026-10-17).
   const mid = tabs.length === 4 ? (erp ? ERP_REPORT : TEACHER_REPORT) : null;
   const midOn = !!mid && (path === mid.href || lit === mid.href);
+  // Bottom tabs belong to primary destinations, not nested forms or detail workflows.
+  const showBottomTabs = !page?.bare && !driverTrip && (driver
+    ? ["/", "/trip/history/", "/profile/"].includes(path)
+    : tabs.some(tab => tab.href === path) || mid?.href === path);
+
   // Open = slide in from the right, Back = from the left, between bottom tabs = fade.
   const motion = motionClass(usePageMotion(path, (p) => tabs.some((t) => t.href === p) || mid?.href === p));
   // An ERP login opening an old staff-app link whose data the ERP login can't load goes to the ERP's own screen.
@@ -281,7 +286,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <ActionPalette.Provider value={!driver && !path.startsWith("/assistant/")}>
     <ErpAppearance.Provider value={erp && !driver}>
     <MenuContext.Provider value={{ openMenu: () => setMenu(true) }}>
-    <div data-action-theme={!driver && !path.startsWith("/assistant/") ? "evergreen" : undefined} className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", erp && !driver && "erp-interface", driver ? "drv driver-shell bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
+    <div data-bottom-tabs={showBottomTabs ? "visible" : "hidden"} data-action-theme={!driver && !path.startsWith("/assistant/") ? "evergreen" : undefined} className={clsx("relative mx-auto flex min-h-[100dvh] max-w-[560px] flex-col", erp && !driver && "erp-interface", driver ? "drv driver-shell bg-white" : home ? (erp ? "bg-[#e3ecec]" : "bg-[#F7F9FC]") : "staff-workspace app-page")}>
       {!isHome && !own && (
         <header className="pt-safe sticky top-0 z-20 border-b border-[#DCE4ED] bg-white">
           {/* A worded button ("+ Add student") gets its own column, so the title never runs under it on a small phone. */}
@@ -302,10 +307,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
               {page?.action?.badge ? (
                 <Link
                   href={page.action.href}
-                  className="mr-1 flex min-h-[36px] items-center gap-1 whitespace-nowrap rounded-full border-[1.5px] border-ink-900 bg-white pl-2 pr-3 text-[13px] font-semibold text-ink-900 active:scale-[.97]"
+                  className="mr-1 flex min-h-[44px] items-center whitespace-nowrap text-[12px] font-semibold text-ink-900 active:scale-[.97]"
                 >
-                  <Plus className="h-4 w-4" strokeWidth={2.4} aria-hidden />
-                  {L(page.action.badge)}
+                  <span className="flex h-8 items-center gap-1 rounded-lg border border-ink-900 bg-white pl-2 pr-2.5" data-header-badge>
+                    <Plus className="h-3.5 w-3.5" strokeWidth={2.4} aria-hidden />
+                    {L(page.action.badge)}
+                  </span>
                 </Link>
               ) : page?.action && (
                 <Link href={page.action.href} className={clsx("grid h-11 w-11 place-items-center rounded-full", onBand)} aria-label={L(page.action.text)}>
@@ -317,7 +324,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", !page?.bare && !driverTrip && (driver && isHome ? "pb-[calc(65px+env(safe-area-inset-bottom))]" : "pb-28"), !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
+      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", showBottomTabs ? (driver && isHome ? "pb-[calc(65px+env(safe-area-inset-bottom))]" : "pb-28") : "pb-[max(24px,env(safe-area-inset-bottom))]", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
         {!isHome && !own && <ResourceStatus />}
         {blocked || erpMoved ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
@@ -340,7 +347,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           switched on in the side menu (as on the parent app). Not for drivers. */}
       {!page?.bare && !driver && owlEnabled && <SahayakButton />}
 
-      {page?.bare || driverTrip ? null : driver ? (
+      {!showBottomTabs ? null : driver ? (
         <DriverNav path={path} />
       ) : (
       // Teachers and other staff: the parent app's flat bar (user, 2026-11-13): white, a hairline on top,

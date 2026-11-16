@@ -11,6 +11,7 @@ import { fullDate, phoneText, rupees } from "@/lib/format";
 import { toast } from "@/lib/toast";
 import { DOCS, shrinkScan } from "@/lib/erpDocs";
 import type { ErpStudentFull } from "@/lib/erpStudents";
+import { ErpStudentIdentity } from "@/components/erp/ErpStudentIdentity";
 import { Avatar, Empty, ErrorCard, ListSkeleton, ScrollTabs } from "@/components/ui";
 import { AttendanceTab, LedgerTab, PaymentsTab, ResultsTab, SiblingsTab, SrRegisterTab, TimetableTab } from "@/components/erp/StudentProfileTabs";
 import { HistoryTab, RefundsTab, RemarksTab, WalletTab } from "@/components/erp/StudentProfileOfficeTabs";
@@ -159,15 +160,7 @@ export default function ErpStudentDetailPage() {
 
   return (
     <div className="animate-rise space-y-4">
-      <div className="flex items-center gap-3">
-        <Avatar name={s.name} url={s.photoUrl || null} size={56} />
-        <div className="min-w-0">
-          <p className="truncate text-[18px] font-bold">{s.name}</p>
-          <p className="truncate text-[13px] text-ink-500">
-            {s.classSec} · {L({ hi: "रोल", en: "Roll" })} {s.rollNo || "—"} · {s.srNo}
-          </p>
-        </div>
-      </div>
+      <ErpStudentIdentity student={s} />
 
       <ScrollTabs
         label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}

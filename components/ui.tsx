@@ -22,7 +22,7 @@ export function Avatar({ name, url, size = 48, tint }: { name: string; url?: str
   const [failed, setFailed] = useState<string | null>(null);
   return url && failed !== url ? (
     // eslint-disable-next-line @next/next/no-img-element
-    <img src={url} alt="" width={size} height={size} onError={() => setFailed(url)} className="shrink-0 rounded-full object-cover" style={{ width: size, height: size }} />
+    <img src={url} alt="" width={size} height={size} onError={() => setFailed(url)} className="shrink-0 rounded-full object-cover object-[50%_22%]" style={{ width: size, height: size }} />
   ) : (
     <span className="grid shrink-0 place-items-center rounded-full font-bold" style={{ width: size, height: size, fontSize: size * 0.34, background: bg, color: fg }}>
       {initials(name)}
@@ -166,8 +166,8 @@ export function SelectBox({ label, value, onChange, children, className }: { lab
     else if(e.key==="Tab"){close()}
     else if(e.target===list.current&&e.key.length===1&&!e.ctrlKey&&!e.metaKey){e.preventDefault();if(search){setQ(text=>text+e.key);setActive(0);requestAnimationFrame(()=>wrap.current?.querySelector<HTMLInputElement>("input")?.focus())}else{const match=shown.findIndex(o=>o.text.toLowerCase().startsWith(e.key.toLowerCase()));if(match>=0)setActive(match)}}
   }}>
-    <button ref={trigger} type="button" disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} aria-controls={id} onClick={()=>open?close(true):setOpen(true)} onKeyDown={e=>{if(!open&&(e.key==="ArrowDown"||e.key==="ArrowUp")){e.preventDefault();setOpen(true)}}} className={clsx("field-box text-left disabled:opacity-60",open&&"!border-[#0D2A5E]",className)}>
-      <span className="min-w-0 flex-1 break-words text-[15.5px] leading-snug"><span className="text-ink-500">{label} - </span><span className="font-semibold text-ink-900">{current?.text||"—"}</span></span><ChevronDown aria-hidden className={clsx("shrink-0 transition-transform duration-150",open&&"rotate-180")}/>
+    <button ref={trigger} type="button" disabled={!options.length} aria-haspopup="listbox" aria-expanded={open} aria-controls={id} onClick={()=>open?close(true):setOpen(true)} onKeyDown={e=>{if(!open&&(e.key==="ArrowDown"||e.key==="ArrowUp")){e.preventDefault();setOpen(true)}}} className={clsx("field-box ui-select-trigger text-left disabled:opacity-60",open&&"!border-[#0D2A5E]",className)}>
+      <span className="ui-select-copy"><span className="ui-select-label">{label}</span><span className="ui-select-value">{current?.text||"—"}</span></span><ChevronDown aria-hidden className={clsx("shrink-0 transition-transform duration-150",open&&"rotate-180")}/>
     </button>
     {open&&<div className="drop-in absolute inset-x-0 top-full mt-1.5 overflow-hidden rounded-xl border border-ink-900 bg-white shadow-[0_12px_28px_rgba(22,33,58,.16)]">
       {search&&<label className="block border-b border-ink-100 p-2"><span className="sr-only">{L({hi:"खोजें",en:"Search"})}</span><span className="flex min-h-[44px] items-center gap-2 rounded-lg bg-ink-100 px-2.5"><Search size={16} aria-hidden/><input value={q} onChange={e=>{setQ(e.target.value);setActive(0)}} placeholder={L({hi:"खोजें",en:"Search"})} className="min-w-0 flex-1 bg-transparent text-[16px] outline-none"/></span></label>}

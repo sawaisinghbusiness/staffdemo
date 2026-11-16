@@ -67,12 +67,13 @@
   .erp-interface .erp-home-masthead .text-ink-500{color:var(--erp-rail-muted)}
   .erp-interface .erp-home .home-tile{background:#fff}
   .erp-interface .erp-home .home-update:hover{background:var(--erp-hover)}
-  .erp-interface.erp-menu [tabindex="-1"]{background:var(--erp-rail);color:var(--erp-on-rail)}
-  .erp-interface.erp-menu [tabindex="-1"] :is(.text-ink-900,.text-ink-800,.text-ink-700,.text-ink-600,.text-ink-500,.text-ink-400){color:var(--erp-rail-muted)}
+  .erp-interface.erp-menu [tabindex="-1"]{background:#fff;color:var(--erp-ink)}
+  .erp-interface.erp-menu [tabindex="-1"] :is(.text-ink-900,.text-ink-800,.text-ink-700,.text-ink-600){color:var(--erp-ink)}
+  .erp-interface.erp-menu [tabindex="-1"] :is(.text-ink-500,.text-ink-400){color:var(--erp-muted)}
   .erp-interface.erp-menu a[aria-current=page]{background:#fff;color:var(--erp-ink)}
   .erp-interface.erp-menu a[aria-current=page] *{color:inherit}
-  .erp-interface.erp-menu [class*=border-ink]{border-color:var(--erp-rail-line)}
-  .erp-interface.erp-menu [tabindex="-1"] :focus-visible{outline-color:#fff}
+  .erp-interface.erp-menu [class*=border-ink]{border-color:var(--erp-line)}
+  .erp-interface.erp-menu [tabindex="-1"] :focus-visible{outline-color:var(--erp-brand)}
   .erp-interface .fee-instalment[data-allocated=true]{border-color:var(--erp-brand);outline:none}
   .erp-interface .fee-instalment-status i{background:#15803D}
   .erp-interface .fee-instalment[data-state=late] .fee-instalment-status i{background:#B42332}

@@ -8,7 +8,7 @@
  *   2. the road line through all places comes from the free road service (OSRM), as the backend does.
  * Results are kept in this browser, so it is fetched once per route.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { BusRoute, LatLng, RoutePath } from "@/lib/bus";
 
 const BARMER: LatLng = { lat: 25.7521, lng: 71.3967 };
@@ -147,11 +147,15 @@ export function useFilledRoute(route: BusRoute | null): BusRoute | null {
       gone = true;
     };
   }, [sig]); // eslint-disable-line react-hooks/exhaustive-deps
-  if (!route) return null;
-  if (filled && filled.sig === sig) {
-    // Keep the backend's latest kids / absences; take the filled places and line.
-    const at = new Map(filled.r.stops.map((s) => [s.name, s]));
-    return { ...route, school: filled.r.school, path: filled.r.path, stops: route.stops.map((s) => (placed(s) ? s : { ...s, lat: at.get(s.name)?.lat ?? null, lng: at.get(s.name)?.lng ?? null })) };
-  }
-  return route;
+  // Preserve route/path identity between position updates: the simulator must not
+  // repeatedly re-anchor to the preceding road vertex on every render.
+  return useMemo(() => {
+    if (!route) return null;
+    if (filled && filled.sig === sig) {
+      // Keep the backend's latest kids / absences; take the filled places and line.
+      const at = new Map(filled.r.stops.map((s) => [s.name, s]));
+      return { ...route, school: filled.r.school, path: filled.r.path, stops: route.stops.map((s) => (placed(s) ? s : { ...s, lat: at.get(s.name)?.lat ?? null, lng: at.get(s.name)?.lng ?? null })) };
+    }
+    return route;
+  }, [route, filled, sig]);
 }

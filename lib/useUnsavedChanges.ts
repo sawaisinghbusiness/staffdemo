@@ -1,16 +1,23 @@
 "use client";
 import { useCallback, useEffect, useRef } from "react";
-import { useL } from "@/lib/i18n";
+import { useDiscardDialog } from "@/components/DiscardDialog";
 
-/** Protect an editor on same-app links and browser unload. Use confirmDiscard for local context switches. */
+/** Custom confirmation for in-app navigation; native unload protection remains intact. */
 export function useUnsavedChanges(dirty: boolean, onDiscard?: () => void) {
-  const L = useL();
+  const ask = useDiscardDialog();
   const active = useRef(dirty);
-  const discard = useRef(onDiscard); discard.current = onDiscard;
-  const message = useRef("");
+  const discard = useRef(onDiscard);
+  const navigating = useRef(false);
+  const replaying = useRef(false);
+  discard.current = onDiscard;
   active.current = dirty;
-  message.current = L({hi:"बदलाव सेव नहीं हुए हैं। इन्हें छोड़कर आगे जाएँ?",en:"Your changes are not saved. Discard them and leave?"});
-  const confirmDiscard = useCallback(() => { if(!active.current)return true; if(!window.confirm(message.current))return false; discard.current?.(); active.current=false; return true; }, []);
+  const confirmDiscard = useCallback(async () => {
+    if (!active.current) return true;
+    if (!(await ask())) return false;
+    discard.current?.();
+    active.current = false;
+    return true;
+  }, [ask]);
   const markSaved = useCallback(() => { active.current = false; }, []);
   useEffect(() => {
     const unload = (event: BeforeUnloadEvent) => {
@@ -18,19 +25,28 @@ export function useUnsavedChanges(dirty: boolean, onDiscard?: () => void) {
       event.preventDefault(); event.returnValue = "";
     };
     const click = (event: MouseEvent) => {
-      if (!active.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
-      const tab = (event.target as Element)?.closest?.('[role="tab"]');
-      if (tab && tab.getAttribute("aria-selected") !== "true") {
-        if (!confirmDiscard()) { event.preventDefault(); event.stopImmediatePropagation(); }
-        else active.current = false;
-        return;
+      if (!active.current || replaying.current || event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target as Element;
+      if (target.closest?.('[data-discard-dialog]')) return;
+      const tab = target.closest?.('[role="tab"]') as HTMLElement | null;
+      let destination: HTMLElement | null = null;
+      if (tab && tab.getAttribute("aria-selected") !== "true") destination = tab;
+      else {
+        const anchor = target.closest?.('a[href]') as HTMLAnchorElement | null;
+        if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
+        const next = new URL(anchor.href, location.href);
+        if (next.origin !== location.origin || next.pathname + next.search === location.pathname + location.search) return;
+        destination = anchor;
       }
-      const anchor = (event.target as Element)?.closest?.('a[href]') as HTMLAnchorElement | null;
-      if (!anchor || anchor.target === "_blank" || anchor.hasAttribute("download")) return;
-      const next = new URL(anchor.href, location.href);
-      if (next.origin !== location.origin || next.pathname + next.search === location.pathname + location.search) return;
-      if (!confirmDiscard()) { event.preventDefault(); event.stopImmediatePropagation(); }
-      else active.current = false;
+      event.preventDefault(); event.stopImmediatePropagation();
+      if (navigating.current) return;
+      navigating.current = true;
+      void confirmDiscard().then(allowed => {
+        if (allowed && destination?.isConnected) {
+          replaying.current = true;
+          try { destination.click(); } finally { replaying.current = false; }
+        }
+      }).finally(() => { navigating.current = false; });
     };
     window.addEventListener("beforeunload", unload);
     document.addEventListener("click", click, true);

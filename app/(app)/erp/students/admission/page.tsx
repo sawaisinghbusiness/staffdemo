@@ -2,7 +2,7 @@
 import { useUnsavedChanges } from "@/lib/useUnsavedChanges";
 import { useErpSession } from "@/lib/useErpSession";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import clsx from "clsx";
 import { CalendarDays, Camera, Check, CheckCircle2, Plus, Search, X } from "lucide-react";
@@ -479,7 +479,7 @@ export default function ErpAdmissionPage() {
           <p className="text-[14px] text-ink-500">
             {saved.classSec} · SR {saved.srNo} · {L({ hi: "सत्र की फ़ीस", en: "fee for the session" })} {rupees(saved.totalFee)}
           </p>
-          <Link href={`/erp/fees/collect/?student=${encodeURIComponent(saved.id)}`} className="btn mt-2 w-full bg-[#0D2A5E] text-white">
+          <Link href={`/erp/fees/collect/?student=${encodeURIComponent(saved.id)}`} className="btn mt-2 w-full bg-[var(--erp-brand)] text-white">
             {L({ hi: "पहली फ़ीस जमा करें", en: "Collect first fee" })}
           </Link>
           <Link href={`/erp/students/detail/?id=${encodeURIComponent(saved.id)}`} className="btn w-full border-[1.5px] border-ink-900 bg-white text-ink-900">
@@ -502,7 +502,7 @@ export default function ErpAdmissionPage() {
           {label}
           {o.required && req}
         </small>
-        {o.note && <span className="pointer-events-none absolute right-3 top-1.5 text-[10.5px] font-bold text-[#0D2A5E]">{o.note}</span>}
+        {o.note && <span className="pointer-events-none absolute right-3 top-1.5 text-[10.5px] font-bold text-[var(--erp-brand)]">{o.note}</span>}
         <input
           id={`adm-${k}`}
           type={o.type || "text"}
@@ -558,7 +558,7 @@ export default function ErpAdmissionPage() {
               role="radio"
               aria-checked={on}
               onClick={() => set(k, (on && !required ? "" : o.value) as never)}
-              className={clsx("min-h-[44px] rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold transition-colors", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-200 bg-white text-ink-900")}
+              className={clsx("min-h-[44px] rounded-full border-[1.5px] px-3.5 text-[14px] font-semibold transition-colors", on ? "border-[var(--erp-brand)] bg-[var(--erp-brand)] text-white" : "border-ink-200 bg-white text-ink-900")}
             >
               {o.text}
             </button>
@@ -579,7 +579,7 @@ export default function ErpAdmissionPage() {
         aria-checked={!!f[k]}
         aria-label={title}
         onClick={() => set(k, !f[k] as never)}
-        className={clsx("relative h-7 w-12 shrink-0 rounded-full transition-colors", f[k] ? "bg-[#0D2A5E]" : "bg-ink-200")}
+        className={clsx("relative h-7 w-12 shrink-0 rounded-full transition-colors", f[k] ? "bg-[var(--erp-brand)]" : "bg-ink-200")}
       >
         <span className={clsx("absolute top-[3px] h-[22px] w-[22px] rounded-full bg-white shadow transition-all", f[k] ? "left-[23px]" : "left-[3px]")} />
       </button>
@@ -598,7 +598,7 @@ export default function ErpAdmissionPage() {
   );
   const more = (title: string, children: React.ReactNode, open?: boolean) => (
     <details className="group border-t border-dashed border-ink-200 pt-2" open={open}>
-      <summary className="flex min-h-[40px] cursor-pointer list-none items-center gap-1.5 text-[14px] font-semibold text-[#0D2A5E]">
+      <summary className="flex min-h-[40px] cursor-pointer list-none items-center gap-1.5 text-[14px] font-semibold text-[var(--erp-brand)]">
         <Plus className="h-4 w-4 transition-transform group-open:rotate-45" aria-hidden />
         {title}
       </summary>
@@ -661,7 +661,7 @@ export default function ErpAdmissionPage() {
                 <input readOnly tabIndex={-1} value={ageOn1April(f.dob)} className="text-[16px]" />
               </label>
             </div>
-            {f.dob && <p className="-mt-1 text-[12.5px] font-semibold text-[#0D2A5E]">{dateInWords(f.dob)}</p>}
+            {f.dob && <p className="-mt-1 text-[12.5px] font-semibold text-[var(--erp-brand)]">{dateInWords(f.dob)}</p>}
             {text("birthPlace", L({ hi: "जन्म स्थान", en: "Place of birth" }), { ph: "Barmer" })}
           </>
         )}
@@ -939,7 +939,7 @@ export default function ErpAdmissionPage() {
               return (
                 <li key={d.key} className="flex items-center gap-2 border-b border-ink-100 last:border-0">
                   <button type="button" role="checkbox" aria-checked={on} onClick={() => set("documents", { ...f.documents, [d.key]: !on })} className="flex min-h-[52px] min-w-0 flex-1 items-center gap-3 py-1.5 text-left">
-                    <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-md border-[1.5px]", on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : "border-ink-300 bg-white")}>{on && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}</span>
+                    <span className={clsx("grid h-6 w-6 shrink-0 place-items-center rounded-md border-[1.5px]", on ? "border-[var(--erp-brand)] bg-[var(--erp-brand)] text-white" : "border-ink-300 bg-white")}>{on && <Check className="h-4 w-4" strokeWidth={3} aria-hidden />}</span>
                     <span className="min-w-0">
                       <span className="block text-[14.5px] font-medium">{L(d.text)}</span>
                       {d.note && <span className="block text-[12px] text-ink-500">{L(d.note)}</span>}
@@ -984,7 +984,7 @@ export default function ErpAdmissionPage() {
 
     check: () => {
       const editStep = (k: StepKey) => (
-        <button type="button" onClick={() => go(STEPS.findIndex((s) => s.key === k))} className="min-h-[36px] px-1 text-[13.5px] font-semibold text-[#0D2A5E]">
+        <button type="button" onClick={() => go(STEPS.findIndex((s) => s.key === k))} className="min-h-[36px] px-1 text-[13.5px] font-semibold text-[var(--erp-brand)]">
           {L({ hi: "बदलें", en: "Edit" })}
         </button>
       );
@@ -1087,33 +1087,33 @@ export default function ErpAdmissionPage() {
     <div className="pb-24">
       {/* Steps: tap any to jump; done ones get a tick. */}
       <div className="-mx-4 -mt-1 pb-0 pt-1" style={{ background: "var(--erp-canvas, #ECEEEB)" }}>
-        <nav ref={stepNav} className="flex gap-1.5 overflow-x-auto px-4 pb-3 [scrollbar-width:none]" aria-label={L({ hi: "फ़ॉर्म के चरण", en: "Form steps" })}>
+        <nav ref={stepNav} className="admission-stepper" aria-label={L({ hi: "फ़ॉर्म के चरण", en: "Form steps" })}>
           {STEPS.map((s, i) => {
             const on = i === step;
-            // Ticked as soon as the step's details pass: live on steps with required boxes, once passed on the others.
-            const done = s.key !== "check" && stepOk[i] && (i < reached || (on && HAS_REQUIRED.has(s.key)));
+            // Only a validated step already left behind is green; the current step stays active.
+            const done = !on && s.key !== "check" && stepOk[i] && i < reached;
             return (
+              <Fragment key={s.key}>
+              {i > 0 && <span className="admission-step-connector" data-done={stepOk[i-1] && i-1 < reached} aria-hidden="true" />}
               <button
-                key={s.key}
                 type="button"
                 onClick={() => goTo(i)}
                 aria-current={on ? "step" : undefined}
                 data-step={i}
-                className={clsx(
-                  "flex min-h-[44px] shrink-0 items-center gap-1.5 rounded-full border-[1.5px] pl-1.5 pr-3 text-[13px] font-semibold transition-colors duration-200",
-                  on ? "border-[#0D2A5E] bg-[#0D2A5E] text-white" : done ? "border-ink-900 bg-white text-ink-900" : "border-ink-200 bg-white text-ink-500"
-                )}
+                data-state={done ? "done" : on ? "current" : "pending"}
+                className="admission-step"
               >
-                <span className={clsx("grid h-6 w-6 place-items-center rounded-full text-[12px] transition-colors duration-200", done ? "bg-jade-600 text-white" : on ? "bg-white text-[#0D2A5E]" : "bg-ink-100 text-ink-900")}>
+                <span className="admission-step-number">
                   {done ? <Check className="step-tick h-3.5 w-3.5" strokeWidth={3} aria-hidden /> : i + 1}
                 </span>
                 {L(s.text)}
               </button>
+              </Fragment>
             );
           })}
         </nav>
         <div className="h-[3px] bg-ink-100">
-          <div className="h-full origin-left bg-[#0D2A5E] transition-transform duration-300 ease-out" style={{ transform: `scaleX(${(step + 1) / STEPS.length})` }} />
+          <div className="h-full origin-left bg-[var(--erp-brand)] transition-transform duration-300 ease-out" style={{ transform: `scaleX(${(step + 1) / STEPS.length})` }} />
         </div>
       </div>
 
@@ -1130,11 +1130,11 @@ export default function ErpAdmissionPage() {
           </button>
         )}
         {stepKey === "check" ? (
-          <button type="button" onClick={submit} disabled={busy} className="btn min-h-[50px] flex-1 bg-[#0D2A5E] text-[16px] text-white disabled:opacity-60">
+          <button type="button" onClick={submit} disabled={busy} className="btn min-h-[50px] flex-1 bg-[var(--erp-brand)] text-[16px] text-white disabled:opacity-60">
             {busy ? "…" : editing ? L({ hi: "बदलाव सेव करें", en: "Save changes" }) : L({ hi: "प्रवेश सेव करें", en: "Save admission" })}
           </button>
         ) : (
-          <button type="button" onClick={next} className="btn min-h-[50px] min-w-0 flex-1 bg-[#0D2A5E] text-[16px] text-white">
+          <button type="button" onClick={next} className="btn min-h-[50px] min-w-0 flex-1 bg-[var(--erp-brand)] text-[16px] text-white">
             <span className="truncate">
               {L({ hi: "आगे", en: "Next" })}: {L(STEPS[step + 1].text)}
             </span>
@@ -1181,7 +1181,7 @@ function SiblingSheet({ students, skip, father, onPick, onClose }: { students: E
                 </span>
                 <span className="block truncate text-[12.5px] text-ink-400">{parentLine(s)}</span>
               </span>
-              <Plus className="h-5 w-5 shrink-0 text-[#0D2A5E]" aria-hidden />
+              <Plus className="h-5 w-5 shrink-0 text-[var(--erp-brand)]" aria-hidden />
             </button>
           </li>
         ))}

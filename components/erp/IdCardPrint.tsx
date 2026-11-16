@@ -72,7 +72,7 @@ export function IdCardFront({ s, school }: { s: Student; school: CardSchool }) {
       {/* Photo over the band */}
       <div className="-mt-[7.6mm] flex justify-center">
         {s.photoUrl ? (
-          <img src={s.photoUrl} alt="" className="h-[24mm] w-[19.5mm] rounded-[1.5mm] border-[0.8mm] border-white object-cover shadow-[0_0.3mm_1mm_rgba(0,0,0,0.25)]" />
+          <img src={s.photoUrl} alt="" className="h-[24mm] w-[19.5mm] rounded-[1.5mm] border-[0.8mm] border-white object-cover object-[50%_22%] shadow-[0_0.3mm_1mm_rgba(0,0,0,0.25)]" />
         ) : (
           <span className="flex h-[24mm] w-[19.5mm] items-center justify-center rounded-[1.5mm] border-[0.8mm] border-white text-[15pt] font-bold shadow-[0_0.3mm_1mm_rgba(0,0,0,0.25)]" style={{ background: TINT, color: BAND }}>
             {initials(s.name)}

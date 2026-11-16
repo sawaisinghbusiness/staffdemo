@@ -160,7 +160,7 @@ function Entry({ exam, section, subject, onBack }: { exam: string; section: stri
 
   return (
     <div className={clsx("animate-rise space-y-3", !locked && "pb-20")}>
-      <button onClick={() => { if(confirmDiscard()){writeEditorDraft(draftKey,null);onBack();} }} className="-ml-1 flex min-h-[44px] items-center gap-1 text-[14px] font-semibold text-brand-600">
+      <button onClick={async () => { if(await confirmDiscard()){writeEditorDraft(draftKey,null);onBack();} }} className="-ml-1 flex min-h-[44px] items-center gap-1 text-[14px] font-semibold text-brand-600">
         <ChevronLeft className="h-4 w-4" aria-hidden /> {L({ hi: "बदलें", en: "Change" })}
       </button>
       <div className="row-card">

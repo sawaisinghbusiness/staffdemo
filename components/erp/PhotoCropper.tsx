@@ -1,209 +1,120 @@
 "use client";
-/* Copied from the ERP (components/ui/PhotoCropper.tsx); only the button classes are the staff app's. Keep in step. */
-
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
-import { Minus, Move, Plus, X } from "lucide-react";
-// Rendered in its own React root (outside LangProvider), so text uses say(), which reads the chosen language.
+import { Minus, Plus, X } from "lucide-react";
 import { say } from "@/lib/i18n";
+import "./photo-cropper.css";
 
-/**
- * Crop a photo before it is saved: drag it inside the 3:4 frame (the ID card shape), zoom with the
- * slider, and see how it will look as the round photo in the apps. Returns the same small 360×480
- * JPEG data URL that shrinkPhoto makes, or null if the person cancels.
- *
- *   const image = await cropPhoto(file);
- *   if (!image) return; // cancelled
- */
-const OUT_W = 360;
-const OUT_H = 480;
-const FRAME_W = 270;
-const FRAME_H = 360;
-/** The apps draw a round photo from the 3:4 picture, a little above its middle (object-position 50% 22%). */
-const ROUND_Y = 0.22;
+type Mode = "profile" | "portrait";
+type Point = { x: number; y: number };
+const FRAME = 264;
+const ROUND_Y = .22;
 
-export function cropPhoto(file: File): Promise<string | null> {
-  if (!file.type.startsWith("image/")) return Promise.reject(new Error(say({ hi: "यह फ़ोटो नहीं है।", en: "This is not a photo." })));
-  if (file.size > 25 * 1024 * 1024) return Promise.reject(new Error(say({ hi: "यह फ़ोटो बहुत बड़ी है (25 MB से ज़्यादा)।", en: "This photo is too big (over 25 MB)." })));
+/** The selected crop is exported once; every app displays the same saved pixels. */
+export function cropPhoto(file: File, options: { mode?: Mode } = {}): Promise<string | null> {
+  if (!file.type.startsWith("image/")) return Promise.reject(new Error(say({ hi: "फ़ोटो चुनें।", en: "Choose an image file." })));
+  if (file.size > 25 * 1024 * 1024) return Promise.reject(new Error(say({ hi: "25 MB से छोटी फ़ोटो चुनें।", en: "Choose a photo smaller than 25 MB." })));
   return new Promise((resolve, reject) => {
-    const host = document.createElement("div");
-    document.body.appendChild(host);
+    const host = document.createElement("div"); document.body.append(host);
     const root = createRoot(host);
-    const done = (v: string | null, err?: Error) => {
-      root.unmount();
-      host.remove();
-      if (err) reject(err);
-      else resolve(v);
+    const done = (value: string | null, error?: Error) => {
+      queueMicrotask(() => { root.unmount(); host.remove(); });
+      if (error) reject(error); else resolve(value);
     };
-    root.render(<Cropper file={file} onDone={(v) => done(v)} onError={(e) => done(null, e)} />);
+    root.render(<Cropper file={file} initialMode={options.mode || "profile"} onDone={value => done(value)} onError={error => done(null,error)} />);
   });
 }
 
-function Cropper({ file, onDone, onError }: { file: File; onDone: (v: string | null) => void; onError: (e: Error) => void }) {
-  const [bmp, setBmp] = useState<ImageBitmap | null>(null);
-  const [src, setSrc] = useState("");
-  const [zoom, setZoom] = useState(1);
-  const [pos, setPos] = useState({ x: 0, y: 0 });
-  const [busy, setBusy] = useState(false);
-  const drag = useRef<{ px: number; py: number; x: number; y: number } | null>(null);
+function Cropper({ file, initialMode, onDone, onError }: { file: File; initialMode: Mode; onDone: (value: string | null) => void; onError: (error: Error) => void }) {
+  const [bmp,setBmp] = useState<ImageBitmap | null>(null);
+  const [src,setSrc] = useState("");
+  const [mode,setMode] = useState<Mode>(initialMode);
+  const [view,setView] = useState({ x:0,y:0,zoom:1 });
+  const [busy,setBusy] = useState(false);
+  const current = useRef(view); current.current=view;
+  const panel = useRef<HTMLDivElement>(null), frame = useRef<HTMLDivElement>(null);
+  const pointers = useRef(new Map<number,Point>());
+  const gesture = useRef<{ origin:Point; position:Point } | null>(null);
+  const pinch = useRef<{ distance:number; zoom:number; image:Point } | null>(null);
+  const height = mode === "profile" ? FRAME : FRAME*4/3;
+  const base = bmp ? Math.max(FRAME/bmp.width,height/bmp.height) : 1;
 
-  // The photo as a bitmap (honours the phone's rotation) and as an <img> for the frame.
   useEffect(() => {
-    let url = "";
-    let live = true;
-    createImageBitmap(file)
-      .then((b) => {
-        if (!live) return b.close();
-        url = URL.createObjectURL(file);
-        setSrc(url);
-        setBmp(b);
-      })
-      .catch(() => onError(new Error(say({ hi: "इस तरह की फ़ोटो नहीं चलेगी। JPG या PNG में सेव करें।", en: "This photo format can't be used. Save it as JPG or PNG." }))));
-    return () => {
-      live = false;
-      if (url) URL.revokeObjectURL(url);
+    let live=true,url="",image:ImageBitmap|null=null;
+    createImageBitmap(file).then(decoded=>{
+      image=decoded;if(!live){image.close();return}
+      url=URL.createObjectURL(file);setSrc(url);setBmp(decoded);
+    }).catch(()=>{if(live)onError(new Error(say({hi:"यह फ़ोटो नहीं खुली। JPG या PNG फ़ोटो चुनें।",en:"This photo could not be opened. Choose a JPG or PNG image."})))});
+    return()=>{live=false;if(url)URL.revokeObjectURL(url);image?.close()};
+  },[file,onError]);
+  useEffect(()=>{
+    if(!bmp)return;const scale=Math.max(FRAME/bmp.width,height/bmp.height);
+    const next={x:(FRAME-bmp.width*scale)/2,y:(height-bmp.height*scale)*ROUND_Y,zoom:1};current.current=next;setView(next);
+  },[bmp,height]);
+  useEffect(()=>{
+    const previous=document.activeElement as HTMLElement|null,overflow=document.body.style.overflow;
+    document.body.style.overflow="hidden";panel.current?.focus();
+    const key=(e:KeyboardEvent)=>{
+      if(e.key==="Escape"){e.preventDefault();e.stopImmediatePropagation();onDone(null)}
+      if(e.key==="Tab"){
+        const items=Array.from(panel.current?.querySelectorAll<HTMLElement>('button:not(:disabled),input:not(:disabled)')||[]),first=items[0],last=items.at(-1);
+        if(e.shiftKey&&(document.activeElement===first||document.activeElement===panel.current)){e.preventDefault();last?.focus()}
+        else if(!e.shiftKey&&(document.activeElement===last||document.activeElement===panel.current)){e.preventDefault();first?.focus()}
+      }
     };
-  }, [file, onError]);
+    window.addEventListener("keydown",key,true);return()=>{document.body.style.overflow=overflow;window.removeEventListener("keydown",key,true);if(previous?.isConnected)previous.focus()};
+  },[onDone]);
 
-  const base = bmp ? Math.max(FRAME_W / bmp.width, FRAME_H / bmp.height) : 1;
-  const scale = base * zoom;
-  const dw = bmp ? bmp.width * scale : FRAME_W;
-  const dh = bmp ? bmp.height * scale : FRAME_H;
-  const clamp = useCallback((x: number, y: number) => ({ x: Math.min(0, Math.max(FRAME_W - dw, x)), y: Math.min(0, Math.max(FRAME_H - dh, y)) }), [dw, dh]);
-
-  // First look: centred across, leaning toward the top so the face is in.
-  useEffect(() => {
-    if (!bmp) return;
-    const s = Math.max(FRAME_W / bmp.width, FRAME_H / bmp.height);
-    setPos({ x: (FRAME_W - bmp.width * s) / 2, y: (FRAME_H - bmp.height * s) * 0.2 });
-  }, [bmp]);
-
-  // Zoom around the middle of the frame.
-  const setZoomKeep = (z: number) => {
-    if (!bmp) return;
-    const nz = Math.min(4, Math.max(1, z));
-    const cx = (FRAME_W / 2 - pos.x) / scale;
-    const cy = (FRAME_H / 2 - pos.y) / scale;
-    const ns = base * nz;
-    const nw = bmp.width * ns;
-    const nh = bmp.height * ns;
-    setZoom(nz);
-    setPos({ x: Math.min(0, Math.max(FRAME_W - nw, FRAME_W / 2 - cx * ns)), y: Math.min(0, Math.max(FRAME_H - nh, FRAME_H / 2 - cy * ns)) });
-  };
-
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onDone(null);
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onDone]);
-
-  const save = () => {
-    if (!bmp) return;
-    setBusy(true);
-    const canvas = document.createElement("canvas");
-    canvas.width = OUT_W;
-    canvas.height = OUT_H;
-    const ctx = canvas.getContext("2d");
-    if (!ctx) return onError(new Error(say({ hi: "इस फ़ोन पर फ़ोटो तैयार नहीं हो सकी।", en: "Could not process the photo on this device." })));
-    ctx.fillStyle = "#fff";
-    ctx.fillRect(0, 0, OUT_W, OUT_H);
-    ctx.drawImage(bmp, -pos.x / scale, -pos.y / scale, FRAME_W / scale, FRAME_H / scale, 0, 0, OUT_W, OUT_H);
-    bmp.close();
-    let q = 0.85;
-    let out = canvas.toDataURL("image/jpeg", q);
-    while (out.length > 300_000 && q > 0.4) {
-      q -= 0.15;
-      out = canvas.toDataURL("image/jpeg", q);
-    }
-    onDone(out);
-  };
-
-  // The round preview shows the square the apps cut from the 3:4 picture.
-  const R = 84;
-  const k = R / FRAME_W;
-  const roundTop = (FRAME_H * k - R) * ROUND_Y;
-  const img = (w: number, h: number, x: number, y: number) =>
-    src ? (
-      // eslint-disable-next-line @next/next/no-img-element
-      <img src={src} alt="" draggable={false} className="pointer-events-none absolute max-w-none select-none" style={{ width: w, height: h, left: x, top: y }} />
-    ) : null;
-
-  return (
-    <div className="fixed inset-0 z-[200] flex items-end justify-center bg-slate-950/50 p-0 sm:items-center sm:p-6" role="dialog" aria-modal="true" aria-label={say({ hi: "फ़ोटो ठीक करें", en: "Adjust photo" })}>
-      <div className="w-full max-w-[560px] overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl">
-        <div className="flex items-center justify-between border-b border-slate-100 px-5 py-3.5">
-          <div>
-            <p className="text-[15px] font-bold text-slate-900">{say({ hi: "फ़ोटो ठीक करें", en: "Adjust photo" })}</p>
-            <p className="text-[12.5px] text-slate-500">{say({ hi: "चेहरा फ्रेम में लाने के लिए खिसकाएँ, ज़रूरत हो तो ज़ूम करें।", en: "Drag to place the face in the frame, zoom if needed." })}</p>
-          </div>
-          <button type="button" onClick={() => onDone(null)} aria-label={say({ hi: "रद्द करें", en: "Cancel" })} className="grid h-9 w-9 place-items-center rounded-full text-slate-500 hover:bg-slate-100">
-            <X className="h-5 w-5" />
-          </button>
-        </div>
-
-        <div className="flex flex-col items-center gap-5 px-5 py-5 sm:flex-row sm:items-start sm:justify-center">
-          {/* The frame: drag the photo inside it. */}
-          <div
-            className="relative shrink-0 cursor-grab touch-none overflow-hidden rounded-lg bg-slate-100 ring-1 ring-slate-200 active:cursor-grabbing"
-            style={{ width: FRAME_W, height: FRAME_H }}
-            onPointerDown={(e) => {
-              (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
-              drag.current = { px: e.clientX, py: e.clientY, x: pos.x, y: pos.y };
-            }}
-            onPointerMove={(e) => {
-              const d = drag.current;
-              if (d) setPos(clamp(d.x + e.clientX - d.px, d.y + e.clientY - d.py));
-            }}
-            onPointerUp={() => (drag.current = null)}
-            onPointerCancel={() => (drag.current = null)}
-            onWheel={(e) => setZoomKeep(zoom - e.deltaY * 0.002)}
-          >
-            {img(dw, dh, pos.x, pos.y)}
-            {/* Thirds, and the circle the apps show */}
-            <span aria-hidden className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,transparent_33.2%,rgba(255,255,255,.45)_33.3%,transparent_33.5%,transparent_66.5%,rgba(255,255,255,.45)_66.6%,transparent_66.8%),linear-gradient(to_bottom,transparent_33.2%,rgba(255,255,255,.45)_33.3%,transparent_33.5%,transparent_66.5%,rgba(255,255,255,.45)_66.6%,transparent_66.8%)]" />
-            <span aria-hidden className="pointer-events-none absolute left-0 rounded-full ring-2 ring-white/90" style={{ width: FRAME_W, height: FRAME_W, top: (FRAME_H - FRAME_W) * ROUND_Y }} />
-            {!bmp && <span className="absolute inset-0 grid place-items-center text-sm text-slate-500">{say({ hi: "लोड हो रहा है…", en: "Loading…" })}</span>}
-          </div>
-
-          {/* How it will look */}
-          <div className="flex gap-5 sm:flex-col sm:gap-4">
-            <figure className="text-center">
-              <div className="relative overflow-hidden rounded-full bg-slate-100 ring-1 ring-slate-200" style={{ width: R, height: R }}>
-                {img(dw * k, dh * k, pos.x * k, pos.y * k - roundTop)}
-              </div>
-              <figcaption className="mt-1.5 text-[12px] text-slate-500">{say({ hi: "ऐप में", en: "In the apps" })}</figcaption>
-            </figure>
-            <figure className="text-center">
-              <div className="relative overflow-hidden rounded-md bg-slate-100 ring-1 ring-slate-200" style={{ width: 63, height: 84 }}>
-                {img(dw * (63 / FRAME_W), dh * (63 / FRAME_W), pos.x * (63 / FRAME_W), pos.y * (63 / FRAME_W))}
-              </div>
-              <figcaption className="mt-1.5 text-[12px] text-slate-500">{say({ hi: "आईडी कार्ड", en: "ID card" })}</figcaption>
-            </figure>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 px-5 pb-2">
-          <button type="button" onClick={() => setZoomKeep(zoom - 0.2)} aria-label={say({ hi: "छोटा करें", en: "Zoom out" })} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
-            <Minus className="h-4 w-4" />
-          </button>
-          <input type="range" min={1} max={4} step={0.01} value={zoom} onChange={(e) => setZoomKeep(Number(e.target.value))} aria-label={say({ hi: "ज़ूम", en: "Zoom" })} className="h-2 flex-1 accent-emerald-700" />
-          <button type="button" onClick={() => setZoomKeep(zoom + 0.2)} aria-label={say({ hi: "बड़ा करें", en: "Zoom in" })} className="grid h-9 w-9 place-items-center rounded-lg border border-slate-200 text-slate-600 hover:bg-slate-50">
-            <Plus className="h-4 w-4" />
-          </button>
-        </div>
-        <p className="flex items-center justify-center gap-1.5 pb-3 text-[12px] text-slate-400">
-          <Move className="h-3.5 w-3.5" /> {say({ hi: "फ़ोटो खिसकाएँ · ज़ूम के लिए स्क्रॉल या स्लाइड करें", en: "Drag the photo · scroll or slide to zoom" })}
-        </p>
-
-        <div className="flex justify-end gap-2 border-t border-slate-100 px-5 py-3.5">
-          <button type="button" onClick={() => onDone(null)} className="btn-line">
-            {say({ hi: "रद्द करें", en: "Cancel" })}
-          </button>
-          <button type="button" onClick={save} disabled={!bmp || busy} className="btn-primary">
-            {say({ hi: "यह फ़ोटो लें", en: "Use photo" })}
-          </button>
-        </div>
+  function apply(x:number,y:number,zoom:number){
+    if(!bmp)return;const z=Math.max(1,Math.min(4,zoom)),scale=base*z;
+    const next={x:Math.max(FRAME-bmp.width*scale,Math.min(0,x)),y:Math.max(height-bmp.height*scale,Math.min(0,y)),zoom:z};current.current=next;setView(next);
+  }
+  function zoomTo(zoom:number){
+    if(!bmp)return;const old=current.current,z=Math.max(1,Math.min(4,zoom));
+    const image={x:(FRAME/2-old.x)/(base*old.zoom),y:(height/2-old.y)/(base*old.zoom)};
+    apply(FRAME/2-image.x*base*z,height/2-image.y*base*z,z);
+  }
+  function beginPinch(){
+    const [a,b]=Array.from(pointers.current.values()),rect=frame.current?.getBoundingClientRect();if(!a||!b||!rect)return;
+    const v=current.current,center={x:(a.x+b.x)/2-rect.x,y:(a.y+b.y)/2-rect.y};
+    pinch.current={distance:Math.max(1,Math.hypot(b.x-a.x,b.y-a.y)),zoom:v.zoom,image:{x:(center.x-v.x)/(base*v.zoom),y:(center.y-v.y)/(base*v.zoom)}};
+  }
+  function release(id:number){
+    pointers.current.delete(id);pinch.current=null;
+    const remaining=Array.from(pointers.current.values())[0];gesture.current=remaining?{origin:remaining,position:{x:current.current.x,y:current.current.y}}:null;
+  }
+  function save(){
+    if(!bmp||busy)return;setBusy(true);
+    try{
+      const canvas=document.createElement("canvas");canvas.width=360;canvas.height=mode==="profile"?360:480;
+      const ctx=canvas.getContext("2d");if(!ctx)throw new Error("Photo processing is unavailable.");
+      const v=current.current,scale=base*v.zoom;
+      ctx.drawImage(bmp,-v.x/scale,-v.y/scale,FRAME/scale,height/scale,0,0,canvas.width,canvas.height);
+      let quality=.85,out=canvas.toDataURL("image/jpeg",quality);
+      while(out.length>300_000&&quality>.4){quality-=.15;out=canvas.toDataURL("image/jpeg",quality)}onDone(out);
+    }catch(error){setBusy(false);onError(error instanceof Error?error:new Error("Photo processing failed."))}
+  }
+  const scale=base*view.zoom,width=bmp?bmp.width*scale:FRAME,imageHeight=bmp?bmp.height*scale:height;
+  const image=(k:number,top=0)=>src?<img src={src} alt="" draggable={false} style={{position:"absolute",maxWidth:"none",width:width*k,height:imageHeight*k,left:view.x*k,top:view.y*k-top,pointerEvents:"none"}}/>:null;
+  return <div className="photo-crop-overlay">
+    <div className="photo-crop-panel" ref={panel} tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="photo-crop-title" data-photo-crop>
+      <header><h2 id="photo-crop-title">{say({hi:"फ़ोटो ठीक करें",en:"Adjust photo"})}</h2><button type="button" onClick={()=>onDone(null)} aria-label={say({hi:"बंद करें",en:"Close"})}><X size={20} aria-hidden/></button></header>
+      <div className="photo-crop-modes" role="group" aria-label={say({hi:"फ़ोटो का आकार",en:"Photo format"})}>
+        <button type="button" aria-pressed={mode==="profile"} onClick={()=>{pointers.current.clear();setMode("profile")}}>{say({hi:"प्रोफ़ाइल फ़ोटो",en:"Profile photo"})}</button>
+        <button type="button" aria-pressed={mode==="portrait"} onClick={()=>{pointers.current.clear();setMode("portrait")}}>{say({hi:"ID फ़ोटो · 3:4",en:"ID photo · 3:4"})}</button>
       </div>
+      <p className="photo-crop-hint">{say({hi:"खिसकाकर चेहरा बीच में रखें। दो उँगलियों से ज़ूम करें।",en:"Drag to centre the face. Pinch with two fingers to zoom."})}</p>
+      <div className="photo-crop-stage"><div ref={frame} className="photo-crop-frame" data-mode={mode} style={{width:FRAME,height}} data-swipe
+        onPointerDown={e=>{if(!bmp)return;e.preventDefault();e.stopPropagation();e.currentTarget.setPointerCapture(e.pointerId);pointers.current.set(e.pointerId,{x:e.clientX,y:e.clientY});if(pointers.current.size===1)gesture.current={origin:{x:e.clientX,y:e.clientY},position:{x:current.current.x,y:current.current.y}};else beginPinch()}}
+        onPointerMove={e=>{if(!pointers.current.has(e.pointerId))return;e.stopPropagation();pointers.current.set(e.pointerId,{x:e.clientX,y:e.clientY});const [a,b]=Array.from(pointers.current.values()),rect=frame.current?.getBoundingClientRect();if(b&&pinch.current&&rect){const p=pinch.current,z=Math.max(1,Math.min(4,p.zoom*Math.hypot(b.x-a.x,b.y-a.y)/p.distance));apply((a.x+b.x)/2-rect.x-p.image.x*base*z,(a.y+b.y)/2-rect.y-p.image.y*base*z,z)}else if(gesture.current){const g=gesture.current;apply(g.position.x+e.clientX-g.origin.x,g.position.y+e.clientY-g.origin.y,current.current.zoom)}}}
+        onPointerUp={e=>release(e.pointerId)} onPointerCancel={e=>release(e.pointerId)} onLostPointerCapture={e=>release(e.pointerId)}>
+        {image(1)}
+        {mode==="profile"?<span className="photo-crop-circle" aria-hidden/>:<span className="photo-crop-portrait-guide" aria-hidden/>}
+        {!bmp&&<span className="photo-crop-loading">{say({hi:"फ़ोटो खुल रही है…",en:"Opening photo…"})}</span>}
+      </div></div>
+      <div className="photo-crop-tools"><button type="button" disabled={!bmp} onClick={()=>zoomTo(view.zoom-.15)} aria-label={say({hi:"छोटा करें",en:"Zoom out"})}><Minus size={18}/></button><input type="range" min="1" max="4" step=".01" value={view.zoom} onChange={e=>zoomTo(Number(e.target.value))} aria-label={say({hi:"ज़ूम",en:"Zoom"})}/><button type="button" disabled={!bmp} onClick={()=>zoomTo(view.zoom+.15)} aria-label={say({hi:"बड़ा करें",en:"Zoom in"})}><Plus size={18}/></button></div>
+      <div className="photo-crop-preview"><span className="photo-crop-avatar">{image(56/FRAME,(height-FRAME)*(56/FRAME)*ROUND_Y)}</span><span>{say({hi:"ऐप में यही crop दिखेगा",en:"This is the crop shown in the apps"})}</span></div>
+      <footer><button type="button" className="photo-crop-cancel" onClick={()=>onDone(null)}>{say({hi:"रद्द करें",en:"Cancel"})}</button><button type="button" className="photo-crop-save" disabled={!bmp||busy} onClick={save}>{busy?say({hi:"तैयार हो रही है…",en:"Preparing…"}):say({hi:"यही फ़ोटो रखें",en:"Use photo"})}</button></footer>
     </div>
-  );
+  </div>;
 }

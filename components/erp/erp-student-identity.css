@@ -1,0 +1,13 @@
+.erp-student-identity{border:1px solid #D6DDE6;border-radius:10px;background:#fff;color:#202938;overflow:hidden}
+.esi-school{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid #EEF1F5}
+.esi-school img{width:28px;height:28px;object-fit:contain;flex:none}
+.esi-school>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px;font-weight:500}
+.esi-school small{flex:none;font-size:11px;color:#536071}
+.esi-person{display:flex;align-items:center;gap:12px;padding:12px}
+.esi-copy{flex:1;min-width:0}
+.erp-student-identity .esi-copy h2{margin:0;font-size:18px;font-weight:600;line-height:1.35;white-space:nowrap;overflow-x:auto;scrollbar-width:none}
+.esi-copy h2::-webkit-scrollbar{display:none}
+.esi-copy p{margin:5px 0 0;font-size:12px;line-height:1.5;color:#536071}
+.esi-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 12px;padding:10px 0 12px;border-top:1px solid #EEF1F5}
+.esi-facts dt{font-size:10px;line-height:1.4;color:#536071}
+.esi-facts dd{margin:3px 0 0;font-size:11px;line-height:1.5;font-weight:600;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}

@@ -1,0 +1,13 @@
+.discard-dialog-backdrop{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;padding:24px 16px;background:rgba(20,29,42,.4);overflow-y:auto}
+.discard-dialog{position:relative;width:100%;max-width:360px;padding:26px 24px 24px;border-radius:16px;background:#fff;color:#202938;font-family:'Plus Jakarta Sans Variable','Noto Sans Devanagari Variable',sans-serif;box-shadow:0 12px 40px rgba(20,29,42,.16);outline:none}
+.discard-dialog h2{margin:0;padding-right:22px;font-size:21px;line-height:1.4;font-weight:600;letter-spacing:-.02em}
+.discard-dialog p{margin:12px 0 24px;color:#536071;font-size:14px;line-height:1.65}
+.discard-dialog-close{position:absolute;top:12px;right:10px;display:grid;place-items:center;width:44px;height:44px;border:0;border-radius:8px;background:transparent;color:#536071}
+.discard-dialog-actions{display:grid;gap:10px}
+.discard-dialog-actions button{min-height:48px;padding:12px 16px;border-radius:8px;font-family:inherit;font-size:14px;font-weight:600;line-height:1.5}
+.discard-dialog-keep{border:1px solid #A43F20;background:#A43F20;color:#fff}
+.discard-dialog-keep:hover{background:#87341B}
+.discard-dialog-leave{border:1px solid #7B8C99;background:#fff;color:#B42332}
+.discard-dialog-leave:hover,.discard-dialog-close:hover{background:#F2F5F7}
+.discard-dialog button:focus-visible{outline:2px solid #A43F20;outline-offset:3px}
+@media(prefers-reduced-motion:no-preference){.discard-dialog{animation:discard-appear .16s ease-out}@keyframes discard-appear{from{opacity:.7;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}}
