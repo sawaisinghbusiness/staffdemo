@@ -75,6 +75,18 @@ export default function TripPage() {
   const [pos, setPos] = useState<LatLng | null>(null);
   const [heading, setHeading] = useState<number | null>(null);
   const [kmh, setKmh] = useState<number | null>(null);
+  // The bottom sheet's real height, measured, so the map buttons and the bus always sit just above it
+  // (the sheet grows with "Can't swipe?", a delay line or a long stop name; a fixed number hid the buttons).
+  const [sheetH, setSheetH] = useState(0);
+  const sheetObs = useRef<ResizeObserver | null>(null);
+  const sheetRef = useCallback((el: HTMLDivElement | null) => {
+    sheetObs.current?.disconnect();
+    sheetObs.current = null;
+    if (!el || typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => setSheetH(Math.round(el.getBoundingClientRect().height)));
+    ro.observe(el);
+    sheetObs.current = ro;
+  }, []);
   const [gps, setGps] = useState<"wait" | "on" | "off">("wait");
   const [gpsTry, setGpsTry] = useState(0);
   const [gpsProblem, setGpsProblem] = useState<"denied" | "timeout" | "unavailable" | "stale" | "unsupported" | null>(null);
@@ -522,7 +534,7 @@ export default function TripPage() {
   const alertStop = alertFor ? order.find((s) => s.name === alertFor) || null : null;
   const pct = order.length ? Math.round((doneCount / order.length) * 100) : 0;
   // How much of the map the bottom sheet covers (the driving view keeps the bus above it).
-  const inset = !next ? 250 : open ? 440 : 235;
+  const inset = sheetH || (!next ? 250 : open ? 440 : 235);
 
   return (
     <Shell>
@@ -625,7 +637,7 @@ export default function TripPage() {
       )}
 
       {/* Bottom sheet: small while driving; the handle opens the rest. */}
-      <div className="pb-safe absolute inset-x-0 bottom-0 z-[600] rounded-t-[20px] bg-white px-4 shadow-[0_-4px_20px_rgba(0,0,0,.08)]">
+      <div ref={sheetRef} className="pb-safe absolute inset-x-0 bottom-0 z-[600] rounded-t-[20px] bg-white px-4 shadow-[0_-4px_20px_rgba(0,0,0,.08)]">
         <button onClick={() => setOpen((o) => !o)} className="flex min-h-[44px] w-full justify-center pb-2 pt-2.5" aria-expanded={open} aria-label={open ? L({ hi: "छोटा करें", en: "Show less" }) : L({ hi: "और दिखाएँ", en: "Show more" })}>
           <span className="h-1 w-9 rounded-full bg-[#DEDEDA]" aria-hidden />
         </button>
