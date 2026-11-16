@@ -202,10 +202,10 @@ export default function TripPage() {
         if (!to) return;
         const ln = ptsRef.current;
         const ti = ln.length ? nearestIdx(ln, to) : -1;
-        // Speed (user, 2026-11-16): quicker on the open road (15 m a step ≈ 77 km/h), then easing down from
-        // 350 m before the stop to a crawl (≈ 20 km/h, then slower) where the children get on or off.
+        // Speed (user, 2026-11-16): twice as quick on the open road (30 m a step ≈ 154 km/h on the map), then the
+        // same easing as before from 350 m before the stop to a crawl where the children get on or off.
         const left = metres(p, to);
-        const step = left > 350 ? 15 : left > 40 ? 4 + ((left - 40) / 310) * 11 : 3;
+        const step = left > 350 ? 30 : left > 40 ? 4 + ((left - 40) / 310) * 11 : 3;
         let budget = step;
         for (let guard = 0; guard < 80 && budget > 0; guard++) {
           const goal: LatLng = ti >= 0 && i <= ti ? { lat: ln[i][0], lng: ln[i][1] } : to;
