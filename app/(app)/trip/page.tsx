@@ -8,6 +8,7 @@ import { ArrowRight, Bus, ChevronDown, ChevronLeft, ChevronRight, Info, MapPin, 
 import { api, patchMemory, useApi } from "@/lib/api";
 import { useDialog } from "@/lib/useDialog";
 import { PRETEND_BUS } from "@/lib/demo";
+import { useFilledRoute } from "@/lib/routeFill";
 import { useL } from "@/lib/i18n";
 import { readAlertClose } from "@/lib/driverPrefs";
 import {
@@ -66,7 +67,9 @@ export default function TripPage() {
   const L = useL();
   const router = useRouter();
   const { data, error, reload } = useApi<RouteData>("/bus/route");
-  const [route, setRoute] = useState<BusRoute | null>(null);
+  const [rawRoute, setRoute] = useState<BusRoute | null>(null);
+  // Stops with no saved place get one looked up (phone only), so the line, pins, km and the bus all work.
+  const route = useFilledRoute(rawRoute);
   const [trip, setTrip] = useState<Trip | null>(null);
   const [planKind, setPlanKind] = useState<TripKind>(defaultKind);
   const [pos, setPos] = useState<LatLng | null>(null);
@@ -172,18 +175,38 @@ export default function TripPage() {
     setGpsProblem(null);
     if (PRETEND_BUS) {
       // A pretend bus that drives along the road line towards the next stop and waits there.
-      const line = ptsRef.current;
-      let p: LatLng = line.length ? { lat: line[0][0], lng: line[0][1] } : schoolAt || { lat: 25.75, lng: 71.4 };
+      // It starts at the beginning of the road line. No fixed fallback point any more: until the line (or the
+      // next stop's place) is known, the bus waits; when the line arrives or changes, the bus is put on it.
+      let cur = ptsRef.current;
+      const start = (): LatLng | null => (cur.length ? { lat: cur[0][0], lng: cur[0][1] } : target.current || schoolAt);
+      let p: LatLng | null = start();
       let i = 0;
-      place(p);
+      if (p) place(p);
       setGps("on");
       setKmh(28);
       const t = setInterval(() => {
+        if (ptsRef.current !== cur) {
+          cur = ptsRef.current;
+          if (cur.length && (!p || metres(p, { lat: cur[nearestIdx(cur, p)][0], lng: cur[nearestIdx(cur, p)][1] }) > 150)) {
+            p = { lat: cur[0][0], lng: cur[0][1] };
+            i = 0;
+            place(p);
+          } else if (cur.length && p) i = nearestIdx(cur, p);
+        }
+        if (!p) {
+          p = start();
+          if (p) place(p);
+          return;
+        }
         const to = target.current;
         if (!to) return;
         const ln = ptsRef.current;
         const ti = ln.length ? nearestIdx(ln, to) : -1;
-        let budget = 10;
+        // Speed (user, 2026-11-16): quicker on the open road (15 m a step ≈ 77 km/h), then easing down from
+        // 350 m before the stop to a crawl (≈ 20 km/h, then slower) where the children get on or off.
+        const left = metres(p, to);
+        const step = left > 350 ? 15 : left > 40 ? 4 + ((left - 40) / 310) * 11 : 3;
+        let budget = step;
         for (let guard = 0; guard < 80 && budget > 0; guard++) {
           const goal: LatLng = ti >= 0 && i <= ti ? { lat: ln[i][0], lng: ln[i][1] } : to;
           const d = metres(p, goal);
@@ -198,7 +221,7 @@ export default function TripPage() {
           }
         }
         place(p);
-        setKmh(metres(p, to) < 8 ? 0 : 50);
+        setKmh(metres(p, to) < 8 ? 0 : Math.round((step / 0.7) * 3.6));
       }, 700);
       return () => clearInterval(t);
     }

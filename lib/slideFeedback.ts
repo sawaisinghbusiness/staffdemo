@@ -57,28 +57,37 @@ const TICKS: [number, number][] = [
 ];
 const DONE_AT = 0.88; // the slide confirms at 88% of the track
 const AT = TICKS.map((_, i) => (i / (TICKS.length - 1)) * DONE_AT); // 0, 0.22, 0.44, 0.66, 0.88
-const GAP_MS = 40; // when a fast swipe passes several ticks at once, they are spread this far apart
-// Kept soft (user, 2026-11-16: louder was annoying): 22% for the first tick, up to 38% for the last.
-const volume = (i: number) => 0.22 + (0.16 * i) / (TICKS.length - 1);
+// Very soft (user, 2026-11-16): every tick at 10% volume.
+const VOLUME = 0.1;
 
-/** Light buzz for tick i: 8 ms at the start, up to 12 ms at the end (short = soft on a phone). */
-const buzzMs = (i: number) => Math.round(8 + (4 * i) / (TICKS.length - 1));
+/**
+ * Buzz for tick i: 20 ms at the start, up to 30 ms at the end. Shorter pulses (8-12 ms) were not felt at all on
+ * the driver's phone (user, 2026-11-16), so this is the shortest that is still a clear "dot".
+ */
+const buzzMs = (i: number) => Math.round(20 + (10 * i) / (TICKS.length - 1));
 
-/** Play tick i of the slide sound, `delay` seconds from now. */
-function playTick(i: number, delay: number) {
+/*
+ * Slow slide → every tick is felt and heard, one by one. Quick flick → only the one light tick from touching the
+ * handle; the ticks it races past stay silent and still (user, 2026-11-16). "Quick" = the handle is moving faster
+ * than the whole slide in about 0.6 s, or it jumped past more than one tick at once.
+ */
+const FAST = DONE_AT / 600; // track per ms
+
+/** Play tick i of the slide sound now. */
+function playTick(i: number) {
   const c = audio();
   if (!c || !slideBuf || c.state !== "running") return;
   try {
     const start = Math.max(0, TICKS[i][0] - 4) / 1000;
     const nextAt = TICKS[i][1] ? TICKS[i][1] / 1000 : start + 0.09;
     const len = Math.min(0.07, nextAt - start - 0.002);
-    const t = c.currentTime + delay;
+    const t = c.currentTime;
     const src = c.createBufferSource();
     const gain = c.createGain();
     src.buffer = slideBuf;
-    gain.gain.setValueAtTime(volume(i), t);
-    gain.gain.setValueAtTime(volume(i), t + len * 0.6);
-    gain.gain.linearRampToValueAtTime(0.0001, t + len); // fade the tail so ticks don't click into each other
+    gain.gain.setValueAtTime(VOLUME, t);
+    gain.gain.setValueAtTime(VOLUME, t + len * 0.6);
+    gain.gain.linearRampToValueAtTime(0.0001, t + len); // fade the tail so it doesn't click
     src.connect(gain);
     gain.connect(c.destination);
     src.start(t, start, len);
@@ -91,40 +100,47 @@ function playTick(i: number, delay: number) {
   }
 }
 
-/** Play ticks from..to (inclusive) now, with matching buzzes. */
-function ticks(from: number, to: number) {
-  const pattern: number[] = [];
-  for (let i = from; i <= to; i++) {
-    const k = i - from;
-    playTick(i, (k * GAP_MS) / 1000);
-    if (k > 0) pattern.push(GAP_MS - buzzMs(i - 1));
-    pattern.push(buzzMs(i));
-  }
-  if (pattern.length) buzz(pattern);
+/** One tick: its sound and its buzz together. */
+function tick(i: number) {
+  playTick(i);
+  buzz(buzzMs(i));
 }
 
-let played = -1; // the last tick played on this slide
+let played = -1; // the last tick passed on this slide (heard or not)
+let lastP = 0;
+let lastT = 0;
+let speed = 0; // smoothed, track per ms
 
 /** Thumb touched: the first tick, and the audio is switched on by this tap. */
 export function slideGrab() {
   audio();
   preloadSlideSound();
   played = 0;
-  ticks(0, 0);
+  lastP = 0;
+  lastT = performance.now();
+  speed = 0;
+  tick(0);
 }
 
 /** Dragging: progress is 0..1 along the track. */
 export function slideDrag(progress: number) {
+  const now = performance.now();
+  const dt = Math.max(1, now - lastT);
+  speed = speed * 0.5 + (Math.max(0, progress - lastP) / dt) * 0.5;
+  lastP = progress;
+  lastT = now;
   // Slid back past a tick: it can play again on the way forward.
   while (played > 0 && progress < AT[played] - 0.03) played--;
   let reach = played;
   while (reach + 1 < TICKS.length && progress >= AT[reach + 1]) reach++;
   if (reach <= played) return;
-  ticks(played + 1, reach);
+  const quick = reach - played > 1 || speed > FAST;
   played = reach;
+  if (!quick) tick(reach);
 }
 export const resetSlideDrag = () => {
   played = -1;
+  speed = 0;
 };
 
 
@@ -149,6 +165,7 @@ export function playTripEndIfNew() {
     return;
   }
   const a = new Audio("/sounds/driver/end.mp3");
+  a.volume = 0.5; // a little softer (user, 2026-11-16)
   const play = () => a.play().then(() => void buzz([90, 50, 180]));
   play().catch(() => {
     // Held back because this page has not been touched yet: play on the first touch (next 15 seconds only).
@@ -221,7 +238,7 @@ export function startTripClicks(): () => void {
       const src = ctx2.createBufferSource();
       const gain = ctx2.createGain();
       src.buffer = buffer;
-      gain.gain.value = 0.9;
+      gain.gain.value = 0.63; // 70% of what it was (user, 2026-11-16)
       src.connect(gain);
       gain.connect(ctx2.destination);
       src.start();

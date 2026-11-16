@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { Bell, ChevronDown, ArrowRight, BusFront, UsersRound, Check, School } from "lucide-react";
 import { SlideConfirm } from "./SlideConfirm";
 import { useApi } from "@/lib/api";
+import { useFilledRoute } from "@/lib/routeFill";
 import { useStaff } from "@/lib/staff";
 import { useL, useLang } from "@/lib/i18n";
 import { clock } from "@/lib/format";
@@ -24,6 +25,8 @@ export function DriverHome() {
   const { lang, setLang } = useLang();
   const { me } = useStaff();
   const { data, error, reload } = useApi<RouteData>("/bus/route");
+  // Stops with no saved place get one looked up (phone only), so the km and the route line show.
+  const filledRoute = useFilledRoute(data?.route ?? null);
   const router = useRouter();
   // Back from a trip that has just ended: the end sound plays here, as Home appears.
   useEffect(() => playTripEndIfNew(), []);
@@ -86,7 +89,7 @@ export function DriverHome() {
       </div>
     );
   }
-  const r = data.route;
+  const r = filledRoute;
   if (!r)
     return (
       <div className="drv driver-home">
