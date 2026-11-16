@@ -181,6 +181,7 @@ export default function TripPage() {
       const start = (): LatLng | null => (cur.length ? { lat: cur[0][0], lng: cur[0][1] } : target.current || schoolAt);
       let p: LatLng | null = start();
       let i = 0;
+      let lastStep = 0;
       if (p) place(p);
       setGps("on");
       setKmh(28);
@@ -202,10 +203,14 @@ export default function TripPage() {
         if (!to) return;
         const ln = ptsRef.current;
         const ti = ln.length ? nearestIdx(ln, to) : -1;
-        // Speed (user, 2026-11-16): twice as quick on the open road (30 m a step ≈ 154 km/h on the map), then the
-        // same easing as before from 350 m before the stop to a crawl where the children get on or off.
+        // Speed (user, 2026-11-16): twice as quick on the open road (30 m a step), easing smoothly down to the old
+        // 15 m between 650 m and 350 m before the stop, then the same slowing as before to a crawl where the
+        // children get on or off. Speeding up again after a stop is gradual too (at most 2 m more each step),
+        // so there is no jerk either way.
         const left = metres(p, to);
-        const step = left > 350 ? 30 : left > 40 ? 4 + ((left - 40) / 310) * 11 : 3;
+        const want = left > 650 ? 30 : left > 350 ? 15 + ((left - 350) / 300) * 15 : left > 40 ? 4 + ((left - 40) / 310) * 11 : 3;
+        const step = Math.min(want, lastStep + 2);
+        lastStep = step;
         let budget = step;
         for (let guard = 0; guard < 80 && budget > 0; guard++) {
           const goal: LatLng = ti >= 0 && i <= ti ? { lat: ln[i][0], lng: ln[i][1] } : to;
