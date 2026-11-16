@@ -6,10 +6,25 @@
   html {
     -webkit-text-size-adjust: 100%;
     -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation; /* no double-tap zoom */
   }
   body {
     @apply bg-white text-base text-ink-900 antialiased;
     overscroll-behavior-y: none;
+    /* No text selecting or copying, and no long-press menu (user, 2026-11-16). Typing fields still work. */
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+  img {
+    -webkit-user-drag: none;
+  }
+  input,
+  textarea,
+  [contenteditable="true"] {
+    -webkit-user-select: text;
+    user-select: text;
+    -webkit-touch-callout: default;
   }
   h1,
   h2,

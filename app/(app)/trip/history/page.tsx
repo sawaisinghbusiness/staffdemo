@@ -7,7 +7,7 @@ import { useApi } from "@/lib/api";
 import { useL, useLang } from "@/lib/i18n";
 import { weekdayDate } from "@/lib/format";
 import { DELAY_REASONS, type DayTrip, type History } from "@/lib/bus";
-import { ErrorCard, Skeleton } from "@/components/ui";
+import { ErrorCard } from "@/components/ui";
 import { timeOf } from "@/components/driver/parts";
 
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
@@ -71,7 +71,7 @@ export default function TripHistoryPage() {
       {failed ? (
         <ErrorCard offline={error!.status === 0} onRetry={reload} />
       ) : !data ? (
-        <Skeleton className="h-48 w-full rounded-[14px]" />
+        <HistoryWait />
       ) : (
         <div key={data.date} className="driver-history-day" data-dir={dir} data-loading={loading} aria-busy={loading}>
           <div className="driver-history-heading">
@@ -109,6 +109,20 @@ export default function TripHistoryPage() {
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+/** While the day is coming: one trip card in its real shape (labels in place, bars where the times and counts go). */
+function HistoryWait() {
+  const L = useL();
+  const bar = (w: string) => <i className="dv-bar" style={{ width: w }} aria-hidden />;
+  return (
+    <div aria-busy="true">
+      <div className="driver-history-heading"><h2>{bar("150px")}</h2>{bar("40px")}</div>
+      <div className="driver-history-records">
+        <article className="history-trip"><header><h3>{bar("120px")}</h3>{bar("60px")}</header><div className="history-trip-times"><div><span>{L({hi:"शुरू हुई",en:"Started"})}</span><time>{bar("64px")}</time></div><ArrowRight size={18} aria-hidden/><div><span>{L({hi:"बंद हुई",en:"Ended"})}</span><time>{bar("64px")}</time></div></div><footer>{bar("170px")}</footer></article>
+      </div>
     </div>
   );
 }

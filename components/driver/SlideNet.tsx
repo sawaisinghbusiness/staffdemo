@@ -135,7 +135,7 @@ export function SlideNet({ tone }: { tone: "dark" | "yellow" }) {
       if (cell !== lastCell && now - lastBuzz > 45 && track.getAttribute("data-dragging") !== "true" && !reduced.matches) {
         lastCell = cell;
         lastBuzz = now;
-        vibrate(16);
+        vibrate(8); // a light dot, like the slide ticks
       }
     };
     const onLeave = () => (pointerOn = false);

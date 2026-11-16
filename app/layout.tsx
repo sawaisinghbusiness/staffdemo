@@ -38,6 +38,10 @@ export const viewport: Viewport = {
   width: "device-width",
   // The whole app is drawn zoomed out (user, 2026-10-26: "sab bada lagta hai"): laid out wider, drawn smaller.
   initialScale: 0.88,
+  // No pinch or double-tap zoom (user, 2026-11-16): it stays at this size.
+  minimumScale: 0.88,
+  maximumScale: 0.88,
+  userScalable: false,
   viewportFit: "cover",
   themeColor: "#FFFFFF",
 };

@@ -1,19 +1,20 @@
 "use client";
 /**
- * Feedback for the driver's slide buttons: vibration only, no sound.
- *   touch the thumb → one small buzz
- *   dragging        → bumps: uneven buzzes with a very quiet thud, like dragging an object over a rough surface
- *   finished        → a firmer double buzz (in SlideConfirm), no sound
+ * Feedback for the driver's slide buttons.
+ *   touch the thumb → the first tick of the slide sound, with a tiny buzz
+ *   dragging right  → the next ticks, one by one, each with its own tiny buzz at the same moment
+ *   finished        → a firmer buzz (in SlideConfirm)
  */
 import { vibrate as buzz } from "@/lib/haptics";
 
 /*
- * Dragging the thumb feels like pulling an object over a bumpy surface: while it moves, every 9 to 20 px
- * (never the same twice) there is a bump, a short uneven buzz plus a very quiet low thud. Stand still and it
- * is silent and still. The thuds are kept quiet on purpose (the cab is not a gaming console).
+ * The slide sound (public/sounds/driver/slide.mp3, 0.82 s) is a ratchet of ticks. Single ticks are cut from it
+ * and played when the handle reaches its place on the track, and the phone gives one short, light buzz with
+ * every tick (a "dot", not a long rumble). Sliding back and forward again plays the ticks again.
  */
 let ctx: AudioContext | null = null;
-let thud: AudioBuffer | null = null;
+let slideBuf: AudioBuffer | null = null;
+let loading = false;
 
 function audio(): AudioContext | null {
   try {
@@ -23,42 +24,66 @@ function audio(): AudioContext | null {
       ctx = new Ctx();
     }
     if (ctx.state === "suspended") void ctx.resume().catch(() => {});
-    if (!thud) {
-      const n = Math.floor(ctx.sampleRate * 0.07);
-      thud = ctx.createBuffer(1, n, ctx.sampleRate);
-      const d = thud.getChannelData(0);
-      for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
-    }
     return ctx;
   } catch {
     return null;
   }
 }
 
-/** One low thud, a different weight each time. `strength` is 0..1. */
-function playThud(strength: number) {
+/** Load the slide sound ahead of the first touch (called when a slide button appears). Silent if missing. */
+export function preloadSlideSound() {
+  if (slideBuf || loading) return;
   const c = audio();
-  if (!c || !thud || c.state !== "running") return;
+  if (!c) return;
+  loading = true;
+  fetch("/sounds/driver/slide.mp3")
+    .then((r) => (r.ok ? r.arrayBuffer() : Promise.reject()))
+    .then((data) => c.decodeAudioData(data))
+    .then((b) => void (slideBuf = b))
+    .catch(() => {
+      /* no file: the buzzes still come */
+    })
+    .finally(() => void (loading = false));
+}
+
+/*
+ * Only 5 ticks over the whole slide (user, 2026-11-16: "4-5 hi, rabar jaisa"), evenly spaced up to the
+ * confirm point, like notches felt while stretching a rubber band. Each one is a single tick cut from the file
+ * (start in ms, the next tick in the file in ms). They get a little louder and a little firmer as the band
+ * tightens.
+ */
+const TICKS: [number, number][] = [
+  [20, 50], [105, 140], [230, 285], [440, 540], [680, 0],
+];
+const DONE_AT = 0.88; // the slide confirms at 88% of the track
+const AT = TICKS.map((_, i) => (i / (TICKS.length - 1)) * DONE_AT); // 0, 0.22, 0.44, 0.66, 0.88
+const GAP_MS = 40; // when a fast swipe passes several ticks at once, they are spread this far apart
+// Kept soft (user, 2026-11-16: louder was annoying): 22% for the first tick, up to 38% for the last.
+const volume = (i: number) => 0.22 + (0.16 * i) / (TICKS.length - 1);
+
+/** Light buzz for tick i: 8 ms at the start, up to 12 ms at the end (short = soft on a phone). */
+const buzzMs = (i: number) => Math.round(8 + (4 * i) / (TICKS.length - 1));
+
+/** Play tick i of the slide sound, `delay` seconds from now. */
+function playTick(i: number, delay: number) {
+  const c = audio();
+  if (!c || !slideBuf || c.state !== "running") return;
   try {
-    const t = c.currentTime;
+    const start = Math.max(0, TICKS[i][0] - 4) / 1000;
+    const nextAt = TICKS[i][1] ? TICKS[i][1] / 1000 : start + 0.09;
+    const len = Math.min(0.07, nextAt - start - 0.002);
+    const t = c.currentTime + delay;
     const src = c.createBufferSource();
-    const filter = c.createBiquadFilter();
     const gain = c.createGain();
-    src.buffer = thud;
-    filter.type = "lowpass";
-    filter.frequency.value = 220 + strength * 380;
-    const peak = 0.025 + strength * 0.05; // quiet: at most about 7% of full volume
-    gain.gain.setValueAtTime(0.0001, t);
-    gain.gain.exponentialRampToValueAtTime(peak, t + 0.004);
-    gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);
-    src.connect(filter);
-    filter.connect(gain);
+    src.buffer = slideBuf;
+    gain.gain.setValueAtTime(volume(i), t);
+    gain.gain.setValueAtTime(volume(i), t + len * 0.6);
+    gain.gain.linearRampToValueAtTime(0.0001, t + len); // fade the tail so ticks don't click into each other
+    src.connect(gain);
     gain.connect(c.destination);
-    src.start(t);
-    src.stop(t + 0.07);
+    src.start(t, start, len);
     src.onended = () => {
       src.disconnect();
-      filter.disconnect();
       gain.disconnect();
     };
   } catch {
@@ -66,37 +91,42 @@ function playThud(strength: number) {
   }
 }
 
-const TRACK_PX = 300; // roughly one slide; only used to turn progress into distance
-let moved = 0;
-let nextBump = 12;
-let lastProgress: number | null = null;
+/** Play ticks from..to (inclusive) now, with matching buzzes. */
+function ticks(from: number, to: number) {
+  const pattern: number[] = [];
+  for (let i = from; i <= to; i++) {
+    const k = i - from;
+    playTick(i, (k * GAP_MS) / 1000);
+    if (k > 0) pattern.push(GAP_MS - buzzMs(i - 1));
+    pattern.push(buzzMs(i));
+  }
+  if (pattern.length) buzz(pattern);
+}
 
-/** Thumb touched: a small buzz, and the audio is switched on by this tap. */
+let played = -1; // the last tick played on this slide
+
+/** Thumb touched: the first tick, and the audio is switched on by this tap. */
 export function slideGrab() {
   audio();
-  buzz(25);
+  preloadSlideSound();
+  played = 0;
+  ticks(0, 0);
 }
 
 /** Dragging: progress is 0..1 along the track. */
 export function slideDrag(progress: number) {
-  if (lastProgress === null) {
-    lastProgress = progress;
-    return;
-  }
-  moved += Math.abs(progress - lastProgress) * TRACK_PX;
-  lastProgress = progress;
-  if (moved < nextBump) return;
-  moved = 0;
-  nextBump = 9 + Math.random() * 11;
-  const strength = Math.random();
-  buzz([Math.round(16 + strength * 16)]); // 16..32 ms, uneven like gravel
-  playThud(strength);
+  // Slid back past a tick: it can play again on the way forward.
+  while (played > 0 && progress < AT[played] - 0.03) played--;
+  let reach = played;
+  while (reach + 1 < TICKS.length && progress >= AT[reach + 1]) reach++;
+  if (reach <= played) return;
+  ticks(played + 1, reach);
+  played = reach;
 }
 export const resetSlideDrag = () => {
-  moved = 0;
-  nextBump = 12;
-  lastProgress = null;
+  played = -1;
 };
+
 
 /**
  * Trip end sound ("Fantasy game success" from Mixkit, public/sounds/driver/end.mp3) with a firm buzz.

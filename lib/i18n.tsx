@@ -1,6 +1,7 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { langWave } from "@/lib/langWave";
 
 export type Lang = "hi" | "en";
 export type Bi = { hi: string; en: string };
@@ -16,11 +17,21 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
       /* ignore */
     }
   }, []);
+  // Switched by the person (not the saved choice coming back on load): the text re-forms in a wave.
+  const switched = useRef(false);
+  useLayoutEffect(() => {
+    if (!switched.current) return;
+    switched.current = false;
+    langWave(document.body);
+  }, [lang]);
   useEffect(() => {
     document.documentElement.lang = lang;
   }, [lang]);
   const setLang = useCallback((l: Lang) => {
-    setLangState(l);
+    setLangState((old) => {
+      if (old !== l) switched.current = true;
+      return l;
+    });
     try {
       localStorage.setItem("sa:lang", l);
     } catch {

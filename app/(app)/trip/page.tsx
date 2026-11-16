@@ -32,7 +32,7 @@ import { SlideConfirm } from "@/components/driver/SlideConfirm";
 import { markTripEndSound, markTripStartSound, playTripStartIfNew, startTripClicks } from "@/lib/slideFeedback";
 import { ALERT_BUZZ, DONE_BUZZ, useHapticsReady, vibrate } from "@/lib/haptics";
 import { BusMap, type MapStop } from "@/components/BusMap";
-import { ErrorCard, Skeleton } from "@/components/ui";
+import { ErrorCard } from "@/components/ui";
 import { DropAlert } from "@/components/driver/DropAlert";
 import { StopSheet } from "@/components/driver/StopSheet";
 import { DelaySheet } from "@/components/driver/DelaySheet";
@@ -405,7 +405,7 @@ export default function TripPage() {
           ) : error && error.status !== 401 ? (
             <ErrorCard offline={error.status === 0} onRetry={reload} />
           ) : (
-            <Skeleton className="h-[60dvh] w-full rounded-[14px]" />
+            <TripWait />
           )}
         </div>
       </Shell>
@@ -734,6 +734,21 @@ export default function TripPage() {
         />
       )}
     </Shell>
+  );
+}
+
+/**
+ * While the route is coming: no big grey box. The screen is already the map's colour (Shell), and the bottom
+ * sheet rises into its real place with its label, a bar where "5 stops · 13 children" will be, and the slider's spot.
+ */
+function TripWait() {
+  const L = useL();
+  return (
+    <div className="dv-trip-wait" aria-busy="true">
+      <p className="text-[13px] text-drv-mute">{L({ hi: "आज का रास्ता", en: "Today's route" })}</p>
+      <i className="dv-bar dv-bar-block mt-2 text-[19px]" style={{ width: "58%" }} aria-hidden />
+      <div className="dv-slide-wait mt-5" aria-hidden />
+    </div>
   );
 }
 

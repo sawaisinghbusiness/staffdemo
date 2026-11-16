@@ -15,3 +15,6 @@
 @keyframes slideHint{0%,45%,100%{translate:0 0}68%{translate:22px 0}92%{translate:0 0}}
 @keyframes slideHintArrow{0%,45%,100%{translate:0 0}66%{translate:3px 0}90%{translate:0 0}}
 @keyframes slideHintEnd{0%,45%,100%{opacity:calc(.35 - var(--slide-progress)*.35);translate:0 0}70%{opacity:.75;translate:4px 0}}
+/* Rubber band (2026-11-16): let go early and the handle snaps back with a small bounce, as if the band pulled it. */
+.slide-confirm-track:not([data-dragging=true]) .slide-confirm-thumb{transition:transform .5s cubic-bezier(.16,1,.3,1);transition:transform .52s linear(0,.25 7%,.6 15%,.86 24%,.99 32%,1.035 40%,1.03 50%,1.008 63%,.998 78%,1)}
+@media(prefers-reduced-motion:reduce){.slide-confirm-track .slide-confirm-thumb{transition:none!important}}

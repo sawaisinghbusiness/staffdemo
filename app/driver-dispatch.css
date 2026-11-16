@@ -77,3 +77,30 @@
 .dispatch-glow::before{left:-14px}.dispatch-glow::after{right:-14px}
 @media(prefers-reduced-motion:no-preference){.dispatch-glow::before,.dispatch-glow::after{animation:dispatchGlow 5.5s ease-in-out infinite}}
 @keyframes dispatchGlow{0%,100%{opacity:.65}50%{opacity:1}}
+
+/* ── Driver Home motion (2026-11-16, approved from /driver-motion-preview "slow network") ──
+   data-enter: the page arrives in layers and settles (no whole-page fade; opacity is only the first ~120 ms).
+   data-slow: it opened empty, so when the data comes each value sharpens in the place of its grey bar. */
+.driver-dispatch{--dv-settle:cubic-bezier(.2,.8,.2,1);--dv-spring:linear(0,.22 6%,.55 13%,.82 21%,.97 29%,1.035 37%,1.045 43%,1.03 52%,1.008 64%,.998 78%,1)}
+[data-enter] .dv-in{animation:dv-rise .46s var(--dv-settle) both,dv-show .12s linear both;animation-delay:calc(var(--i,0)*55ms)}
+[data-enter] .dv-card{animation:dv-land .62s var(--dv-settle) 90ms both,dv-show .14s linear 90ms both;animation-timing-function:var(--dv-spring),linear;transform-origin:50% 100%}
+[data-enter] .dv-in2{animation:dv-rise-s .42s var(--dv-settle) both,dv-show .12s linear both;animation-delay:calc(170ms + var(--i,0)*45ms)}
+[data-enter] .dv-mark i{animation:dv-draw .4s var(--dv-settle) .34s both;transform-origin:50% 0}
+.dispatch-stops-reveal[data-open=true] .dv-row{animation:dv-rise-s .34s var(--dv-settle) both,dv-show .12s linear both;animation-delay:calc(60ms + min(var(--i,0),8)*40ms)}
+@keyframes dv-rise{from{transform:translateY(14px)}}
+@keyframes dv-rise-s{from{transform:translateY(9px)}}
+@keyframes dv-land{from{transform:translateY(38px) scale(.955)}}
+@keyframes dv-show{from{opacity:0}}
+@keyframes dv-draw{from{transform:scaleY(0)}}
+/* Skeleton values: bars about the size of the value, with one light sweep running over all of them together. */
+.dv-bar{display:inline-block;vertical-align:middle;height:.86em;border-radius:6px;background:#E6E8E1 linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%) no-repeat;background-size:60vw 100%;background-attachment:fixed;animation:dv-sweep 1.3s linear infinite}
+.dv-bar-block{display:block}.dv-bar-block+.dv-bar-block{margin-top:.3em}
+.dv-slide-wait{height:60px;margin-bottom:44px;border-radius:999px;background:#F6EFCB}
+@keyframes dv-sweep{from{background-position:-60vw 0}to{background-position:100vw 0}}
+[data-slow] .dv-value{animation:dv-sharpen .42s var(--dv-settle) both}
+@keyframes dv-sharpen{from{opacity:0;filter:blur(6px)}}
+@media(prefers-reduced-motion:reduce){.driver-dispatch .dv-in,.driver-dispatch .dv-in2,.driver-dispatch .dv-card,.driver-dispatch .dv-mark i,.driver-dispatch .dv-row,.driver-dispatch .dv-value,.dv-bar{animation:none!important}}
+/* Trip screen while the route is coming: the bottom sheet in its real place, rising in (no grey box). */
+.dv-trip-wait{position:absolute;left:0;right:0;bottom:0;background:#fff;border-radius:22px 22px 0 0;padding:20px 16px calc(64px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(0,0,0,.06);animation:dv-rise .46s cubic-bezier(.2,.8,.2,1) both,dv-show .12s linear both}
+.dv-trip-wait .dv-slide-wait{margin-bottom:0}
+@media(prefers-reduced-motion:reduce){.dv-trip-wait{animation:none}}
