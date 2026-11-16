@@ -66,7 +66,7 @@ export function HomeworkFilePicker({ files, onChange, uploadPath, onBusyChange, 
         <ul className="space-y-1.5">
           {files.map((f) => (
             <li key={f.url} className="flex min-h-[48px] items-center gap-2.5 rounded-xl border border-ink-200 bg-white pl-2 pr-1">
-              {f.kind === "image" ? <img src={f.url} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-ink-50 object-contain" /> : <FileText className="h-9 w-9 shrink-0 rounded-lg bg-rose-50 p-2 text-rose-700" aria-hidden />}
+              {f.kind === "image" ? <img src={f.url} alt="" className="h-9 w-9 shrink-0 rounded-lg bg-ink-50 object-contain" /> : <FileText className="h-9 w-9 shrink-0 rounded-lg bg-rose-50 p-2 text-ink-700" aria-hidden />}
               <span className="min-w-0 flex-1 truncate text-[14px]">{f.name}</span>
               <button type="button" disabled={busy > 0 || disabled} onClick={() => onChange(files.filter((x) => x.url !== f.url))} aria-label={`${L({ hi: "हटाएँ", en: "Remove" })} ${f.name}`} className="grid h-10 w-10 shrink-0 place-items-center text-ink-500">
                 <X className="h-[18px] w-[18px]" aria-hidden />
@@ -109,8 +109,8 @@ export function HomeworkFileLinks({ files }: { files?: HomeworkFile[] }) {
           </a>
         ) : (
           <a key={f.url} href={f.url} target="_blank" rel="noreferrer" className="flex min-h-[44px] max-w-full items-center gap-2 rounded-xl border border-ink-200 bg-white px-3 text-[13.5px] font-medium">
-            <FileText className="h-4 w-4 shrink-0 text-rose-700" aria-hidden />
-            <span className="truncate">{f.name}</span>
+            <FileText className="h-4 w-4 shrink-0 text-ink-700" aria-hidden />
+            <span className="min-w-0 break-words">{f.name}</span>
           </a>
         )
       )}

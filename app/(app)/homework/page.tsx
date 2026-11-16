@@ -288,8 +288,8 @@ function Ticks({ id }: { id: string }) {
         </div>
         <p className="mt-1.5 text-[15px] font-semibold text-ink-900">{h.title}</p>
       </div>
-      {!!data.sentCount && <p className="text-[13px] font-medium text-jade-700">{L({ hi: `${data.sentCount} बच्चों ने घर से काम भेजा है। नीचे देखें।`, en: `${data.sentCount} sent their work from home. See below.` })}</p>}
-      <p className="text-[13px] text-ink-500">{data.checked ? L({ hi: "पहले जाँचा जा चुका है, बदल सकते हैं।", en: "Already checked; you can change it." }) : L({ hi: "जिसने जमा नहीं किया, उसका टिक हटाएँ।", en: "Untick anyone who did not submit." })}</p>
+      {!!data.sentCount && <p className="text-[13px] font-medium text-ink-700">{L({ hi: `${data.sentCount} बच्चों ने घर से काम भेजा है। नीचे देखें।`, en: `${data.sentCount} sent their work from home. See below.` })}</p>}
+      <p className="text-[13px] text-ink-500">{data.checked ? L({ hi: "पहले जाँचा जा चुका है, बदल सकते हैं।", en: "Already checked; you can change it." }) : L({ hi: "जिसने जमा नहीं किया, उसका टिक हटाएँ।", en: "Mark who completed the work. Open received files before saving your review." })}</p>
       <ul className="glass-line overflow-hidden px-3.5">
         {data.students.map((s) => (
           <li key={s.id} className="border-b border-ink-900/10 last:border-b-0">
@@ -297,16 +297,17 @@ function Ticks({ id }: { id: string }) {
               <Avatar name={s.name} url={s.photoUrl} size={36} />
               <span className="min-w-0 flex-1">
                 <span className="block truncate text-[15px] font-medium text-ink-900">{s.name}</span>
-                {s.sent && <span className="block text-[12.5px] font-medium text-jade-700">{L({ hi: "घर से भेजा", en: "Sent from home" })}{s.sent.files.length ? ` · ${s.sent.files.length} ${L({ hi: "फ़ाइल", en: s.sent.files.length === 1 ? "file" : "files" })}` : ""}</span>}
+                {s.sent && <span className="block text-[12.5px] font-medium text-ink-500">{L({ hi: "घर से भेजा", en: "Work received" })}{s.sent.files.length ? ` · ${s.sent.files.length} ${L({ hi: "फ़ाइल", en: s.sent.files.length === 1 ? "file" : "files" })}` : ""}</span>}
               </span>
               <span className={clsx("grid h-7 w-7 place-items-center rounded-lg transition-colors", done[s.id] ? "border border-jade-700 bg-jade-700 text-white" : "border border-ink-300 bg-white")}>{done[s.id] && <Check className="h-4 w-4" strokeWidth={3.2} aria-hidden />}</span>
             </button>
             {/* What the family sent from the parent app: their note, and the photos / PDF (tap to open). */}
             {s.sent && (
-              <div className="-mt-1 mb-3 ml-12 rounded-xl border border-[#CFE3D6] bg-[#F1F8F3] px-3 py-2">
+              <details className="mb-3 ml-12 border-t border-ink-100 pt-2">
+                <summary className="min-h-[44px] cursor-pointer py-3 text-[13px] font-semibold text-ink-900">{L({hi:"भेजा हुआ काम देखें",en:"View submitted work"})}{s.sent.files.length>0&&` · ${s.sent.files.length} ${L({hi:"फ़ाइल",en:"files"})}`}</summary>
                 {s.sent.note && <p className="whitespace-pre-line break-words text-[13.5px] text-ink-800">{s.sent.note}</p>}
                 <HomeworkFileLinks files={s.sent.files} />
-              </div>
+              </details>
             )}
           </li>
         ))}
