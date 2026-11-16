@@ -27,11 +27,14 @@ interface Item {
   /** False for homework someone else (or the office) posted: only its poster may delete it. */
   mine?: boolean;
   files?: HomeworkFile[];
+  /** How many families sent this homework from the parent app (2026-11-16). */
+  sentCount?: number;
 }
 interface Subs {
   homework: Item;
   checked: boolean;
-  students: { id: string; name: string; rollNo: string; submitted: boolean | null; photoUrl?: string | null }[];
+  sentCount?: number;
+  students: { id: string; name: string; rollNo: string; submitted: boolean | null; photoUrl?: string | null; sent?: { note: string; files: HomeworkFile[]; sentAt: string } | null }[];
 }
 
 type Tab = "create" | "check";
@@ -231,6 +234,7 @@ function CheckTab() {
         {items.map((h) => (
           <option key={h.id} value={h.id}>
             {h.classSec} · {h.subject} · {dayMonth(h.assignedOn, lang)} — {h.title}
+            {h.sentCount ? ` · ${h.sentCount} ${L({ hi: "ने भेजा", en: "sent" })}` : ""}
           </option>
         ))}
       </SelectBox>
@@ -284,15 +288,26 @@ function Ticks({ id }: { id: string }) {
         </div>
         <p className="mt-1.5 text-[15px] font-semibold text-ink-900">{h.title}</p>
       </div>
+      {!!data.sentCount && <p className="text-[13px] font-medium text-jade-700">{L({ hi: `${data.sentCount} बच्चों ने घर से काम भेजा है। नीचे देखें।`, en: `${data.sentCount} sent their work from home. See below.` })}</p>}
       <p className="text-[13px] text-ink-500">{data.checked ? L({ hi: "पहले जाँचा जा चुका है, बदल सकते हैं।", en: "Already checked; you can change it." }) : L({ hi: "जिसने जमा नहीं किया, उसका टिक हटाएँ।", en: "Untick anyone who did not submit." })}</p>
       <ul className="glass-line overflow-hidden px-3.5">
         {data.students.map((s) => (
           <li key={s.id} className="border-b border-ink-900/10 last:border-b-0">
             <button onClick={() => setDone((d) => ({ ...d, [s.id]: !d[s.id] }))} aria-pressed={!!done[s.id]} className="flex min-h-[56px] w-full items-center gap-3 text-left">
               <Avatar name={s.name} url={s.photoUrl} size={36} />
-              <span className="min-w-0 flex-1 truncate text-[15px] font-medium text-ink-900">{s.name}</span>
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[15px] font-medium text-ink-900">{s.name}</span>
+                {s.sent && <span className="block text-[12.5px] font-medium text-jade-700">{L({ hi: "घर से भेजा", en: "Sent from home" })}{s.sent.files.length ? ` · ${s.sent.files.length} ${L({ hi: "फ़ाइल", en: s.sent.files.length === 1 ? "file" : "files" })}` : ""}</span>}
+              </span>
               <span className={clsx("grid h-7 w-7 place-items-center rounded-lg transition-colors", done[s.id] ? "border border-jade-700 bg-jade-700 text-white" : "border border-ink-300 bg-white")}>{done[s.id] && <Check className="h-4 w-4" strokeWidth={3.2} aria-hidden />}</span>
             </button>
+            {/* What the family sent from the parent app: their note, and the photos / PDF (tap to open). */}
+            {s.sent && (
+              <div className="-mt-1 mb-3 ml-12 rounded-xl border border-[#CFE3D6] bg-[#F1F8F3] px-3 py-2">
+                {s.sent.note && <p className="whitespace-pre-line break-words text-[13.5px] text-ink-800">{s.sent.note}</p>}
+                <HomeworkFileLinks files={s.sent.files} />
+              </div>
+            )}
           </li>
         ))}
       </ul>

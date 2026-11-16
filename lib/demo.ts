@@ -587,7 +587,9 @@ export async function demoApi(path: string, method: string, body: any): Promise<
         return { success: true, submitted: Object.values(m).filter(Boolean).length };
       }
       const saved = s.subs[hw.id];
-      return { homework: hw, checked: !!saved, students: rows.map((r) => ({ ...r, submitted: saved ? !!saved[r.id] : null })) };
+      // One family has sent the work from the parent app, so the teacher sees how it looks.
+      const sent = { note: "Did all 10 questions. Q7 was hard.", files: [], sentAt: new Date().toISOString() };
+      return { homework: hw, checked: !!saved, sentCount: rows.length ? 1 : 0, students: rows.map((r, i) => ({ ...r, submitted: saved ? !!saved[r.id] : null, sent: i === 0 ? sent : null })) };
     }
 
     if (p === "/notes") {
