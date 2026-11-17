@@ -99,7 +99,7 @@ export function ErpHome() {
       <div className="erp-home-content space-y-6 px-4 pt-4">
         <div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/home-top-erp.webp" alt={L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" })} className="aspect-[1366/768] w-full rounded-2xl border border-ink-100 bg-ink-100 object-cover" />
+          <img src="/home-top-erp-20261117.jpg" width={1536} height={857} alt={L({ hi: "एडमिन पोर्टल – आपका स्कूल, आपके हाथ में", en: "Admin portal – your school, in your control" })} className="block h-auto w-full rounded-2xl border border-ink-100 bg-ink-100" />
           <Link href="/erp/students/?search=1" className="mt-3.5 flex h-12 items-center gap-2.5 rounded-xl border border-ink-100 bg-white px-4 text-ink-500 shadow-sm" aria-label={L({ hi: "बच्चे खोजें", en: "Search students" })}>
             <Search className="h-[18px] w-[18px] shrink-0 text-ink-700" strokeWidth={2.2} aria-hidden />
             <span className="truncate text-[14.5px]">{L({ hi: "बच्चे का नाम या SR नंबर खोजें", en: "Search a student by name or SR no." })}</span>
