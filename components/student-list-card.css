@@ -1,0 +1,9 @@
+.student-list-card.row-card,.erp-interface .student-list-card.row-card{position:relative;display:flex;align-items:flex-start;gap:12px;width:100%;height:96px;min-height:96px;padding:14px 32px 14px 14px;border:1px solid #D6DDE6;border-radius:14px;background:#fff;box-shadow:none}
+.student-list-copy{display:block;min-width:0;flex:1}
+.student-list-title{display:flex;align-items:baseline;gap:5px;min-width:0;line-height:1.4}
+.student-list-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:15px;font-weight:500;color:#202938}
+.student-list-class{flex-shrink:0;font-size:12px;font-weight:400;color:#536071;max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.student-list-parent{display:block;max-width:100%;margin-top:5px;padding-right:66px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12.5px;line-height:1.5;color:#536071}
+.student-list-fee{position:absolute;right:32px;bottom:12px;font-size:12px}
+.student-list-chevron{position:absolute;right:11px;top:39px;color:#7B8C99}
+.teacher-register:has(.student-list-card){display:grid;gap:8px;background:transparent;border:0}

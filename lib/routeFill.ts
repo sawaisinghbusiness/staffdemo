@@ -85,6 +85,7 @@ export async function fillRoute(route: BusRoute): Promise<BusRoute | null> {
   let changed = false;
   let prev: LatLng | null = null;
   let k = 0;
+  const lookups = new Map(await Promise.all(route.stops.filter(s => !placed(s)).map(async s => [s.name, await lookUp(s.name, near)] as const)));
   const stops = [];
   for (const s of route.stops) {
     if (placed(s)) {
@@ -92,7 +93,7 @@ export async function fillRoute(route: BusRoute): Promise<BusRoute | null> {
       stops.push(s);
       continue;
     }
-    let p: LatLng | null = await lookUp(s.name, near);
+    let p: LatLng | null = lookups.get(s.name) || null;
     if (!p) {
       // About 1 km on from the stop before, turning a little each time so the stops don't sit on one line.
       const from: LatLng = prev || near;
@@ -136,12 +137,13 @@ const signature = (r: BusRoute) => `${r.id}|${r.school.lat},${r.school.lng}|${r.
 export function useFilledRoute(route: BusRoute | null): BusRoute | null {
   const [filled, setFilled] = useState<{ sig: string; r: BusRoute } | null>(null);
   const sig = route ? signature(route) : "";
+  const cached = useMemo(() => sig ? remember<Pick<BusRoute, "school" | "path" | "stops">>("sa:filled-geometry:" + sig) : null, [sig]);
   useEffect(() => {
     if (!route) return;
     if (route.stops.every(placed) && placed(route.school) && route.path?.road) return;
     let gone = false;
     void fillRoute(route).then((r) => {
-      if (!gone && r) setFilled({ sig, r });
+      if (!gone && r) { remember("sa:filled-geometry:" + sig, { school: r.school, path: r.path, stops: r.stops.map(s => ({ name: s.name, lat: s.lat, lng: s.lng })) }); setFilled({ sig, r }); }
     });
     return () => {
       gone = true;
@@ -151,11 +153,12 @@ export function useFilledRoute(route: BusRoute | null): BusRoute | null {
   // repeatedly re-anchor to the preceding road vertex on every render.
   return useMemo(() => {
     if (!route) return null;
-    if (filled && filled.sig === sig) {
+    const geometry = filled && filled.sig === sig ? filled.r : cached;
+    if (geometry) {
       // Keep the backend's latest kids / absences; take the filled places and line.
-      const at = new Map(filled.r.stops.map((s) => [s.name, s]));
-      return { ...route, school: filled.r.school, path: filled.r.path, stops: route.stops.map((s) => (placed(s) ? s : { ...s, lat: at.get(s.name)?.lat ?? null, lng: at.get(s.name)?.lng ?? null })) };
+      const at = new Map(geometry.stops.map((s) => [s.name, s]));
+      return { ...route, school: geometry.school, path: geometry.path, stops: route.stops.map((s) => (placed(s) ? s : { ...s, lat: at.get(s.name)?.lat ?? null, lng: at.get(s.name)?.lng ?? null })) };
     }
     return route;
-  }, [route, filled, sig]);
+  }, [route, filled, sig, cached]);
 }

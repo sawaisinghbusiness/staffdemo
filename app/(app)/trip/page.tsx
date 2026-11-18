@@ -94,6 +94,49 @@ export default function TripPage() {
   const [lastSyncedAt, setLastSyncedAt] = useState<number | null>(null);
   const lastFix = useRef<(LatLng & { receivedAt: number }) | null>(null);
   const mutation = useRef(false);
+  const stopQueue = useRef<Promise<void>>(Promise.resolve());
+  const pendingMarks = useRef(new Map<string, string | null>());
+  const pendingStops = useRef(new Set<string>());
+  const stopSaveFailed = useRef(false);
+  const [savingStops, setSavingStops] = useState(0);
+  const saveStopAction = (path: string, body: unknown, optimistic: { kid?: string; on?: boolean; stop?: string }, before?: { path: string; body: unknown }) => {
+    if (!trip) return;
+    const previousMark = optimistic.kid ? trip.marks[optimistic.kid] : undefined;
+    if (optimistic.kid) pendingMarks.current.set(optimistic.kid, optimistic.on ? new Date().toISOString() : null);
+    if (optimistic.stop) pendingStops.current.add(optimistic.stop);
+    const overlay = (value: Trip) => {
+      const marks = { ...value.marks };
+      pendingMarks.current.forEach((at, id) => { if (at) marks[id] = at; else delete marks[id]; });
+      return { ...value, marks, done: [...new Set([...value.done, ...pendingStops.current])] };
+    };
+    setTrip(value => value ? overlay(value) : value);
+    if (!pendingStops.current.size && pendingMarks.current.size <= 1) stopSaveFailed.current = false;
+    setSavingStops(n => n + 1); setFail("");
+    stopQueue.current = stopQueue.current.then(async () => {
+      try {
+        if (optimistic.stop && stopSaveFailed.current) throw Error("A boarding entry was not saved. Review this stop before continuing.");
+        const response = await api<{ trip?: Trip; route?: BusRoute }>(path, { body });
+        if (optimistic.kid) pendingMarks.current.delete(optimistic.kid);
+        if (optimistic.stop) pendingStops.current.delete(optimistic.stop);
+        if (response.trip) {
+          const confirmed = overlay(response.trip);
+          setTrip(confirmed);
+          patchMemory<RouteData>("/bus/route", old => ({ ...old, trip: confirmed }));
+        }
+        if (response.route) setRoute(response.route);
+        // Location enrichment must not delay recording a child boarding.
+        if (before) void api<{ route?: BusRoute }>(before.path, { body: before.body }).then(r => { if(r.route) setRoute(r.route); }).catch(() => {});
+      } catch (error: any) {
+        stopSaveFailed.current = true;
+        if (optimistic.kid) {
+          pendingMarks.current.delete(optimistic.kid);
+          setTrip(value => { if (!value) return value; const marks = { ...value.marks }; if(previousMark) marks[optimistic.kid!] = previousMark; else delete marks[optimistic.kid!]; return { ...value, marks }; });
+        }
+        if (optimistic.stop) { pendingStops.current.delete(optimistic.stop); setTrip(value => value ? { ...value, done: value.done.filter(name => name !== optimistic.stop) } : value); setSheet("stop"); }
+        setFail(error?.message || "Not saved. Check the connection and try again.");
+      } finally { setSavingStops(n => n - 1); }
+    });
+  };
   const confirmation = useRef<HTMLDivElement>(null);
   const [alertFor, setAlertFor] = useState<string | null>(null);
   const [sheet, setSheet] = useState<"stop" | "delay" | null>(null);
@@ -102,6 +145,7 @@ export default function TripPage() {
   const [busy, setBusy] = useState(false);
   const [sure, setSure] = useState(false);
   const [fail, setFail] = useState("");
+  useEffect(() => { if (!savingStops) return; const warn = (event: BeforeUnloadEvent) => { event.preventDefault(); event.returnValue = ""; }; window.addEventListener("beforeunload", warn); return () => window.removeEventListener("beforeunload", warn); }, [savingStops]);
   const [, tick] = useState(0);
   const closeConfirmation = useCallback(() => { if (!mutation.current) setSure(false); }, []);
   useDialog(sure, confirmation, closeConfirmation, busy);
@@ -113,7 +157,7 @@ export default function TripPage() {
     return () => clearInterval(t);
   }, []);
   useEffect(() => {
-    if (!data) return;
+    if (!data || pendingMarks.current.size || pendingStops.current.size) return;
     setRoute(data.route);
     setTrip(data.trip);
   }, [data]);
@@ -405,7 +449,7 @@ export default function TripPage() {
   }
 
   function endTrip() {
-    if (mutation.current) return;
+    if (mutation.current || pendingMarks.current.size || pendingStops.current.size) return;
     setFail("");
     setSure(true);
   }
@@ -748,10 +792,10 @@ export default function TripPage() {
           busy={busy}
           fail={fail}
           onTick={async (kidId, on) => {
-            await act("/bus/mark", { kidId, on }, newStopPlace());
+            if (!pendingMarks.current.has(kidId)) saveStopAction("/bus/mark", { kidId, on }, { kid: kidId, on }, newStopPlace());
           }}
           onDone={async () => {
-            if (await act("/bus/stop-done", { stop: next.name }, newStopPlace())) setSheet(null);
+            saveStopAction("/bus/stop-done", { stop: next.name }, { stop: next.name }, newStopPlace()); setSheet(null);
           }}
           onClose={() => setSheet(null)}
         />

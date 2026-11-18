@@ -81,6 +81,7 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
         }
       : EMPTY
   );
+  const [step,setStep]=useState(0);
   const [touched,setTouched]=useState(false);
   const {markSaved}=useUnsavedChanges(touched);
   const [bad, setBad] = useState<keyof Form | null>(null);
@@ -104,9 +105,10 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
       document.getElementById(`st-${k}`)?.focus();
       toast(false, m);
     };
-    if (f.name.trim().length < 2) return fail("name", L({ hi: "पूरा नाम लिखें।", en: "Enter the full name." }));
-    if (!/^[6-9]\d{9}$/.test(f.mobile)) return fail("mobile", L({ hi: "10 अंकों का मोबाइल नंबर लिखें।", en: "Enter a 10-digit mobile number." }));
-    if (!f.designation.trim()) return fail("designation", L({ hi: "पद चुनें या लिखें।", en: "Choose or type a designation." }));
+    if (step===0 && f.name.trim().length < 2) return fail("name", L({ hi: "पूरा नाम लिखें।", en: "Enter the full name." }));
+    if (step===2 && !/^[6-9]\d{9}$/.test(f.mobile)) return fail("mobile", L({ hi: "10 अंकों का मोबाइल नंबर लिखें।", en: "Enter a 10-digit mobile number." }));
+    if (step===1 && !f.designation.trim()) return fail("designation", L({ hi: "पद चुनें या लिखें।", en: "Choose or type a designation." }));
+    if(step<3){setStep(step+1);return;}
     setBad(null);
     setBusy(true);
     const input: StaffInput = { ...f, experienceYears: f.experienceYears === "" ? null : Number(f.experienceYears) };
@@ -148,8 +150,10 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
 
   return (
     <form onSubmit={save} noValidate className="animate-rise space-y-3 pb-4">
+      <nav aria-label="Staff form progress" className="grid grid-cols-4 border-b border-ink-200">{[L({hi:"प्रोफ़ाइल",en:"Profile"}),L({hi:"नौकरी",en:"Job"}),L({hi:"संपर्क",en:"Contact"}),L({hi:"जाँचें",en:"Review"})].map((label,i)=><div key={label} aria-current={step===i?"step":undefined} className={clsx("flex flex-col items-center gap-1 border-b-2 py-3 text-xs",step===i?"border-ink-900 font-semibold":"border-transparent text-ink-500")}><span className={clsx("grid h-6 w-6 place-items-center rounded-full border",i<step?"border-green-700 bg-green-700 text-white":"border-ink-200")}>{i<step?"✓":i+1}</span>{label}</div>)}</nav>
       <p className="text-[13px] text-ink-500">{staff ? `${staff.empCode} · ${staff.designation}` : L({ hi: "टीचर और ऑफ़िस स्टाफ़", en: "Teachers and office staff" })}</p>
 
+      <div hidden={step!==0} className="space-y-4">
       <div className="flex gap-6" role="radiogroup" aria-label={L({ hi: "स्टाफ़ का प्रकार", en: "Staff type" })}>
         {(
           [
@@ -173,6 +177,7 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
         <input id="st-empCode" value={f.empCode} onChange={(e) => set("empCode", e.target.value.toUpperCase())} disabled={!!staff} maxLength={30} className="font-mono disabled:text-ink-500" />
       </label>
 
+      </div><div hidden={step!==1} className="space-y-4">
       {text("designation", L({ hi: "पद *", en: "Designation *" }), { max: 100, placeholder: teaching ? "TGT" : "Office Clerk" })}
       <div className="no-scrollbar -mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1" aria-label={L({ hi: "पद चुनें", en: "Pick a designation" })}>
         {DESIGNATIONS[f.staffType].map((d) => (
@@ -183,10 +188,6 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
       </div>
       {text("department", L({ hi: "विभाग", en: "Department" }), { max: 100, placeholder: teaching ? "Science, Primary wing" : "Office, Transport" })}
 
-      {head(L({ hi: "संपर्क और जानकारी", en: "Contact and details" }))}
-      {mobile("mobile", L({ hi: "मोबाइल *", en: "Mobile *" }))}
-      {mobile("altMobile", L({ hi: "दूसरा मोबाइल, अगर हो", en: "Other mobile (optional)" }))}
-      {text("email", L({ hi: "ईमेल, अगर हो", en: "Email (optional)" }), { max: 150, type: "email" })}
       <SelectBox label={L({ hi: "लिंग", en: "Gender" })} value={f.gender} onChange={(v) => set("gender", v)}>
         <option value="">—</option>
         <option value="Female">{L({ hi: "महिला", en: "Female" })}</option>
@@ -202,6 +203,11 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
         <small>{L({ hi: "यहाँ से पहले का अनुभव (साल)", en: "Experience before joining (years)" })}</small>
         <input id="st-experienceYears" type="number" inputMode="numeric" min={0} max={60} value={f.experienceYears} onChange={(e) => set("experienceYears", e.target.value)} className="tnum" />
       </label>
+      </div><div hidden={step!==2} className="space-y-4">
+      {head(L({ hi: "संपर्क और जानकारी", en: "Contact and details" }))}
+      {mobile("mobile", L({ hi: "मोबाइल *", en: "Mobile *" }))}
+      {mobile("altMobile", L({ hi: "दूसरा मोबाइल, अगर हो", en: "Other mobile (optional)" }))}
+      {text("email", L({ hi: "ईमेल, अगर हो", en: "Email (optional)" }), { max: 150, type: "email" })}
       <div className="space-y-1">
         <p className="mlabel">{L({ hi: "पता", en: "Address" })}</p>
         <textarea id="st-address" rows={2} value={f.address} onChange={(e) => set("address", e.target.value)} maxLength={300} className="textarea-box" />
@@ -211,9 +217,12 @@ function StaffForm({ staff }: { staff: StaffMember | null }) {
         <textarea id="st-notes" rows={2} value={f.notes} onChange={(e) => set("notes", e.target.value)} maxLength={500} className="textarea-box" />
       </div>
 
+      </div>
+      {step===3 && <section className="space-y-3 rounded-xl border border-ink-200 bg-white p-4"><h2 className="text-lg font-semibold">{L({hi:"जानकारी जाँचें",en:"Review staff record"})}</h2>{[["Name",f.name],["Designation",f.designation],["Department",f.department],["Joining date",f.joiningDate],["Mobile",f.mobile],["Email",f.email]].map(([label,value])=><div key={label} className="flex justify-between gap-4 border-b border-ink-100 py-2 text-sm"><span>{label}</span><strong className="break-words text-right">{value||"—"}</strong></div>)}<p className="text-xs text-ink-500">{L({hi:"वेतन, ऐप एक्सेस और क्लास असाइनमेंट प्रोफ़ाइल में सेट करें।",en:"Set up salary, app access and class assignments from the staff profile."})}</p></section>}
+      <div className="sticky bottom-0 flex items-center gap-3 border-t border-ink-200 bg-white py-3"><button type="button" disabled={busy||step===0} onClick={()=>setStep(step-1)} className="btn-secondary">{L({hi:"पीछे",en:"Back"})}</button>
       <button type="submit" disabled={busy} className="btn-primary mt-2 w-full">
-        {busy ? "…" : staff ? L({ hi: "बदलाव सेव करें", en: "Save changes" }) : L({ hi: "स्टाफ़ जोड़ें", en: "Add staff" })}
-      </button>
+        {step<3 ? L({hi:"आगे बढ़ें",en:"Continue"}) : busy ? "…" : staff ? L({ hi: "बदलाव सेव करें", en: "Save changes" }) : L({ hi: "स्टाफ़ जोड़ें", en: "Add staff" })}
+      </button></div>
     </form>
   );
 }
