@@ -208,7 +208,7 @@ export interface AppUser {
 
 /** What each role can open — matches the checks in the backend routes. `dot` is the role's colour dot. */
 export const ROLE_INFO: Record<UserRole, { label: Bi; can: Bi; staff: boolean; dot: string }> = {
-  admin: { label: { hi: "एडमिन", en: "Admin" }, dot: "bg-brand-600", staff: true, can: { hi: "सब कुछ: बच्चे, फ़ीस, फ़ीस सेटअप, सेटिंग और ये यूज़र अकाउंट।", en: "Everything: students, fees, fee setup, settings and these user accounts." } },
+  admin: { label: { hi: "\u0928\u093f\u0926\u0947\u0936\u0915", en: "Director" }, dot: "bg-brand-600", staff: true, can: { hi: "सब कुछ: बच्चे, फ़ीस, फ़ीस सेटअप, सेटिंग और ये यूज़र अकाउंट।", en: "Everything: students, fees, fee setup, settings and these user accounts." } },
   accountant: { label: { hi: "अकाउंट्स", en: "Accounts" }, dot: "bg-emerald-600", staff: true, can: { hi: "फ़ीस जमा करता है और रसीद छापता है, पूछताछ देखता है। बच्चे और रिपोर्ट देखता है।", en: "Collects fees and prints receipts, handles enquiries. Sees students and reports." } },
   teacher: { label: { hi: "टीचर", en: "Teacher" }, dot: "bg-sky-600", staff: true, can: { hi: "हाज़िरी लगाता है और गेट पास देता है। बच्चे और रिपोर्ट देखता है।", en: "Marks attendance and issues gate passes. Sees students and reports." } },
   exam_cell: { label: { hi: "एग्ज़ाम सेल", en: "Exam cell" }, dot: "bg-violet-600", staff: true, can: { hi: "बच्चे और रिपोर्ट देखता है। परीक्षा के साथ अंक भरना खुलेगा।", en: "Sees students and reports. Marks entry will open for them with Exams." } },
