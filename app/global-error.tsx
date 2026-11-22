@@ -35,6 +35,10 @@ export default function GlobalError({ error }: { error: Error & { digest?: strin
             <p style={{ fontSize: 14, lineHeight: 1.5, margin: "0 0 20px", color: "#56627A" }}>
               Something went wrong, usually because the app was updated while it was open. Reload to get the new version. ऐप अपडेट हुआ है, दोबारा खोलें।
             </p>
+            {/* The error itself, small, so a screenshot tells us what broke. */}
+            <p style={{ fontSize: 11, lineHeight: 1.4, margin: "0 0 16px", color: "#8A94A6", wordBreak: "break-word", textAlign: "left", whiteSpace: "pre-wrap" }}>
+              {`${error?.name || "Error"}: ${error?.message || ""}${error?.digest ? ` (${error.digest})` : ""}\n${String(error?.stack || "").split("\n").slice(1, 4).join("\n")}`}
+            </p>
             <button
               onClick={() => window.location.reload()}
               style={{ minHeight: 48, padding: "0 24px", borderRadius: 12, border: 0, background: "#0D2A5E", color: "#fff", fontSize: 16, fontWeight: 600 }}
