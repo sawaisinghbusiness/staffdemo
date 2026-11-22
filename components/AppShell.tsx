@@ -8,6 +8,7 @@ import clsx from "clsx";
 import { CalendarCheck, ChevronLeft, History, Home, LayoutDashboard, Menu as MenuIcon, Plus, UserRound, Users, type LucideIcon } from "lucide-react";
 import { useStaff } from "@/lib/staff";
 import { SahayakButton } from "./SahayakButton";
+import { HomeWave } from "./HomeWave";
 import { useSahayakPreference } from "@/lib/sahayakPreference";
 import { useL, type Bi } from "@/lib/i18n";
 import { ActionPalette } from "@/lib/actionPalette";
@@ -324,7 +325,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </header>
       )}
 
-      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", showBottomTabs ? (driver && isHome ? "pb-[calc(65px+env(safe-area-inset-bottom))]" : "pb-28") : "pb-[max(24px,env(safe-area-inset-bottom))]", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
+      <main key={driver ? path : undefined} className={clsx("relative z-10 flex-1", showBottomTabs ? (driver && isHome ? "pb-[calc(65px+env(safe-area-inset-bottom))]" : home ? "pb-44" : "pb-28") : "pb-[max(24px,env(safe-area-inset-bottom))]", !isHome && !own && "staff-task-main space-y-3.5 px-4 pt-1")}>
         {!isHome && !own && <ResourceStatus />}
         {blocked || erpMoved ? null : error && error.status !== 401 ? (
           <div className={clsx(isHome && "px-4 pt-6")}>
@@ -352,13 +353,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       ) : (
       // Teachers and other staff: the parent app's flat bar (user, 2026-11-13): white, a hairline on top,
       // a navy line over the lit tab, whose icon is filled navy. Report sits in the middle as a plain tab.
-      <nav className="fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] border-t border-[#DFE5EF] bg-white pb-[env(safe-area-inset-bottom,0px)]" aria-label="Main">
+      <>
+      {/* Staff Home (not drivers): the parent app's navy and gold wave behind a rounded tab bar (user, 2026-11-22). */}
+      {home && <HomeWave />}
+      <nav className={clsx("fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] bg-white pb-[env(safe-area-inset-bottom,0px)]", home ? "rounded-t-[26px] shadow-[0_-8px_24px_rgba(11,34,80,0.28)]" : "border-t border-[#DFE5EF]")} aria-label="Main">
         <ul className={clsx("relative grid min-h-[64px]", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
           {(mid ? [...tabs.slice(0, 2), { ...mid, icon: LayoutDashboard }, ...tabs.slice(2)] : tabs).map(({ href, text, icon: Icon }) => {
             const on = mid && href === mid.href ? midOn : !midOn && lit === href;
             return (
               <li key={href} className="relative">
-                {on && <span className="absolute inset-x-1 top-[-1px] h-[3px] rounded-b bg-[#0D2A5E]" aria-hidden />}
+                {on && !home && <span className="absolute inset-x-1 top-[-1px] h-[3px] rounded-b bg-[#0D2A5E]" aria-hidden />}
                 <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-full min-h-[64px] min-w-0 flex-col items-center justify-center gap-1 py-2 text-[12px] transition-colors duration-300", on ? "font-bold text-[#0D2A5E]" : "font-medium text-[#5B6478]")}>
                   <Icon className="h-6 w-6" strokeWidth={on ? 2.2 : 1.7} fill={on ? "currentColor" : "none"} aria-hidden />
                   <span className="max-w-full break-words text-center leading-snug">{L(text)}</span>
@@ -368,6 +372,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </ul>
       </nav>
+      </>
 
       )}
 
