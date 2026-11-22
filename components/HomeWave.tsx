@@ -41,6 +41,27 @@ export function HomeWave({ pageBg = "#F7F9FC" }: { pageBg?: string }) {
   const line = useRef<SVGPathElement>(null);
   const glow = useRef<SVGPathElement>(null);
   const stripe = useRef<SVGPathElement>(null);
+  const rise = useRef<HTMLDivElement>(null);
+
+  // Shown only at the end of the page (user, 2026-11-22): while there is more to scroll, the wave waits
+  // behind the tab bar; over the last ~140 px of scrolling it rises into view.
+  useEffect(() => {
+    const place = () => {
+      const left = document.documentElement.scrollHeight - (window.scrollY + window.innerHeight);
+      const shown = Math.max(0, Math.min(1, 1 - left / 140));
+      if (rise.current) rise.current.style.transform = `translateY(${Math.round((1 - shown) * 60)}px)`;
+    };
+    place();
+    window.addEventListener("scroll", place, { passive: true });
+    window.addEventListener("resize", place);
+    const ro = new ResizeObserver(place);
+    ro.observe(document.body);
+    return () => {
+      window.removeEventListener("scroll", place);
+      window.removeEventListener("resize", place);
+      ro.disconnect();
+    };
+  }, []);
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
@@ -98,7 +119,7 @@ export function HomeWave({ pageBg = "#F7F9FC" }: { pageBg?: string }) {
   const b = BACK[0];
   return (
     // 52 px of wave above the tab bar: low enough that it never crowds the last card.
-    <div aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-[19] mx-auto h-[calc(64px+52px+env(safe-area-inset-bottom,0px))] max-w-[560px]">
+    <div ref={rise} aria-hidden className="pointer-events-none fixed inset-x-0 bottom-0 z-[19] mx-auto h-[calc(64px+52px+env(safe-area-inset-bottom,0px))] max-w-[560px] transition-transform duration-300 ease-out motion-reduce:transition-none" style={{ transform: "translateY(60px)" }}>
       <svg viewBox="0 0 400 72" preserveAspectRatio="none" className="absolute inset-x-0 top-0 h-[52px] w-full overflow-visible">
         <defs>
           <linearGradient id="hw-navy" x1="0" y1="0" x2="0" y2="1">
