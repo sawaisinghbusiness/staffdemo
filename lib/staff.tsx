@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect } from "react";
+import { createContext, useContext, useEffect, useMemo } from "react";
 import { useApi, type ApiError } from "./api";
 import { DEMO, demoSignedIn } from "./demo";
 import { isErpMode } from "./erpMode";
@@ -35,11 +35,13 @@ const Ctx = createContext<State>({ me: undefined, stale: false, error: null, rel
 
 /** The signed-in staff member. Teachers also get the classes and subjects they take. */
 export function StaffProvider({ children }: { children: React.ReactNode }) {
-  const { data: me, stale, error, reload } = useApi<Me>("/me");
+  const { data: raw, stale, error, reload } = useApi<Me>("/me");
+  // Only a real answer counts: one without the role or the school is ignored (never crash on it).
+  const me = useMemo(() => (raw && raw.role && raw.school ? { ...raw, sections: Array.isArray(raw.sections) ? raw.sections : [] } : undefined), [raw]);
   // The browser tab carries the school's name from ERP Settings.
   useEffect(() => {
-    if (me?.school.name) document.title = `${me.school.name} · Staff`;
-  }, [me?.school.name]);
+    if (me?.school?.name) document.title = `${me.school.name} · Staff`;
+  }, [me?.school?.name]);
   useEffect(() => {
     // Signed out: straight to sign-in, without first drawing the home screen.
     if (DEMO && !isErpMode() && !demoSignedIn()) window.location.replace("/login/");
