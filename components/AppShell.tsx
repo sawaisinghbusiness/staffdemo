@@ -223,6 +223,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   // Four-tab bars get the raised Report button in the middle (Dhan's centre button, 2026-10-17).
   const mid = tabs.length === 4 ? (erp ? ERP_REPORT : TEACHER_REPORT) : null;
   const midOn = !!mid && (path === mid.href || lit === mid.href);
+  // The bottom bar's tabs in order (Report sits in the middle when there is one).
+  const barTabs = mid ? [...tabs.slice(0, 2), { ...mid, icon: LayoutDashboard }, ...tabs.slice(2)] : tabs;
+  // The tab just tapped: the line starts sliding at once, not when the new page has loaded.
+  const [tapTo, setTapTo] = useState<string | null>(null);
+  useEffect(() => setTapTo(null), [path]);
   // Bottom tabs belong to primary destinations, not nested forms or detail workflows.
   const showBottomTabs = !page?.bare && !driverTrip && (driver
     ? ["/", "/trip/history/", "/profile/"].includes(path)
@@ -356,14 +361,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <>
       {/* Staff Home (not drivers): the parent app's navy and gold wave behind a rounded tab bar (user, 2026-11-22). */}
       {home && <HomeWave />}
-      <nav className={clsx("fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] bg-white pb-[env(safe-area-inset-bottom,0px)]", "rounded-t-[26px]", home ? "shadow-[0_-8px_24px_rgba(11,34,80,0.28)]" : "shadow-[0_-4px_18px_rgba(11,34,80,0.10)]")} aria-label="Main">
+      <nav className={clsx("fixed inset-x-0 bottom-0 z-20 mx-auto max-w-[560px] overflow-hidden bg-white pb-[env(safe-area-inset-bottom,0px)]", "rounded-t-[26px]", home ? "shadow-[0_-8px_24px_rgba(11,34,80,0.28)]" : "shadow-[0_-4px_18px_rgba(11,34,80,0.10)]")} aria-label="Main">
+        {/* One navy line that slides to the lit tab (user, 2026-11-22), as on the parent app. */}
+        <TabLine index={barTabs.findIndex((t) => (tapTo ? t.href === tapTo : mid && t.href === mid.href ? midOn : !midOn && lit === t.href))} count={barTabs.length} />
         <ul className={clsx("relative grid min-h-[64px]", tabs.length === 2 ? "grid-cols-2" : mid ? "grid-cols-5" : "grid-cols-4")}>
-          {(mid ? [...tabs.slice(0, 2), { ...mid, icon: LayoutDashboard }, ...tabs.slice(2)] : tabs).map(({ href, text, icon: Icon }) => {
+          {barTabs.map(({ href, text, icon: Icon }) => {
             const on = mid && href === mid.href ? midOn : !midOn && lit === href;
             return (
               <li key={href} className="relative">
-                {/* The rounded bar (user, 2026-11-22) on every screen: the lit icon, filled navy, shows the tab; no line on the curved top. */}
-                <Link href={href} aria-current={on ? "page" : undefined} className={clsx("flex h-full min-h-[64px] min-w-0 flex-col items-center justify-center gap-1 py-2 text-[12px] transition-colors duration-300", on ? "font-bold text-[#0D2A5E]" : "font-medium text-[#5B6478]")}>
+                <Link href={href} onClick={() => setTapTo(href)} aria-current={on ? "page" : undefined} className={clsx("flex h-full min-h-[64px] min-w-0 flex-col items-center justify-center gap-1 py-2 text-[12px] transition-colors duration-300", on ? "font-bold text-[#0D2A5E]" : "font-medium text-[#5B6478]")}>
                   <Icon className="h-6 w-6" strokeWidth={on ? 2.2 : 1.7} fill={on ? "currentColor" : "none"} aria-hidden />
                   <span className="max-w-full break-words text-center leading-snug">{L(text)}</span>
                 </Link>
@@ -381,5 +387,18 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     </MenuContext.Provider>
     </ErpAppearance.Provider>
     </ActionPalette.Provider>
+  );
+}
+
+/** The navy line over the lit tab (copied from the parent app). It slides, so switching tabs feels smooth. */
+function TabLine({ index, count }: { index: number; count: number }) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute left-0 top-0 z-10 h-[3px] transition-[transform,opacity] duration-[450ms] ease-[cubic-bezier(.2,.8,.2,1)] motion-reduce:transition-none"
+      style={{ width: `${100 / count}%`, transform: `translateX(${Math.max(0, index) * 100}%)`, opacity: index < 0 ? 0 : 1 }}
+    >
+      <span className="mx-auto block h-full w-[62%] rounded-b-full bg-[#0D2A5E]" />
+    </span>
   );
 }
