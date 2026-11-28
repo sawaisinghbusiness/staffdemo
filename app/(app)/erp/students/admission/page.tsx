@@ -76,7 +76,7 @@ function blank(cls = "1st") {
     motherName: "", motherMobile: "", motherOccupation: "", motherEducation: "", motherAadhaar: "", whatsappTo: "Father",
     familyIncome: "", janAadhaar: "", bpl: false, guardianName: "", guardianRelation: "", guardianMobile: "",
     // Address & bus
-    address: "", city: "Barmer", tehsil: "Barmer", district: "Barmer", pincode: "", sameLetters: true, lettersAddress: "",
+    address: "", city: "", tehsil: "", district: "", pincode: "", sameLetters: true, lettersAddress: "",
     transport: false, busRoute: "", busStop: "", emergencyName: "", emergencyRelation: "", emergencyMobile: "",
     // Documents & bank
     documents: {} as Record<string, boolean>, bankHolder: "", bankAccount: "", bankIfsc: "",

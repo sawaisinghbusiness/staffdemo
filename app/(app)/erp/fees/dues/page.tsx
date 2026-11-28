@@ -32,7 +32,7 @@ export default function ErpDuesPage() {
   const L = useL();
   const { data: report, error, reload } = useApi<DuesReport>("/erp/fees/dues");
   const { data: p } = useApi<Record<string, string>>("/erp/school");
-  const school = `${p?.school_name || "School"}, ${p?.city || "Barmer"}`;
+  const school = [p?.school_name || "School", p?.city].filter(Boolean).join(", ");
   const [tab, setTab] = useState<Tab>("students");
   const [q, setQ] = useState("");
   const [cls, setCls] = useState("all");

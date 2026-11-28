@@ -74,7 +74,7 @@ export default function ErpReportCardsPage() {
 
   const info = useSchoolInfo();
   const { data: p } = useApi<Record<string, string>>("/erp/school");
-  const school: ReportSchool = { ...info, city: p?.city || "Barmer", principal: p?.principal_name || undefined };
+  const school: ReportSchool = { ...info, city: p?.city || "", principal: p?.principal_name || undefined };
 
   const pickExam = (id: string) => {
     setExamId(id);

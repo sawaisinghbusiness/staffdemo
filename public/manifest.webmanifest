@@ -1,6 +1,6 @@
 {
-  "name": "St. Paul School — Staff",
-  "short_name": "SPS Staff",
+  "name": "SchoolDesk Staff",
+  "short_name": "SchoolDesk Staff",
   "description": "Attendance, homework, marks and your own details.",
   "start_url": "/",
   "scope": "/",
