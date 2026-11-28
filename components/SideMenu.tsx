@@ -30,6 +30,7 @@ import { useStaff } from "@/lib/staff";
 import { isErpMode } from "@/lib/erpMode";
 import { toast } from "@/lib/toast";
 import { ERP_MENU, ERP_SETTINGS, type ErpItem } from "@/lib/erpNav";
+import { canOpenErp } from "@/lib/erpPerms";
 import { useCounts } from "@/lib/counts";
 import { useSahayakPreference } from "@/lib/sahayakPreference";
 import { useL, useLang, type Bi } from "@/lib/i18n";
@@ -126,7 +127,13 @@ export function SideMenu({ onClose }: { onClose: () => void }) {
   const rowCls = "mx-2 flex min-h-[48px] w-[calc(100%-16px)] items-center gap-3.5 rounded-xl border border-transparent px-3 text-left text-[15.5px]";
 
   /** One ERP module: a link, a "soon" row, or a row that folds open its sub-pages. */
+  const allowed = (href?: string) => !href || canOpenErp(href, me?.erpRole, me?.erpPerms);
   const erpRow = (item: ErpItem) => {
+    if (item.children) {
+      const kids = item.children.filter((c) => allowed(c.href));
+      if (!kids.length) return null;
+      item = { ...item, children: kids };
+    } else if (!allowed(item.href)) return null;
     const Icon = item.icon;
     const key = item.text.en;
     const isOpen = openKey === key;

@@ -77,6 +77,8 @@ export async function erpApi(path: string, method: string, body?: unknown, timeo
       joined: t,
       school,
       sections: [],
+      erpRole: user.role,
+      erpPerms: Array.isArray(user.permissions) ? user.permissions : undefined,
     };
   }
 

@@ -46,6 +46,8 @@ export default function ErpStudentsPage() {
   const all = useMemo(() => data?.data || [], [data]);
   const classes = useMemo(() => Array.from(new Set(all.map((s) => s.class))).sort((a, b) => classRank(a) - classRank(b)), [all]);
   const sections = useMemo(() => Array.from(new Set(all.filter((s) => cls === "all" || s.class === cls).map((s) => s.section))).sort(), [all, cls]);
+  // This login may not see fees: no Due / Paid views (permission "fees.view").
+  const feesHidden = (all || []).some((s) => s.feesHidden);
   const counts = useMemo(() => {
     const due = all.filter((s) => s.balanceFee > 0).length;
     return { all: all.length, due, paid: all.length - due, bus: all.filter((s) => s.transportOpted).length };
@@ -84,12 +86,12 @@ export default function ErpStudentsPage() {
         label={L({ hi: "बच्चे", en: "Students" })}
         value={view}
         onChange={setView}
-        options={[
+        options={([
           { key: "all", text: `${L({ hi: "सभी", en: "All" })}${n(counts.all)}` },
           { key: "due", text: `${L({ hi: "बाकी", en: "Due" })}${n(counts.due)}` },
           { key: "paid", text: `${L({ hi: "पूरी", en: "Paid" })}${n(counts.paid)}` },
           { key: "bus", text: `${L({ hi: "बस", en: "Bus" })}${n(counts.bus)}` },
-        ]}
+        ] as { key: View; text: string }[]).filter((o) => !(feesHidden && (o.key === "due" || o.key === "paid")))}
       />
 
       {newMonth && (
@@ -184,7 +186,7 @@ export default function ErpStudentsPage() {
                       · {parentLine(s)}
                     </span>
                   </span>
-                  {s.balanceFee > 0 ? <Status tone="bad">{rupees(s.balanceFee)}</Status> : <Status tone="ok">{L({ hi: "पूरी", en: "Paid" })}</Status>}
+                  {s.feesHidden ? null : s.balanceFee > 0 ? <Status tone="bad">{rupees(s.balanceFee)}</Status> : <Status tone="ok">{L({ hi: "पूरी", en: "Paid" })}</Status>}
                   <ChevronRight className="h-[18px] w-[18px] shrink-0 text-ink-300" aria-hidden />
                 </Link>
               </li>

@@ -47,7 +47,9 @@ export default function ErpReportPage() {
 
       {/* Fees and students at a glance: the month figure, then three rows that open their lists. */}
       <section className="row-card !p-0" aria-label={L({ hi: "फ़ीस और बच्चे एक नज़र में", en: "Fees and students at a glance" })}>
-        {!f || !data ? (
+        {data?.feesHidden ? (
+          <p className="p-4 text-[14px] text-ink-500">{L({ hi: "फ़ीस के आँकड़े सिर्फ़ डायरेक्टर और अकाउंट्स देख सकते हैं।", en: "Fee figures are only for the director and accounts." })}</p>
+        ) : !f || !data ? (
           <div className="space-y-3 p-4">
             <Skeleton className="h-14 w-full" />
             <Skeleton className="h-10 w-full" />
@@ -297,14 +299,16 @@ export default function ErpReportPage() {
               title={data.attention.chequesThisWeek.count ? L({ hi: `इस हफ़्ते ${data.attention.chequesThisWeek.count} चेक आए`, en: `${data.attention.chequesThisWeek.count} cheques received this week` }) : L({ hi: "इस हफ़्ते कोई चेक नहीं आया", en: "No cheques received this week" })}
               sub={data.attention.chequesThisWeek.count ? L({ hi: `${money(data.attention.chequesThisWeek.amount)} बैंक में जमा करने हैं`, en: `${money(data.attention.chequesThisWeek.amount)} to deposit in the bank` }) : L({ hi: "जमा करने को कुछ नहीं", en: "Nothing to deposit" })}
             />
+{data.fees && (
             <Attention
               icon={IndianRupee}
               tone="bad"
-              title={L({ hi: `${fmt(data.fees.dueStudents)} बच्चों की फ़ीस बाकी है`, en: `${fmt(data.fees.dueStudents)} students have fees pending` })}
-              sub={L({ hi: `कुल ${money(data.fees.sessionDue)}`, en: `${money(data.fees.sessionDue)} in total` })}
+              title={L({ hi: `${fmt(data.fees!.dueStudents)} बच्चों की फ़ीस बाकी है`, en: `${fmt(data.fees!.dueStudents)} students have fees pending` })}
+              sub={L({ hi: `कुल ${money(data.fees!.sessionDue)}`, en: `${money(data.fees!.sessionDue)} in total` })}
               href="/erp/fees/collect/"
               action={L({ hi: "जमा करें", en: "Collect" })}
             />
+            )}
             {(() => {
               const b = data.attention.birthdaysToday;
               return (

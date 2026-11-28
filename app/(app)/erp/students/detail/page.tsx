@@ -166,7 +166,7 @@ export default function ErpStudentDetailPage() {
         label={L({ hi: "प्रोफ़ाइल", en: "Profile" })}
         value={tab}
         onChange={setTab}
-        options={[
+        options={([
           { key: "details", text: L({ hi: "जानकारी", en: "Details" }) },
           { key: "fees", text: L({ hi: "फ़ीस", en: "Fees" }) },
           { key: "ledger", text: L({ hi: "खाता (लेजर)", en: "Ledger" }) },
@@ -183,7 +183,7 @@ export default function ErpStudentDetailPage() {
           { key: "sr", text: L({ hi: "एस.आर. रजिस्टर", en: "SR register" }) },
           { key: "timetable", text: L({ hi: "टाइम टेबल", en: "Timetable" }) },
           { key: "history", text: L({ hi: "बदलाव का इतिहास", en: "Edit history" }) },
-        ]}
+        ] as { key: Tab; text: string }[]).filter((o) => !(s.feesHidden && ["fees", "ledger", "payments", "wallet", "refunds"].includes(o.key)))}
       />
 
       {tab === "details" && (

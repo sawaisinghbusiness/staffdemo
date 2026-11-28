@@ -23,6 +23,9 @@ export interface Me {
   joined: string;
   school: { name: string; shortName: string; logoUrl: string | null; heroUrl?: string | null; officePhone: string; address?: string };
   sections: MySection[];
+  /** ERP login only: the ERP role (admin, accountant, teacher, exam_cell) and what they may see. */
+  erpRole?: string;
+  erpPerms?: string[];
 }
 
 interface State {

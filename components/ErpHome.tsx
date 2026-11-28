@@ -16,6 +16,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Bell, Cake, CalendarCheck, ChevronRight, IndianRupee, Menu as MenuIcon, PhoneCall, RotateCw, Search, UserX, WifiOff } from "lucide-react";
 import { useStaff } from "@/lib/staff";
+import { canOpenErp } from "@/lib/erpPerms";
 import { useApi } from "@/lib/api";
 import { useL, type Bi } from "@/lib/i18n";
 import { useMenu } from "@/lib/menu";
@@ -115,7 +116,7 @@ export function ErpHome() {
 
         {/* ── Eight modules, four to a row; the rest are in the side menu ── */}
         <div className="grid grid-cols-4 gap-2 border-b pb-5" style={{ borderColor: LINE }}>
-          {TILES.map((t, i) => (
+          {TILES.filter((t) => canOpenErp(t.href, me?.erpRole, me?.erpPerms)).map((t, i) => (
             <Link key={t.href} href={t.href} className="home-tile relative flex h-[76px] flex-col items-center justify-between overflow-hidden rounded-[10px] border px-0.5 pt-1.5 active:opacity-80" style={{ animationDelay: `${Math.min(i, 8) * 60}ms` }}>
               <span className="line-clamp-2 text-center text-[11px] font-bold leading-[1.15]">{L(t.text)}</span>
               <Art art={t.art} fx={t.fx} delay={Math.min(i, 8) * 60 + 150} />
@@ -192,8 +193,8 @@ function TodayAtSchool({ d }: { d: Dashboard }) {
       href: "/erp/fees/receipts/",
       icon: IndianRupee,
       label: L({ hi: "आज जमा फ़ीस", en: "Fees collected today" }),
-      detail: d.today.receipts ? L({ hi: `${fmt(d.today.receipts)} रसीदें`, en: `${fmt(d.today.receipts)} receipts` }) : L({ hi: "आज अभी कोई रसीद नहीं", en: "No receipts yet today" }),
-      value: d.today.amount ? money(d.today.amount) : "",
+      detail: d.today?.receipts ? L({ hi: `${fmt(d.today?.receipts ?? 0)} रसीदें`, en: `${fmt(d.today?.receipts ?? 0)} receipts` }) : L({ hi: "आज अभी कोई रसीद नहीं", en: "No receipts yet today" }),
+      value: d.today?.amount ? money(d.today.amount) : "",
       warn: false,
     },
     {
@@ -212,7 +213,7 @@ function TodayAtSchool({ d }: { d: Dashboard }) {
       value: bdays ? String(bdays) : "",
       warn: false,
     },
-  ];
+  ].filter((r) => !(d.feesHidden && r.href.startsWith("/erp/fees/")));
 
   return (
     <section aria-labelledby="erp-today-title">

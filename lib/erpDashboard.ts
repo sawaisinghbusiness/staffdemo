@@ -14,8 +14,10 @@ export interface Dashboard {
     byMonth: { month: string; amount: number }[];
     byMode: { Cash: number; UPI: number; Cheque: number; Other: number };
     topDueClasses: { class: string; due: number }[];
-  };
-  today: { receipts: number; amount: number };
+  } | null;
+  /** null with feesHidden when this login may not see fee figures (permission "fees.dashboard"). */
+  today: { receipts: number; amount: number } | null;
+  feesHidden?: boolean;
   /** Added 2026-10-20 for the app's Report page; an older backend leaves these out. */
   admissions?: {
     newThisMonth: number;

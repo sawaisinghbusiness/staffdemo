@@ -26,6 +26,8 @@ export interface ErpStudent {
   totalFee: number;
   paidFee: number;
   balanceFee: number;
+  /** The server left out fee amounts: this login may not see fees (permission "fees.view"). */
+  feesHidden?: boolean;
   busStop?: string;
   siblingFamilyId?: string;
   /** When the record was made; "new admissions this month" go by it. */
